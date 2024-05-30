@@ -135,7 +135,7 @@ public class importUpdate_ExcelUtil {
 			font.setBold(true);
 	       
 			style.setFont(font);
-			style.setAlignment(HorizontalAlignment.CENTER); 
+			style.setAlignment(HorizontalAlignment.CENTER);
 			style.setVerticalAlignment(VerticalAlignment.CENTER); 
 			style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
 			style.setFillPattern(FillPatternType.SOLID_FOREGROUND);

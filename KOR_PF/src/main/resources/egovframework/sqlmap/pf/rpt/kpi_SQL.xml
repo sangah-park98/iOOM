@@ -353,6 +353,7 @@
 		       A.Rece_Result AS receResult , <!-- 선별결과 -->
 		       A.Tg_Pln_Mark AS tgPlnMark, <!-- 통관계획 부호 --> 
 		       A.Tg_Pln_Cot AS tgPlnCot, <!-- 통관계획 설명 -->
+		       CONCAT(A.Tg_Pln_Mark, '(', A.Tg_Pln_Cot, ')') AS tgCont, <!-- 통관계획 -->
 		       A.Lev_Form AS levForm, <!-- 징수형태 -->
 		       A.Nab_Firm AS nabFirm, <!-- 납세의무자 상호 -->
 		       '-' AS arrDay, <!-- 입항일자 -->

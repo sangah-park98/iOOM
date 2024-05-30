@@ -1296,7 +1296,6 @@ function fn_fileExpInSave(){
  		contentType: false,
  		success: function (data) {
  			alert('파일이 저장되었습니다.');
- 		
  			var vData = {};
  			vData["srch1"] = invoiceNo;
  			fn_searchInFilesPopup(vData);

@@ -336,25 +336,25 @@ function fn_expUpdateTableCol(){
 		{data : 'srOrdr', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'rece', className : "htCenter", width: 50, wordWrap: false, className : "htCenter", readOnly:true, renderer: chipRenderer22},
 		{data : 'modiSeq', className : "htCenter", width: 60, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'modiCot1', className : "htCenter", width: 60, wordWrap: false, className : "htCenter", readOnly:true/*, renderer : unreMemoRenderer*/}, // 정정사유
-		{data : 'receResult', className : "htCenter", width: 60, wordWrap: false, className : "htCenter", readOnly:true, renderer : chipRenderer},
+		{data : 'modiCot1', className : "htCenter", width: 230, wordWrap: false, className : "htCenter", readOnly:true/*, renderer : unreMemoRenderer*/}, // 정정사유
+		{data : 'receResult', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true, renderer : chipRenderer},
 		{data : 'rptNo', className : "htCenter", width: 160, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'invoice', className : "htCenter", width: 130, wordWrap: false, className : "htCenter", readOnly:true},
+		{data : 'invoice', className : "htCenter", width: 140, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'expFirm', className : "htCenter", width: 180, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'buyFirm', className : "htCenter", width: 200, wordWrap: false, className : "htCenter", readOnly:true},
+		{data : 'buyFirm', className : "htCenter", width: 250, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'taStIso', className : "htCenter", width: 60, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'rptDay', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'expLisDay', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'jukDay', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'excCot', className : "htCenter", width: 160, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'conMetnm', className : "htCenter", width: 80, wordWrap: false, className : "htCenter", readOnly:true},
+		{data : 'conMetnm', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'incoterms', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'totPackCnt', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'totWt', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
+		{data : 'totWt', className : "htCenter", width: 100, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'shipDay', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'expDetails', className : "htCenter", width: 100, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'approval', className : "htCenter", width: 120, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'userMemo', className : "htCenter", width: 600, wordWrap: false, className : "htCenter"},
+		{data : 'userMemo', className : "htCenter", width: 300, wordWrap: false, className : "htCenter"},
 		//{data : 'cusMemo', className : "htCenter", wordWrap: false, className : "htCenter"},
 	] 
 
@@ -488,7 +488,7 @@ function fn_exportUpdateExcelDownload(){
 	let expUpdateHeader = new fn_expUpdateTableHeader();
 	
 	exCol = fn_getExcelCol(expUpdateCol.expUpdateViewCol); 
-	exTit = fn_getExcelHead(expUpdateHeader.expUpdateViewHeader); 
+	exTit = fn_getExcelHead(expUpdateHeader.expUpdateViewHeader);
    
     $("#exportUpdateForm").append("<input type='hidden' name='exCol' value="+ exCol +">");
     $("#exportUpdateForm").append("<input type='hidden' name='exTit' value="+ exTit +">");

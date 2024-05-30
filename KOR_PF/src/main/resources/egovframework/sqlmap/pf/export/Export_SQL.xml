@@ -977,10 +977,62 @@
 		WHERE rpt_no = #{srch4}
 		AND rpt_seq = '00';
 	</select>
+	
+	 <select id="selectExportViewLanListExcel" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+		RPT_NO,
+		RAN_NO,
+		CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
+		Exc_Gnm,
+		Con_Amt,
+		Sun_Wt,
+		Pack_Cnt,
+		Ori_st_mark1,
+		mg_code AS invoice,
+		Att_yn
+		FROM cusdec830b1
+		WHERE rpt_no IN (
+		SELECT RPT_NO FROM
+		CUSDEC830A1 A
+		WHERE 
+		    A.rpt_seq = '00'
+		    <choose>
+		    <when test="srch1 =='02'">
+		    AND A.rece = '수리'
+		    </when>
+		    <when test="srch1 =='03'">
+		    AND A.rece NOT IN ('수리', '승인')
+		    </when>
+		    <when test="srch1 =='04'">
+		    AND A.rece = '승인'
+		    </when>
+		    </choose>
+			<choose>
+		    <when test="srch8 =='01'">
+		    AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		    </when>
+		    <otherwise>
+		    AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		    </otherwise>
+		    </choose>
+			<if test="srch4 != null and srch4 != ''">
+			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
+			</if>
+			<if test="srch5 != null and srch5 != ''">
+			AND b.mg_code LIKE CONCAT('%',UPPER(#{srch5}),'%')
+			</if>
+			<if test="corpNo != null and corpNo !=''">
+			AND a.exp_sdno = #{corpNo}
+			</if>
+		)
+		AND rpt_seq = '00';
+	</select>
 
 	<!-- 수출신고 현황 상세 규격 목록 조회 -->
 	<select id="selectExportViewSpecList" parameterType="searchVO" resultType="egovMap">
-		SELECT 
+		SELECT
+		RPT_NO,
+		RAN_NO, 
 		Sil,
 		Gnm1, 
 		Qty, 
@@ -993,6 +1045,58 @@
 		FROM cusdec830c1
 		WHERE rpt_no = #{srch4}
 		AND RAN_NO = #{srch6}
+		AND rpt_seq = '00';
+	</select>
+	
+	<!-- 수출신고 현황 상세 규격 목록 조회 -->
+	<select id="selectExportViewSpecListExcel" parameterType="searchVO" resultType="egovMap">
+		SELECT
+		RPT_NO,
+		RAN_NO, 
+		Sil,
+		Gnm1, 
+		Qty, 
+		Price, 
+		Amt,
+		Gnm2, 
+		Gnm3, 
+		Gnm4, 
+		Gnm5
+		FROM cusdec830c1
+		WHERE rpt_no IN (
+		SELECT RPT_NO FROM
+		CUSDEC830A1 A
+		WHERE 
+		    A.rpt_seq = '00'
+		    <choose>
+		    <when test="srch1 =='02'">
+		    AND A.rece = '수리'
+		    </when>
+		    <when test="srch1 =='03'">
+		    AND A.rece NOT IN ('수리', '승인')
+		    </when>
+		    <when test="srch1 =='04'">
+		    AND A.rece = '승인'
+		    </when>
+		    </choose>
+			<choose>
+		    <when test="srch8 =='01'">
+		    AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		    </when>
+		    <otherwise>
+		    AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		    </otherwise>
+		    </choose>
+			<if test="srch4 != null and srch4 != ''">
+			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
+			</if>
+			<if test="srch5 != null and srch5 != ''">
+			AND b.mg_code LIKE CONCAT('%',UPPER(#{srch5}),'%')
+			</if>
+			<if test="corpNo != null and corpNo !=''">
+			AND a.exp_sdno = #{corpNo}
+			</if>
+		)
 		AND rpt_seq = '00';
 	</select>
 	

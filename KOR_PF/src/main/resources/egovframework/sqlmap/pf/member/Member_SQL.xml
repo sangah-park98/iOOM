@@ -335,7 +335,14 @@
 	DELETE 
 	FROM USER_CMPNY_INFO
 	WHERE USR_ID = #{MEMBER_ID}
+	AND TAX_NO = #{manerEmail}
 </delete>
+
+<select id="selectMyPageCmpnyTaxNo" parameterType="egovframework.pf.member.sevice.SaveCompnyVO" resultType="String">
+	 SELECT TAX_NO 
+	 FROM USER_CMPNY_INFO
+	 WHERE USR_ID = #{MEMBER_ID}
+</select>
 
 <select id="comRegNoConfirm" parameterType="String" resultType="int">
 	 SELECT COUNT(*)
@@ -378,6 +385,13 @@
 	SET manger_email = #{srch2}
 	WHERE TAX_NO = #{srch1}
 </insert>
+
+<select id="selectMyPageCmpnyManger" parameterType="String" resultType="String">
+		 SELECT manger_email
+		 FROM cmpny_info
+		 WHERE TAX_NO = #{compRegNo}
+</select>
+
 
 	
 	

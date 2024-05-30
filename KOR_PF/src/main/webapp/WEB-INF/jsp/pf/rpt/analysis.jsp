@@ -60,9 +60,15 @@
         focus:ring-4 focus:ring-secondary-300 font-medium rounded px-5 py-2 focus:outline-none
         duration-300 row-start-1
       ">
-        <i class="fa-regular fa-search mr-1"></i>
+        <i class="fa-regular fa-download"></i>
 			다운로드
       </button>
+		<button type="button"
+	      	onclick="fn_ananlysisExcleDownload()"
+	        class="text-white bg-primary-700 hover:bg-secondary-800 focus:ring-4 focus:ring-secondary-300 font-medium rounded px-2.5 py-1.5 focus:outline-noneduration-300 row-start-1 text-base">
+         <i class="fa-regular fa-download"></i>
+        	Excel 다운로드
+      	</button>	
     </div>
     <!-- 검색구분 -->
     <label class="col-start-1 row-start-1 col-span-1 row-span-1
@@ -217,7 +223,7 @@
 	<section class="analytics-status-container w-full">
 		<!-- 수입실적 -->
 	  	<article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center" style="background: #E8F0EC; color: black;">
 	        <input id="analytics-export-result" type="checkbox" name="checkAnalysisExcel" value="1" checked class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">5년치 수입실적</span>
@@ -235,7 +241,7 @@
 	    </article>
 		<!-- 수출실적 -->
 	  	<article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center" style="background: #E8F0EC; color: black;">
 	        <input id="analytics-export-result" type="checkbox" name="checkAnalysisExcel" value="2" checked class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">5년치 수출실적</span>
@@ -253,7 +259,7 @@
 	    </article>
 	    <!-- 해외거래처별 수입실적 -->
 	  	<article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center" style="background: #E8F0EC; color: black;">
 	        <input id="analytics-export-result" type="checkbox"  name="checkAnalysisExcel" value="3" checked class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">해외거래처별 수입실적</span>
@@ -274,7 +280,7 @@
 	    </article>
 	    <!-- 해외거래처별 수출실적 -->
 	  	<article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center" style="background: #E8F0EC; color: black;">
 	        <input id="analytics-export-result" type="checkbox"  name="checkAnalysisExcel" value="4" checked class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">해외거래처별 수출실적</span>
@@ -295,7 +301,7 @@
 	    </article>
 	    <!-- 운임 비교 -->
 	  	<article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center" style="background: #E8F0EC; color: black;">
 	        <input id="analytics-export-result" type="checkbox"  name="checkAnalysisExcel" value="5" checked class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">운임 비교</span>
@@ -308,7 +314,7 @@
 	    </article>
 	    <!-- 보험료 비교 -->
 	  	<article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center" style="background: #E8F0EC; color: black;">
 	        <input id="analytics-export-result" type="checkbox" name="checkAnalysisExcel" value="6" checked class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">보험료 비교</span>
@@ -321,7 +327,7 @@
 	    </article>
 	    <!-- 외환신고대상 수출-->
 	  	<article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center" style="background: #E8F0EC; color: black;">
 	        <input id="analytics-export-result" type="checkbox"  name="checkAnalysisExcel" value="7" checked  class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">외환신고대상 수출</span>
@@ -334,7 +340,7 @@
 	    </article>		    		    		    	    
 	    <!-- 수입물품 단가비교 -->
 	    <article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center" style="background: #E8F0EC; color: black;">
 	        <input id="analytics-import-result" type="checkbox" name="checkCostExcel" value="1" checked class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">수입물품 단가비교</span>
@@ -368,7 +374,7 @@
 	    </article>
 	    <!-- 유무상 수입건 과세가격 비교 -->
 	    <article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center" style="background: #E8F0EC; color: black;">
 	        <input id="analytics-export-result" type="checkbox" name="checkCostExcel" value="2" checked class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">유무상 수입건 과세가격 비교</span>
@@ -386,7 +392,7 @@
 	    </article>
 	    <!-- 동일거래, 결제통화 변경점검 (유사거래건없음) -->
 	    <article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center " style="background: #E8F0EC; color: black;">
 	        <input id="analytics-export-result" type="checkbox" name="checkCostExcel" value="3" checked class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">동일거래, 결제통화 변경점검</span>
@@ -399,7 +405,7 @@
 	    </article>
 	    <!-- 동일자재코드 품목분류 상이점검 -->
 	    <article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center " style="background: #E8F0EC; color: black;">
 	        <input id="analytics-export-result" type="checkbox" name="checkEtcExcel" value="1" checked class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">동일자재코드 품목분류 상이점검</span>
@@ -412,7 +418,7 @@
 	    </article>
 	    <!-- 동일자재코드 관세구분 상이점검 -->
 	    <article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center " style="background: #E8F0EC; color: black;">
 	        <input id="analytics-export-result" type="checkbox" name="checkEtcExcel" value="2" checked class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">동일자재코드 관세구분 상이점검</span>
@@ -425,7 +431,7 @@
 	    </article>
 	    <!-- 감면 적용 일관성 검토 -->
 	    <article class="table-block w-full my-1.5 rounded overflow-hidden bg-white ">
-	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center ">
+	      <div class="pl-4 text-xl bg-primary-800 text-white flex items-center " style="background: #E8F0EC; color: black;">
 	        <input id="analytics-export-result" type="checkbox" name="checkEtcExcel" value="3" checked class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
 	        <button class="flex items-center w-full justify-between py-2.5 pr-4">
 	          <span class="ms-2 block w-full text-left">감면 적용 일관성 검토</span>

@@ -482,8 +482,70 @@
 	AND rpt_seq = '00';
 	</select>
 	
-	<select id="selectImportViewSpecList" parameterType="searchVO" resultType="egovMap">
+	<select id="selectImportViewLanListExcel" parameterType="searchVO" resultType="egovMap">
 	SELECT 
+	RPT_NO,
+	RAN_NO,
+	CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
+	GS_DIVI AS na,
+	GS_RATE,
+	STD_GNAME1,
+	EXC_GNAME1,
+	TAX_USD,
+	cs_chk_cot,
+	gs,
+	vat
+	FROM cusdec929b1
+	WHERE rpt_no IN (
+	SELECT RPT_NO FROM
+	CUSDEC929A1 a
+		WHERE 
+		    a.rpt_seq = '00'
+		    <choose>
+			<when test="srch1 =='02'">
+			AND a.rece In ('수리', '자수')			
+			</when>
+			<when test="srch1 =='03'">
+			AND a.rece = '대기'			
+			</when>
+			<when test="srch1 =='04'">
+			AND a.rece = '결재'			
+			</when>
+			<when test="srch1 =='05'">
+			AND a.rece = '미결'			
+			</when>
+			<when test="srch1 =='06'">
+			AND a.rece = '승인'			
+			</when>
+			<when test="srch1 =='07'">
+			AND a.rece = '정정'			
+			</when>
+			</choose>
+			<choose>
+			<when test="srch8 =='01'">
+			 AND a.rpt_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+			</when>
+			<otherwise>
+			 AND a.Lis_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+			</otherwise>
+			</choose>			
+			<if test="srch4 != null and srch4 != ''">
+			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
+			</if>
+			<if test="srch5 != null and srch5 != ''">
+			AND a.blno LIKE CONCAT('%',UPPER(#{srch5}),'%')
+			</if>
+			<if test="corpNo != null and corpNo !=''">
+			AND a.nab_sdno = #{corpNo}
+			</if>
+	)
+	AND rpt_seq = '00';
+	</select>
+	
+	<select id="selectImportViewSpecList" parameterType="searchVO" resultType="egovMap">
+	SELECT
+	RPT_NO,
+	RAN_NO,
 	Sil,
 	IMP_GNAME1,
 	Qty,
@@ -496,6 +558,66 @@
 	FROM cusdec929c1
 	WHERE rpt_no = #{srch2}
 	AND RAN_NO = #{srch3}
+	AND rpt_seq = '00';
+	</select>
+	
+	<select id="selectImportViewSpecListExcel" parameterType="searchVO" resultType="egovMap">
+	SELECT
+	RPT_NO,
+	RAN_NO,
+	Sil,
+	IMP_GNAME1,
+	Qty,
+	Ut,
+	Upi,
+	Amt,
+	IMP_GNAME2,
+	Compoent1,
+	Compoent2
+	FROM cusdec929c1
+	WHERE rpt_no IN (
+	SELECT RPT_NO FROM
+	CUSDEC929A1 a
+		WHERE 
+		    a.rpt_seq = '00'
+		    <choose>
+			<when test="srch1 =='02'">
+			AND a.rece In ('수리', '자수')			
+			</when>
+			<when test="srch1 =='03'">
+			AND a.rece = '대기'			
+			</when>
+			<when test="srch1 =='04'">
+			AND a.rece = '결재'			
+			</when>
+			<when test="srch1 =='05'">
+			AND a.rece = '미결'			
+			</when>
+			<when test="srch1 =='06'">
+			AND a.rece = '승인'			
+			</when>
+			<when test="srch1 =='07'">
+			AND a.rece = '정정'			
+			</when>
+			</choose>
+			<choose>
+			<when test="srch8 =='01'">
+			 AND a.rpt_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+			</when>
+			<otherwise>
+			 AND a.Lis_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+			</otherwise>
+			</choose>			
+			<if test="srch4 != null and srch4 != ''">
+			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
+			</if>
+			<if test="srch5 != null and srch5 != ''">
+			AND a.blno LIKE CONCAT('%',UPPER(#{srch5}),'%')
+			</if>
+			<if test="corpNo != null and corpNo !=''">
+			AND a.nab_sdno = #{corpNo}
+			</if>
+	)
 	AND rpt_seq = '00';
 	</select>
 
