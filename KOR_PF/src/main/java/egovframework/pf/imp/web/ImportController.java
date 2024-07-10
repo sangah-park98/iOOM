@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -21,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.collections.set.SynchronizedSortedSet;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -122,9 +125,6 @@ public class ImportController {
 
 		List<?> resultList = importService.selectImportViewList(vo);
 		model.addAttribute("resultList", resultList);
-		
-		int totCnt = importService.selectImportViewListCnt(vo);
-		model.addAttribute("totCnt", totCnt);
 
 		ModelAndView mav = new ModelAndView("jsonView", model);
 		return mav ;
@@ -139,9 +139,6 @@ public class ImportController {
 		
 		List<?> resultList = importService.selectImportViewLanList(vo);
 		model.addAttribute("resultList", resultList);
-		
-		/*int totCnt = purchaseService.selectPurchaseListCnt(vo);
-		model.addAttribute("totCnt", totCnt);*/
 		
 		ModelAndView mav = new ModelAndView("jsonView", model);
 		return mav ;
@@ -200,9 +197,6 @@ public class ImportController {
 		List<?> resultList = importService.selectImportUpdateList(vo);
 		model.addAttribute("resultList", resultList);
 		
-		int totCnt = importService.selectImportUpdateListCnt(vo);
-		model.addAttribute("totCnt", totCnt);
-		
 		ModelAndView mav = new ModelAndView("jsonView", model);
 		return mav ;
 	}
@@ -220,9 +214,6 @@ public class ImportController {
 		
 		List<?> resultList = importService.selectImportBlList(vo);
 		model.addAttribute("resultList", resultList);
-		
-		int totCnt = importService.selectImportBlListCnt(vo);
-		model.addAttribute("totCnt", totCnt);
 		
 		ModelAndView mav = new ModelAndView("jsonView", model);
 		return mav ;
@@ -602,6 +593,17 @@ public class ImportController {
   		System.out.println("sendCmpnyCd : " + sendCmpnyCd);
   		SearchVO vo = new SearchVO();
   		vo.setSrch1(sendBlNo);
+  		vo.setSrch2(sendCmpnyCd);
+  		
+  		String sendEmail = "";
+  				
+  		sendEmail =  importService.impSendEmail(vo);
+  		if(sendEmail == null ) {
+  			sendEmail = "isseo@kordsystems.com";
+  		}
+  		
+  		System.out.println("sendEmail : " + sendEmail);
+  		
   		importService.impRequestBl(vo);
   		List<?> impblList = importService.selectBlFilesList(vo);
   		
@@ -627,8 +629,8 @@ public class ImportController {
 		} finally {
 			
 		}
-  		
-  		EmailUtill.sendEmailWithFile(sendBlNo, sendCmpnyCd, "isseo@kordsystems.com", "IMPORT", null, "kr", zipFileName);
+  		 
+  		EmailUtill.sendEmailWithFile(sendBlNo, sendCmpnyCd, sendEmail, "IMPORT", null, "kr", zipFileName);
   		
   	}
 	
@@ -672,19 +674,38 @@ public class ImportController {
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
 		vo.setLang(userVO.getLang());
 		vo.setCmpnyCd(userVO.getCmpnyCd());
+		
 
 		String saveDir = "/home/files";
-		String zipFileName = downloadFile.get(0).getRptNo() + ".zip";
-		System.out.println(downloadFile.get(0).getRptNo());
-		System.out.println(zipFileName);
-
+		String saveDir2 = "";
+		
+		String zipFileName;
+        if (downloadFile.get(0).getBlno() != null && !downloadFile.get(0).getBlno().isEmpty()) {
+        	zipFileName = downloadFile.get(0).getBlno() + "_" + downloadFile.get(0).getRptNo() + ".zip";
+        } else if (downloadFile.get(0).getInvoiceNo() != null && !downloadFile.get(0).getInvoiceNo().isEmpty()) {
+        	zipFileName = downloadFile.get(0).getInvoiceNo() + "_" + downloadFile.get(0).getInvoiceNo() + ".zip";
+        } else {
+        	zipFileName = downloadFile.get(0).getRptNo() + ".zip";
+        }
+		
+        System.out.println("파일명: " + zipFileName);
+		System.out.println("회사명: " + userVO.getCmpnyCd());
+		
 		try {
 			FileOutputStream fos = new FileOutputStream(saveDir + File.separator + zipFileName);
             ZipOutputStream zipOut = new ZipOutputStream(fos);
 
             // 파일 목록을 순회하며 압축 파일에 추가
             for (ZipFileDownload file : downloadFile) {
-                addFileToZip(saveDir, file.getDocuFile(), zipOut);
+            	
+            	System.out.println(file.getDocuType());
+            	
+            	if(file.getDocuType().equals("DC")) {
+            		saveDir2 = file.getDocuPath();
+            	} else {
+            		saveDir2 = "/home/files";
+            	}
+                addFileToZip(saveDir2, file.getDocuFile(), zipOut);
             }
 	            // ZIP 출력 스트림 닫기
 	            zipOut.close();
@@ -853,6 +874,9 @@ public class ImportController {
 					SearchVO sheetSearchVo = new SearchVO();
 					sheetSearchVo.setLang(userVO.getLang());      
 					sheetSearchVo.setCorpNo(userVO.getCorpNo());
+					
+					System.out.println("회사번호 :  " + userVO.getCorpNo());
+					
 					sheetSearchVo.setRecordCountPerPage(99999999);
 					sheetSearchVo.setStartPage(0);
 					
@@ -862,6 +886,7 @@ public class ImportController {
 					sheetSearchVo.setSrch5((String) vo.getSrch5());
 					sheetSearchVo.setSrch6((String) vo.getSrch6());
 					sheetSearchVo.setSrch7((String) vo.getSrch7());
+					sheetSearchVo.setSrch8((String) vo.getSrch8());
 					
 					
 					if("01".equals(vo.getExType())) {

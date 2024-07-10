@@ -11,7 +11,7 @@ var thisTaxbilNo = '';
 var thisCustomExpNo = '';
 var checkBoxRptNo;
 var docuDownloadHot;
-
+var checkData = [];
 var rptNoListHot;
 var uploaderButtonDocu;
 var modalCloseDocu;
@@ -48,6 +48,10 @@ $( document ).ready(function() {
 	  $("#documentViewInfo1").hide();
 	  $("#documentViewInfo2").hide();
 	  fn_changeDocumentView('read');
+	  
+	  
+	  $("#docuTextView").text("수입");
+      $("#docuTextView").prepend('<i class="fa-duotone fa-feather text-primary-900"></i>'); 
 	 
 	  //scroll 이벤트
 	  fn_documentViewasEventReg();
@@ -77,16 +81,35 @@ $("input[name=documentView_srch1]").change(function(){
 	  
 	  var radioValue = document.querySelector('input[name="documentView_srch1"]:checked').value;
 	  if (radioValue === '03') {
-	    document.getElementById('blNoLabel').innerText = 'Invoice 번호';
-	    document.getElementById('documentView_srch7').placeholder = 'Invoice 번호를 입력해주세요.';
-	    document.getElementById('poNoLabel').innerText = 'SO 번호';
-	    document.getElementById('documentView_srch9').placeholder = 'SO 번호를 입력해주세요.';
+		  document.getElementById('blNoLabel').innerText = 'Invoice 번호';
+		  document.getElementById('documentView_srch7').placeholder = 'Invoice 번호를 입력해주세요.';
+		  document.getElementById('poNoLabel').innerText = 'SO 번호';
+		  document.getElementById('documentView_srch9').placeholder = 'SO 번호를 입력해주세요.';
+		  $("#docuTextView").text("수출");
+	      $("#docuTextView").prepend('<i class="fa-duotone fa-feather text-primary-900"></i>'); 
+        
 	  } else {
 		  document.getElementById('blNoLabel').innerText = 'B/L 번호';
 		  document.getElementById('documentView_srch7').placeholder = 'B/L 번호를 입력해주세요.';
 		  document.getElementById('poNoLabel').innerText = 'PO 번호';
 		  document.getElementById('documentView_srch9').placeholder = 'PO 번호를 입력해주세요.';
+		  $("#docuTextView").text("수입");
+	      $("#docuTextView").prepend('<i class="fa-duotone fa-feather text-primary-900"></i>'); 
 	  }
+});
+
+$(document).mousedown(function(e){	
+	if(e.target.name == "documentView1_date" || e.target.name == "documentView2_date"){
+		if($(".calendar-popup-container").hasClass("calendar-popup-container_active")){
+			return;
+		}
+		$(".calendar-popup-container").remove();
+		$('.band-calendar').each(function(){ regCal(this);});
+	}else{
+		if($(".calendar-popup-container").hasClass("calendar-popup-container_active")){
+			$(".calendar-popup-container").attr("class", "calendar-popup-container");
+		}	
+	}
 });
 
 
@@ -157,17 +180,18 @@ function fn_setDocumentView(){
 	sData["srch6"] = $("#documentView_srch6").val();
 	sData["srch7"] = $("input[name=documentView1_date]").val(); // srch7: 신고일자 처음
 	sData["srch8"] = $("input[name=documentView2_date]").val(); // srch8: 신고일자 끝
+	sData["srch9"] = $("#documentView_srch9").val(); 
+	sData["srch10"] = $("#documentView_srch10").val();
 	sData["srch33"] = $("#documentView_day option:selected").val(); // srch33: 신고일자 select
 	
 	sData["recordCountPerPage"] = $("#documentViewPageCnt option:selected").val();
 	sData["pageIndex"] = documentViewIndex;
-	// console.log(sData);
-	
 	return sData;
 };
 
 //검색 버튼 클릭 시 호출되는 함수
 function fn_searchDocuView(){
+	fn_loading(true);
 	documentViewIndex = 0;
 	var sData = fn_setDocumentView();
 	var url;
@@ -189,10 +213,13 @@ function fn_searchDocuView(){
         	documentViewHot.loadData([]);
         	documentViewHot.loadData(data.resultList);
         	if (sData["srch1"] === "02") {
-                $("#documentViewCnt").text(data.imptotCnt.toLocaleString());
+                var imptotCnt = (data.resultList.length > 0) ? data.resultList[0].cnt : 0;
+            	$("#documentViewCnt").text(imptotCnt);
             } else if (sData["srch1"] === "03") {
-                $("#documentViewCnt").text(data.exptotCnt.toLocaleString());
+            	var exptotCnt = (data.resultList.length > 0) ? data.resultList[0].cnt : 0;
+            	$("#documentViewCnt").text(exptotCnt);
             }
+        	fn_loading(false);
         },
         error : function(e, textStatus, errorThrown) {
         	if(e.status == 400){
@@ -202,6 +229,7 @@ function fn_searchDocuView(){
 	        	console.log(errorThrown);
 	        	alert(msgSearchError);
         	}
+        	fn_loading(false);
         }
 	});
 };
@@ -219,7 +247,6 @@ function fn_documentViewasEventReg(){
   	  var scrollTop = $("#documentViewTable .wtHolder").scrollTop();
   	  var countPerPage = $("#documentViewPageCnt option:selected").val();
   	  var rowHeight = documentViewHot.getRowHeight();
-
   	  var addCnt = 750;
   	  if(countPerPage == "50"){
   		  addCnt = 750;
@@ -240,7 +267,6 @@ function fn_documentViewasEventReg(){
 //스크롤
 function fn_documentViewScroll(){
 	
-	documentViewIndex = 0;
 	var sData = fn_setDocumentView();
 	var url;
 	if (sData["srch1"] === "02") {
@@ -315,6 +341,8 @@ function fn_clearDocuView(){
 	$("#documentView_srch5").val("");
 	$("#documentView_srch6").val("");
 	$("#documentView_srch7").val("");
+	$("#documentView_srch8").val("");
+	$("#documentView_srch9").val("");
 };
 
 
@@ -339,15 +367,16 @@ function fn_documentViewTableCol(){
 			{data : 'rptNo', className : "htCenter", width: 160, className : "htCenter", readOnly:true, renderer : docuFileLoadRenderer},
 			{data : 'rptDay', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'lisDay', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
-			{data : 'factoryCode', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
+			{data : 'plntCd', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'prOrdr', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'dc', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
+			{data : 'cb', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
+			{data : 'uc', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'ci', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'pl', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'bl', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'co', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'rq', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
-			{data : 'cb', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'ot', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'ac', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			
@@ -358,15 +387,16 @@ function fn_documentViewTableCol(){
 			{data : 'rptNo', className : "htCenter", width: 150, className : "htCenter", readOnly:true, renderer : docuFileLoadRenderer},
 			{data : 'rptDay', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'expLisDay', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
-			{data : 'factoryCode', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
+			{data : 'plntCd', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'prOrdr', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'dc', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
+			{data : 'cb', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
+			{data : 'uc', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'ci', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'pl', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'bl', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'co', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'rq', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
-			{data : 'cb', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'ot', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'ac', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 		];
@@ -402,12 +432,12 @@ function fn_documentViewTableHeader(){
 	if(searchType == '02') {
 		this.documentViewHeader = [
 			"",
-			"B/L 번호", "신고번호", "신고일자", "수리일자", "공장코드", "PO번호", "신고필증", "Invoice", "Packing List", "B/L", "원산지증명서", "요건 서류", "통합", "기타", "정산서"
+			"B/L 번호", "신고번호", "신고일자", "수리일자", "부서코드", "PO번호", "신고필증", "통합", "정정 통합", "Invoice", "Packing List", "B/L", "원산지증명서", "요건 서류", "기타", "정산서"
 		 ]; 
 	} else if(searchType == '03') {
 		this.documentViewHeader = [
 			"",  
-			"Invoice 번호", "신고번호", "신고일자", "수리일자", "공장코드", "SO번호", "신고필증", "Invoice", "Packing List", "B/L", "원산지증명서", "요건 서류", "통합", "기타", "정산서"
+			"Invoice 번호", "신고번호", "신고일자", "수리일자", "부서코드", "SO번호", "신고필증", "통합", "정정 통합", "Invoice", "Packing List", "B/L", "원산지증명서", "요건 서류", "기타", "정산서"
 		 ];
 	}
 }
@@ -437,7 +467,7 @@ function fn_handsonGridViewOption(col, header, hidden){
 	  stretchH : 'all',
 	  width : '100%',
 	  autoWrapRow : true,
-	  height : 550,
+	  height : 500,
 	  rowHeights : 25,
 	  rowHeaders : true,
 	  columnHeaderHeight : 25,
@@ -800,12 +830,13 @@ function uploadFilesDocu(files) {
        </p>
        <select class="min-w-40 text-primary-700 bg-primary-50 border border-primary-500 hover:bg-primary-200 focus:ring-4 focus:outline-none focus:ring-primary-400 font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center justify-between dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800" >
 	      <option value="dc">신고필증</option>
+    	  <option value="cb">통합</option>
+    	  <option value="cb">정정 통합</option>
 	      <option value="ci">INVOICE</option>
 	      <option value="pl">PACKING LIST</option>
 	      <option value="bl">BL</option>
 	      <option value="co">원산지증명서</option>
 	      <option value="rq">요건 서류</option>
-	      <option value="cb">통합</option>
 	      <option value="ot">기타</option>
 	      <option value="ac">정산서</option>
        </select>
@@ -906,10 +937,6 @@ function fn_fileDocuSave(){
 	const fileInput = document.getElementById('dropzone-file-docu');
 	const files = fileInput.files;
 	
-	docuLoadedFiles.forEach((file) => {
-		console.log(file);
-	});
-	
 	const formData = new FormData();
 
 	const liFileData = Array.from(fileList).map(fileListItem => {
@@ -930,6 +957,8 @@ function fn_fileDocuSave(){
 		    formData.append('fileBL[]', docuLoadedFiles[i]);
 		  } else if (matchingLiData.fileType === 'dc') {
 		    formData.append('fileDC[]', docuLoadedFiles[i]);
+		  } else if (matchingLiData.fileType === 'uc') {
+		    formData.append('fileUC[]', docuLoadedFiles[i]);
 		  } else if (matchingLiData.fileType === 'ci') {
 		    formData.append('fileCI[]', docuLoadedFiles[i]);
 		  } else if (matchingLiData.fileType === 'pl') {
@@ -953,11 +982,6 @@ function fn_fileDocuSave(){
 	formData.append('docuBlNo', docuBlNo);
 	formData.append('docuType', docuType);
 	formData.append('docuInvoiceNo', docuInvoiceNo);
-	
-    for (const [key, value] of formData.entries()) {
-  	  console.log(`${key}: ${value}`); // O
-  	}
-    
     
 	$.ajax({
 		type: 'POST',
@@ -990,7 +1014,7 @@ function fn_docuDownloadPopUp(){
 	var cnt1 = 0; 
 	docuDownloadHot.loadData([]);
 	var data = documentViewHot.getSourceData();
-	var checkData = [];
+	checkData = [];
 	for (var i = 0; i < data.length; i++) {
 		if (data[i]["checkBox"] == "yes") {
 			checkData.push(data[i]);
@@ -999,28 +1023,31 @@ function fn_docuDownloadPopUp(){
 	}
 	
 	for (var i = 0; i < checkData.length; i++) {
-		console.log(checkData[i]);
 		docuDownloadHot.alter('insert_row_below', i, 1);
 		docuDownloadHot.setDataAtCell(i, 0, checkData[i].rptNo);
 		docuDownloadHot.setDataAtCell(i, 1, checkData[i].dc === "O");
-		docuDownloadHot.setDataAtCell(i, 2, checkData[i].ci === "O");
-		docuDownloadHot.setDataAtCell(i, 3, checkData[i].pl === "O");
-		docuDownloadHot.setDataAtCell(i, 4, checkData[i].bl === "O");
-		docuDownloadHot.setDataAtCell(i, 5, checkData[i].co === "O");
-		docuDownloadHot.setDataAtCell(i, 6, checkData[i].rq === "O");
-		docuDownloadHot.setDataAtCell(i, 7, checkData[i].cb === "O");
-		docuDownloadHot.setDataAtCell(i, 8, checkData[i].ot === "O");
-		docuDownloadHot.setDataAtCell(i, 9, checkData[i].ac === "O");
+		docuDownloadHot.setDataAtCell(i, 2, checkData[i].cb === "O");
+		docuDownloadHot.setDataAtCell(i, 3, checkData[i].uc === "O");
+		docuDownloadHot.setDataAtCell(i, 4, checkData[i].ci === "O");
+		docuDownloadHot.setDataAtCell(i, 5, checkData[i].pl === "O");
+		docuDownloadHot.setDataAtCell(i, 6, checkData[i].bl === "O");
+		docuDownloadHot.setDataAtCell(i, 7, checkData[i].co === "O");
+		docuDownloadHot.setDataAtCell(i, 8, checkData[i].rq === "O");
+		docuDownloadHot.setDataAtCell(i, 9, checkData[i].ot === "O");
+		docuDownloadHot.setDataAtCell(i, 10, checkData[i].ac === "O");
+		docuDownloadHot.setDataAtCell(i, 11, checkData[i].blno);
+		docuDownloadHot.setDataAtCell(i, 12, checkData[i].mgCode);
 		
 		docuDownloadHot.getCellMeta(i, 1).readOnly = (checkData[i].dc === "-");
-		docuDownloadHot.getCellMeta(i, 2).readOnly = (checkData[i].ci === "-");
-		docuDownloadHot.getCellMeta(i, 3).readOnly = (checkData[i].pl === "-");
-		docuDownloadHot.getCellMeta(i, 4).readOnly = (checkData[i].bl === "-");
-		docuDownloadHot.getCellMeta(i, 5).readOnly = (checkData[i].co === "-");
-		docuDownloadHot.getCellMeta(i, 6).readOnly = (checkData[i].rq === "-");
-		docuDownloadHot.getCellMeta(i, 7).readOnly = (checkData[i].cb === "-");
-		docuDownloadHot.getCellMeta(i, 8).readOnly = (checkData[i].ot === "-");
-		docuDownloadHot.getCellMeta(i, 9).readOnly = (checkData[i].ac === "-");
+		docuDownloadHot.getCellMeta(i, 2).readOnly = (checkData[i].cb === "-");
+		docuDownloadHot.getCellMeta(i, 3).readOnly = (checkData[i].uc === "-");
+		docuDownloadHot.getCellMeta(i, 4).readOnly = (checkData[i].ci === "-");
+		docuDownloadHot.getCellMeta(i, 5).readOnly = (checkData[i].pl === "-");
+		docuDownloadHot.getCellMeta(i, 6).readOnly = (checkData[i].bl === "-");
+		docuDownloadHot.getCellMeta(i, 7).readOnly = (checkData[i].co === "-");
+		docuDownloadHot.getCellMeta(i, 8).readOnly = (checkData[i].rq === "-");
+		docuDownloadHot.getCellMeta(i, 9).readOnly = (checkData[i].ot === "-");
+		docuDownloadHot.getCellMeta(i, 10).readOnly = (checkData[i].ac === "-");
 	}
 	
 	setTimeout(function() {docuDownloadHot.render()}, 100);
@@ -1040,14 +1067,17 @@ function fn_handsonGridDownloadPopupOption() {
         columns: [
         	{data : 'rptNo', className : "htCenter", width: 150, className : "htCenter"},
         	{data : 'dc', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
+        	{data : 'cb', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
+        	{data : 'uc', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
         	{data : 'ci', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
         	{data : 'pl', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
         	{data : 'bl', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
         	{data : 'co', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
         	{data : 'rq', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
-        	{data : 'cb', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
         	{data : 'ot', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
         	{data : 'ac', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
+        	{data : 'blno', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
+        	{data : 'mgCode', type:'text', className:"htCenter", type:'checkbox', checkedTemplate:true, uncheckedTemplate:false, readOnly:false},
         ],
         stretchH: 'all',
         width: '100%',
@@ -1056,7 +1086,7 @@ function fn_handsonGridDownloadPopupOption() {
         rowHeights: 25,
         rowHeaders: true,
         columnHeaderHeight: 25,
-        colHeaders: ["신고번호", "신고필증", "Invoice", "Packing List", "B/L", "원산지증명서", "요건서류", "통합", "기타", "정산서"],
+        colHeaders: ["신고번호", "신고필증", "통합", "정정 통합", "Invoice", "Packing List", "B/L", "원산지증명서", "요건서류", "기타", "정산서", ""],
         manualRowResize: true,
         manualColumnResize: true,
         manualRowMove: true,
@@ -1067,6 +1097,7 @@ function fn_handsonGridDownloadPopupOption() {
         readOnly: false,
         columnSorting: { indicator: true },
         autoColumnSize: { samplingRatio: 23 },
+        hiddenColumns: { copyPasteEnabled: false, indicators: false, columns: [11, 12]},
         mergeCells: false,
         allowInsertRow: false,
     };
@@ -1082,6 +1113,7 @@ function fn_docuDownload() {
     for (var i = 0; i < data.length; i++) {
     	docuRptNo.push(data[i]);
     }
+    console.log(JSON.stringify(data, null, 2));
 
     $.ajax({
      type: "POST",
@@ -1092,7 +1124,6 @@ function fn_docuDownload() {
          xhr.setRequestHeader("AJAX", "true");
      },
      success: function(response) {
-    	 console.log(response);
 	     if (response === "fail" ) {
            alert("다운로드할 파일을 확인해 주세요.");
            return;
@@ -1114,7 +1145,19 @@ function downloadFilesWithDelay(docuRptNo, delay) {
             console.log('모든 파일 다운로드 완료');
             return;
         }
-        const zipName = docuRptNo[index].rptNo;
+
+        let zipName;
+        const doc = docuRptNo[index];
+
+        if (doc.blno != null && doc.blno.length > 0) {
+            zipName = doc.blno + "_" + doc.rptNo;
+        } else if (doc.mgCode != null && doc.mgCode.length > 0) {
+            zipName = doc.mgCode + "_" + doc.rptNo;
+        } else {
+            zipName = doc.rptNo;
+        }
+        
+        console.log(zipName);
         $("#zipDownloadName").val(zipName);
         document.zipDownloadForm.action = "/docu/downloadDocuFile.do";
         document.zipDownloadForm.submit();
@@ -1147,6 +1190,7 @@ function fn_docuAllClick(){
 
 // 돋보기
 function fn_docuGlassesBtn(row, col){
+	isAllChecked = false;
 	modalBlNo = "";
 	modalRptNo = "";
 	var data = documentViewHot.getSourceDataAtRow(row);
@@ -1221,7 +1265,6 @@ function fn_searchDocuFilesPopup(sData){
 		dataType : 'json',
 		async: false,
         success : function(data) {
-        	console.log(data.resultList)
         	docuListHot.loadData([]);
         	docuListHot.loadData(data.resultList);
 			setTimeout(function() {docuListHot.render()}, 200);
@@ -1256,7 +1299,11 @@ function fn_docuListPopupCol(){
                          td.innerHTML = '<div style="text-align: center;">Packing List</div>';
                      } else if (value === 'DC') {
                          td.innerHTML = '<div style="text-align: center;">신고필증</div>';
-                     }  else if (value === 'CO') {
+                     } else if (value === 'CB') {
+                         td.innerHTML = '<div style="text-align: center;">통합</div>';
+                     } else if (value === 'UC') {
+                         td.innerHTML = '<div style="text-align: center;">정정 통합</div>';
+                     } else if (value === 'CO') {
                          td.innerHTML = '<div style="text-align: center;">원산지증명서</div>';
                      } else if (value === 'RQ') {
                          td.innerHTML = '<div style="text-align: center;">요건 서류</div>';
@@ -1264,8 +1311,6 @@ function fn_docuListPopupCol(){
                          td.innerHTML = '<div style="text-align: center;">기타</div>';
                      } else if (value === 'AC') {
                          td.innerHTML = '<div style="text-align: center;">정산서</div>';
-                     } else if (value === 'CB') {
-                         td.innerHTML = '<div style="text-align: center;">통합</div>';
                      } else {
                          td.innerHTML = '<div style="text-align: center;">B/L</div>';
                      }
@@ -1296,7 +1341,11 @@ function fn_docuListPopupCol(){
                          td.innerHTML = '<div style="text-align: center;">Packing List</div>';
                      } else if (value === 'DC') {
                          td.innerHTML = '<div style="text-align: center;">신고필증</div>';
-                     }  else if (value === 'CO') {
+                     } else if (value === 'CB') {
+                         td.innerHTML = '<div style="text-align: center;">통합</div>';
+                     } else if (value === 'UC') {
+                         td.innerHTML = '<div style="text-align: center;">정정 통합</div>';
+                     } else if (value === 'CO') {
                          td.innerHTML = '<div style="text-align: center;">원산지증명서</div>';
                      } else if (value === 'RQ') {
                          td.innerHTML = '<div style="text-align: center;">요건 서류</div>';
@@ -1304,8 +1353,6 @@ function fn_docuListPopupCol(){
                          td.innerHTML = '<div style="text-align: center;">기타</div>';
                      } else if (value === 'AC') {
                          td.innerHTML = '<div style="text-align: center;">정산서</div>';
-                     } else if (value === 'CB') {
-                         td.innerHTML = '<div style="text-align: center;">통합</div>';
                      } else {
                          td.innerHTML = '<div style="text-align: center;">B/L</div>';
                      }
@@ -1444,6 +1491,9 @@ function uploadFilesDocuImp(files) {
 		    var option9 = document.createElement('option');
 		    option9.value = "cb";
 		    option9.text = "통합";
+		    var option10 = document.createElement('option');
+		    option10.value = "uc";
+		    option10.text = "정정 통합";
 		    selectHTML.appendChild(option1);
 		    selectHTML.appendChild(option2);
 		    selectHTML.appendChild(option3);
@@ -1453,6 +1503,7 @@ function uploadFilesDocuImp(files) {
 		    selectHTML.appendChild(option7);
 		    selectHTML.appendChild(option8);
 		    selectHTML.appendChild(option9);
+		    selectHTML.appendChild(option10);
 
 		    docuListHot.getCellMeta(newRowIdx, 2).renderer = function(instance, td, row, col, prop, value, cellProperties) {
 		        Handsontable.renderers.HtmlRenderer.apply(this, arguments);
@@ -1474,7 +1525,6 @@ function uploadFilesDocuImp(files) {
 function deleteDocuFileRow(row){
 	var rowData = docuListHot.getSourceDataAtRow(row);
 	var fileName = rowData.docuOrgFile;
-	console.log(fileName);
 	const index = docuLoadedFiles.findIndex(file => file.name === fileName);
 	docuLoadedFiles.splice(index, 1);
 	docuListHot.alter('remove_row', row);
@@ -1529,6 +1579,12 @@ function deleteDocuFile(row) {
 
 
 function fn_fileDocuModalSave() {
+	
+	if(docuLoadedFiles.length == 0){
+		alert("저장할 파일이 없습니다.")
+		return;
+	}
+	
 	var searchTp = $("input:radio[name=documentView_srch1]:checked").val();
  	var blNo = "";
  	var rptNo = "";
@@ -1559,6 +1615,8 @@ function fn_fileDocuModalSave() {
             formData.append('fileBL[]', docuLoadedFiles[i]);
         } else if (sData[i].docuType === 'dc') {
             formData.append('fileDC[]', docuLoadedFiles[i]);
+        } else if (sData[i].docuType === 'uc') {
+            formData.append('fileUC[]', docuLoadedFiles[i]);
         } else if (sData[i].docuType === 'ci') {
             formData.append('fileCI[]', docuLoadedFiles[i]);
         } else if (sData[i].docuType === 'pl') {
@@ -1603,6 +1661,7 @@ function fn_fileDocuModalSave() {
  			vData["srch4"] = invoiceNo;
  			fn_searchDocuFilesPopup(vData);
  			fn_searchDocuView();
+ 			docuLoadedFiles = [];
  		},
  		error: function (e, textStatus, jqXHR) {}
  	});
@@ -1638,8 +1697,19 @@ function fn_docuPopupDelete() {
     var sData = {};
     var rowData = docuListHot.getSourceData();
     var searchTp = $("input:radio[name=documentView_srch1]:checked").val();
-    // console.log(rowData);
-
+    var cnt = 0;
+    for (let i = 0; i < rowData.length; i++) {
+        if (rowData[i].checkBox === "yes") {
+        	cnt++;
+        }
+    }
+    
+    if (isAllChecked == false && cnt == 0){
+    	alert("선택된 파일이 없습니다.");
+    	return;
+    }
+    
+    
     if (isAllChecked == true) {
         if (confirm("전체 파일을 삭제하시겠습니까?")) {
             if (searchTp == '02') {

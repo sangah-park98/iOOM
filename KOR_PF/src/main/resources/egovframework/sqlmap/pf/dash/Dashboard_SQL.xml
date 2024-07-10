@@ -20,10 +20,54 @@
 		 WHERE a.NOTICE_SEQ = #{srch1}
 	</select>
 	
+	<select id="selectDashManagerInfo" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+		chr_type1 as usrType,
+	    chr_name1 as usrNm,
+	    chr_email1 as usrEmail,
+	    chr_tel1 as usrTel
+		FROM 
+		    cmpny_charge_info
+		WHERE 
+		    tax_no = #{corpNo}
+		UNION 
+		
+		SELECT 
+		chr_type2 as usrType,
+	    chr_name2 as usrNm,
+	    chr_email2 as usrEmail,
+	    chr_tel2 as usrTel
+		FROM 
+		    cmpny_charge_info
+		WHERE 
+		    tax_no = #{corpNo}
+		    
+		UNION 
+		
+		SELECT 
+		chr_type3 as usrType,
+		chr_name3 as usrNm,
+	    chr_email3 as usrEmail,
+	    chr_tel3 as usrTel
+		FROM 
+		    cmpny_charge_info
+		WHERE 
+		    tax_no = #{corpNo}
+			
+		UNION
+		
+		SELECT
+		'IT담당자' as usrType,
+		'박상아' as usrNm,
+		'sapark@customsservice.co.kr' as usrEmail,
+		'070-4343-7732' as usrTel 
+	</select>
+	
+	
 	<select id="selectDashboardInfoImp1" parameterType="searchVO" resultType="egovMap">
 		SELECT 
 	    CONCAT(SUBSTR(YEAR(NOW() - INTERVAL (t.n) MONTH),3,2),'년 ', LPAD(MONTH(NOW() - INTERVAL (t.n) MONTH), 2, '0'),'월') AS sumDate,
-	    COUNT(cda.rpt_day) AS cnt,
+	    COUNT(cda.lis_day) AS cnt,
 	    FORMAT(COALESCE(SUM(cda.tot_tax_sum), 0), 0) AS sumTax,
 	    FORMAT(COALESCE(SUM(cda.tot_tax_krw), 0), 0) AS sumKrw
 		FROM (
@@ -31,9 +75,8 @@
 		    UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
 		    UNION ALL SELECT 10 UNION ALL SELECT 11
 		) AS t
-		LEFT JOIN cusdec929a1 AS cda ON SUBSTR(cda.rpt_day, 1, 6) = CONCAT(YEAR(NOW() - INTERVAL (t.n) MONTH), LPAD(MONTH(NOW() - INTERVAL (t.n) MONTH), 2, '0'))
+		LEFT JOIN cusdec929a1 AS cda ON SUBSTR(cda.lis_day, 1, 6) = CONCAT(YEAR(NOW() - INTERVAL (t.n) MONTH), LPAD(MONTH(NOW() - INTERVAL (t.n) MONTH), 2, '0'))
 		AND cda.rpt_seq = '00'
-		AND cda.rece IN ('자수','수리')
 		<if test="corpNo != null and corpNo != ''">
 		 AND cda.nab_sdno = #{corpNo}
 		 </if>
@@ -44,16 +87,15 @@
 	<select id="selectDashboardInfoExp1" parameterType="searchVO" resultType="egovMap">
 		SELECT 
 	    CONCAT(SUBSTR(YEAR(NOW() - INTERVAL (t.n) MONTH),3,2),'년 ', LPAD(MONTH(NOW() - INTERVAL (t.n) MONTH), 2, '0'),'월') AS sumDate,
-	    COUNT(cda.rpt_day) AS cnt,
+	    COUNT(cda.exp_lis_day) AS cnt,
 	    FORMAT(COALESCE(SUM(cda.tot_rpt_krw), 0), 0) AS sumKrw
 		FROM (
 		    SELECT 0 AS n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
 		    UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
 		    UNION ALL SELECT 10 UNION ALL SELECT 11
 		) AS t
-		LEFT JOIN cusdec830a1 AS cda ON SUBSTR(cda.rpt_day, 1, 6) = CONCAT(YEAR(NOW() - INTERVAL (t.n) MONTH), LPAD(MONTH(NOW() - INTERVAL (t.n) MONTH), 2, '0'))
+		LEFT JOIN cusdec830a1 AS cda ON SUBSTR(cda.exp_lis_day, 1, 6) = CONCAT(YEAR(NOW() - INTERVAL (t.n) MONTH), LPAD(MONTH(NOW() - INTERVAL (t.n) MONTH), 2, '0'))
 		AND cda.rpt_seq = '00'
-		AND cda.rece IN ('자수','수리')
 		<if test="corpNo != null and corpNo != ''">
 		 AND cda.exp_sdno = #{corpNo}
 		 </if>
@@ -87,7 +129,7 @@
 		) AS t 
 		   LEFT JOIN (
 		  select
-		  SUBSTR(rpt_day,1,6) AS month_year,
+		  SUBSTR(lis_day,1,6) AS month_year,
 		  ROUND(SUM(lead_time) / COUNT(lead_time),2) AS lead_time, 
 		  SUM(cnt2+cnt3+cnt4) AS cnt1,
 		  SUM(cnt2) AS cnt2,
@@ -96,7 +138,7 @@
 		  FROM (
 			SELECT 
 					A.rpt_no,
-					A.rpt_day,
+					A.lis_day,
 					DATEDIFF(A.lis_day, A.inc_day) + 1 
 			    - (DATEDIFF(A.lis_day, A.inc_day) DIV 7 * 2) 
 			    - IF(WEEKDAY(A.inc_day) = 5, 1, 0) 
@@ -116,7 +158,7 @@
 			 AND A.nab_sdno = #{corpNo}
 		 	</if>
 		  ) C 
-		  GROUP BY SUBSTR(rpt_day,1,6)
+		  GROUP BY SUBSTR(lis_day,1,6)
 		  ) b ON CONCAT(YEAR(NOW() - INTERVAL (t.n) MONTH), LPAD(MONTH(NOW() - INTERVAL (t.n) MONTH), 2, '0')) = b.month_year
 		ORDER BY 
 		    YEAR(NOW() - INTERVAL (t.n) MONTH) DESC, 
@@ -150,7 +192,7 @@
 		) AS t 
 		   LEFT JOIN (
 		  select
-		  SUBSTR(rpt_day,1,6) AS month_year,
+		  SUBSTR(exp_lis_day,1,6) AS month_year,
 		  ROUND(SUM(lead_time) / COUNT(lead_time),2) AS lead_time, 
 		  SUM(cnt2+cnt3+cnt4) AS cnt1,
 		  SUM(cnt2) AS cnt2,
@@ -159,7 +201,7 @@
 		  FROM (
 			SELECT 
 					A.rpt_no,
-					A.rpt_day,
+					A.exp_lis_day,
 					DATEDIFF(A.exp_lis_day, A.rpt_day) + 1 
 			    - (DATEDIFF(A.exp_lis_day, A.rpt_day) DIV 7 * 2) 
 			    - IF(WEEKDAY(A.rpt_day) = 5, 1, 0) 
@@ -176,7 +218,7 @@
 			 AND A.exp_sdno = #{corpNo}
 		 	</if>
 		  ) C 
-		  GROUP BY SUBSTR(rpt_day,1,6)
+		  GROUP BY SUBSTR(exp_lis_day,1,6)
 		  ) b ON CONCAT(YEAR(NOW() - INTERVAL (t.n) MONTH), LPAD(MONTH(NOW() - INTERVAL (t.n) MONTH), 2, '0')) = b.month_year
 		ORDER BY 
 		    YEAR(NOW() - INTERVAL (t.n) MONTH) DESC, 
@@ -220,7 +262,7 @@
 				    - IF(WEEKDAY(inc_day) = 5, 1, 0) 
 				    - IF(WEEKDAY(lis_day) = 6, 1, 0) AS lead_time FROM cusdec929a1
 	WHERE rpt_seq = '00'
-	AND SUBSTR(rpt_day,1,6) = #{srch2}
+	AND SUBSTR(lis_day,1,6) = #{srch2}
 	<if test="corpNo != null and corpNo != ''">
 	 AND nab_sdno = #{corpNo}
  	</if>
@@ -259,7 +301,7 @@
 				    - IF(WEEKDAY(rpt_day) = 5, 1, 0) 
 				    - IF(WEEKDAY(exp_lis_day) = 6, 1, 0) AS lead_time FROM cusdec830a1
 	WHERE rpt_seq = '00'
-	AND SUBSTR(rpt_day,1,6) = #{srch2}
+	AND SUBSTR(exp_lis_day,1,6) = #{srch2}
 	<if test="corpNo != null and corpNo != ''">
 	 AND exp_sdno = #{corpNo}
  	</if>

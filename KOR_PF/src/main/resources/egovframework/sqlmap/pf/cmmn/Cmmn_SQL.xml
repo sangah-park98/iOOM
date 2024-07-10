@@ -35,6 +35,12 @@
 				  AND (tax_no LIKE CONCAT('%',UPPER(#{srch1}),'%') OR cmpny_nm LIKE CONCAT('%',UPPER(#{srch1}),'%'))
 		 ORDER BY cmpny_nm -->
 	</select>
+	
+	<select id="selectAllCmpnyList" parameterType="searchVO" resultType="egovMap">
+		SELECT TAX_NO, CMPNY_NM FROM cmpny_info
+		  WHERE 1=1
+		  AND (tax_no LIKE CONCAT('%',UPPER(#{srch1}),'%') OR cmpny_nm LIKE CONCAT('%',UPPER(#{srch1}),'%'))
+	</select>
 
 	<!-- 대메뉴 조회 -->
 	<select id="selectLargeMenuList" parameterType="searchVO" resultType="egovMap">

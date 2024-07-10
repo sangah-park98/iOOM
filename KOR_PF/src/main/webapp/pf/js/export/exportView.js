@@ -53,6 +53,8 @@ $( document ).ready(function() {
 	 
 	  //scroll 이벤트
 	  fn_expViewasEventReg();
+	  $("#expViewTextView").text("전체");
+      $("#expViewTextView").prepend('<i class="fa-duotone fa-chart-network text-primary-900"></i>'); 
 	  
 	  var viewListPopupElement = document.querySelector('#expViewListPopupTable');
 	  var viewListPopupElementContainer = viewListPopupElement.parentNode;
@@ -61,10 +63,42 @@ $( document ).ready(function() {
 	  
 });
 
+$(document).mousedown(function(e){	
+	if(e.target.name == "exportView1_date" || e.target.name == "exportView2_date"){
+		if($(".calendar-popup-container").hasClass("calendar-popup-container_active")){
+			return;
+		}
+		$(".calendar-popup-container").remove();
+		$('.band-calendar').each(function(){ regCal(this);});
+	}else{
+		if($(".calendar-popup-container").hasClass("calendar-popup-container_active")){
+			$(".calendar-popup-container").attr("class", "calendar-popup-container");
+		}	
+	}
+});
+
 $("input:radio[name=exportView_srch20]").change(function(){
 	$("input[name=exportViewType][value=read]").prop("checked", true);
 	fn_changeExportView("read");
 })
+
+$("input[name=exportView_srch1]").change(function(){
+	
+	var selectedValue = $(this).val();
+    if(selectedValue === "01") {
+        $("#expViewTextView").text("전체");
+        $("#expViewTextView").prepend('<i class="fa-duotone fa-chart-network text-primary-900"></i>'); 
+    } else if(selectedValue === "02") {
+        $("#expViewTextView").text("수리");
+        $("#expViewTextView").prepend('<i class="fa-duotone fa-chart-network text-primary-900"></i>'); 
+    } else if(selectedValue === "03") {
+        $("#expViewTextView").text("미결");
+        $("#expViewTextView").prepend('<i class="fa-duotone fa-chart-network text-primary-900"></i>'); 
+    } else {
+        $("#expViewTextView").text("승인");
+        $("#expViewTextView").prepend('<i class="fa-duotone fa-chart-network text-primary-900"></i>'); 
+    }
+});
 
 
 function fn_expViewchgDate1() {
@@ -169,7 +203,6 @@ function fn_exportViewScroll(){
 		},
 		dataType: "json",
         success : function(data) {
-        	// console.log(data);
         	var getData = exportViewHot.getSourceData();
         	var meargeJson = getData.concat(data.resultList);
         	exportViewHot.loadData(meargeJson);
@@ -232,7 +265,8 @@ function fn_searchExportView(){
     		exportViewSpecHot.loadData([]);
     		exportViewLanHot.loadData([]);
         	exportViewHot.loadData(data.resultList);
-        	$("#exportViewCnt").text(data.totCnt.toLocaleString()); 
+        	var totCnt = (data.resultList.length > 0) ? data.resultList[0].cnt : 0;
+        	$("#exportViewCnt").text(totCnt); 
     	fn_loading(false);
 	    },
 	    error : function(e, textStatus, errorThrown) {
@@ -267,9 +301,9 @@ function fn_searchExportViewLan(rptNo) {
 		},
 		dataType: "json",
         success : function(data) {
-        		exportViewSpecHot.loadData([]);
-        		exportViewLanHot.loadData([]);
-            	exportViewLanHot.loadData(data.resultList);
+    		exportViewSpecHot.loadData([]);
+    		exportViewLanHot.loadData([]);
+        	exportViewLanHot.loadData(data.resultList);
         	fn_loading(false);
         },
         error : function(e, textStatus, errorThrown) {
@@ -342,8 +376,6 @@ function fn_setExportViewForm(){
 	sData["srch8"] = $("#exportViewDateType option:selected").val();
 	sData["recordCountPerPage"] = $("#exportViewPageCnt option:selected").val();
 	sData["pageIndex"] = exportViewIndex;
-	
-	// console.log("recordCountPerPage:", sData["recordCountPerPage"]);
 	
 	return sData;
 };
@@ -467,7 +499,8 @@ function fn_expViewTableCol(){
 		{data : 'approval', className : "htCenter", width: 120, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'shipDay', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'expDetails', className : "htCenter", width: 100, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'userMemo', className : "htCenter", width: 250, wordWrap: false, className : "htCenter", readOnly:true, renderer : userMemoRenderer}
+		{data : 'userMemo', className : "htCenter", width: 250, wordWrap: false, className : "htCenter", readOnly:true, renderer : userMemoRenderer},
+		{data : 'reporter', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		//{data : 'cusMemo', className : "htCenter", wordWrap: false, className : "htCenter"},
 	] ;
 }
@@ -479,8 +512,8 @@ function fn_expViewTableHeader(){
 	//var exportView_srch20 = $("input:radio[name=exportView_srch20]:checked").val(); 
 	
 	this.expViewHeader = [
-		 "공장코드", "SO", "상태", "C/S검사", "신고번호", "Invoice번호", "수출자", "해외거래처", "목적국", "신고일자", "수리일자", "적재의무기한", "거래구분",
-		 "결제방법", "인코텀즈", "총포장수", "총중량", "요건승인", "선적여부", "수출이행내역", "사용자메모"
+		 "부서코드", "SO", "상태", "C/S검사", "신고번호", "Invoice번호", "수출자", "해외거래처", "목적국", "신고일자", "수리일자", "적재의무기한", "거래구분",
+		 "결제방법", "인코텀즈", "총포장수", "총중량", "요건승인", "선적여부", "수출이행내역", "사용자메모",  "신고인"
 	 ] ;
 }
 	
@@ -547,7 +580,7 @@ function fn_expViewSpecTableHidden(){
 // table
 function fn_handsonGridViewOption(col, header, hidden){
 	var tableType = $("input:radio[name=exportViewType]:checked").val();
-
+	
 	exportViewSettings = {
 	  columns : col,
 	  colHeaders : header,
@@ -584,6 +617,9 @@ function fn_handsonGridViewOption(col, header, hidden){
     	  var dataList = exportViewHot.getSourceData(coords.row, 35);
     	  var rptNo = dataList[dataList.length-1].rptNo;
     	  fn_searchExportViewLan(rptNo);
+    	  setTimeout(function() {
+              fn_searchExportViewSpec(rptNo, "001");
+          }, 1);
       }
 	};
 
@@ -751,7 +787,6 @@ function fn_expViewExcelSrch(type){
 function fn_expViewFileList(row, col){
 
 	var data = exportViewHot.getSourceDataAtRow(row);
-    // console.log("data.rptNo: " + data.rptNo); // O
 	$("#expViewFileListPopUp").modal("show");
 	
 	var expRptNoTitle = "신고번호: " + data.rptNo;
@@ -768,14 +803,12 @@ function fn_rptNoForPopup(selectedRow){
 	sData["srch1"] = selectedRow["rptNo"].replace(/-/g, '');
 	sData["srch2"] = selectedRow["name"];
 	sData["srch3"] = selectedRow["orgFileName"];
-	// console.log("sData.srch1: " + sData["srch1"].replace(/-/g, '')); // O
-	// console.log("selectedRow_rptNo: " + selectedRow["rptNo"]); // O
 	return sData;
 }
 
 
 function fn_searchViewFilesPopup(data){
-	
+	console.log(data);
 	fn_loading(true);
 	
 	$.ajax({
@@ -788,7 +821,6 @@ function fn_searchViewFilesPopup(data){
 		dataType : 'json',
 		async: false,
         success : function(data) {
-        	console.log(data.expViewList);
         	viewListHot.loadData([]);
         	viewListHot.loadData(data.expViewList);
 			setTimeout(function() {viewListHot.render()}, 200);
@@ -796,7 +828,7 @@ function fn_searchViewFilesPopup(data){
         },
         error : function(e, textStatus, errorThrown) {
         	if(e.status == 400){
-        		alert("류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        		alert("오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
         		location.href = document.referrer;
         	} else {
 	        	console.log(errorThrown);
@@ -822,30 +854,34 @@ function fn_handsonGridViewListPopupOption() {
                 className: "htCenter",
                 readOnly: true,
                 renderer: function (instance, td, row, col, prop, value, cellProperties) {
-                    if (value === 'CI') {
+                	if (value === 'CI') {
                         td.innerHTML = '<div style="text-align: center;">Invoice</div>';
                     } else if (value === 'PL') {
                         td.innerHTML = '<div style="text-align: center;">Packing List</div>';
-                    } else if (value === 'OT') {
-                        td.innerHTML = '<div style="text-align: center;">Receipt</div>';
-                    } else if (value === 'BL') {
-                        td.innerHTML = '<div style="text-align: center;">B/L</div>';
+                    } else if (value === 'DC') {
+                        td.innerHTML = '<div style="text-align: center;">신고필증</div>';
+                    } else if (value === 'CB') {
+                        td.innerHTML = '<div style="text-align: center;">통합</div>';
+                    } else if (value === 'UC') {
+                        td.innerHTML = '<div style="text-align: center;">정정 통합</div>';
                     } else if (value === 'CO') {
                         td.innerHTML = '<div style="text-align: center;">원산지증명서</div>';
                     } else if (value === 'RQ') {
-                        td.innerHTML = '<div style="text-align: center;">요건서류</div>';
+                        td.innerHTML = '<div style="text-align: center;">요건 서류</div>';
                     } else if (value === 'OT') {
                         td.innerHTML = '<div style="text-align: center;">기타</div>';
-                    } else if (value === 'DC') {
-                        td.innerHTML = '<div style="text-align: center;">신고필증</div>';
+                    } else if (value === 'AC') {
+                        td.innerHTML = '<div style="text-align: center;">정산서</div>';
                     } else {
-                        td.innerHTML = '<div style="text-align: center;">통합</div>';
+                        td.innerHTML = '<div style="text-align: center;">B/L</div>';
                     }
                 }
             },
             { data: 'docuOrgFile', type: 'text', className: "htCenter", readOnly: true },
             { data: 'docuFile', type: 'text', className: "htCenter", readOnly: true },
-            { data: 'uploadDt', type: 'text', className: "htCenter", readOnly: true }
+            { data: 'uploadDt', type: 'text', className: "htCenter", readOnly: true },
+            { data: 'docuPath', type: 'text', className: "htCenter", readOnly: true },
+            { data: 'invoiceNo', type: 'text', className: "htCenter", readOnly: true }
         ],
         stretchH: 'all',
         width: '100%',
@@ -854,7 +890,7 @@ function fn_handsonGridViewListPopupOption() {
         rowHeights: 25,
         rowHeaders: true,
         columnHeaderHeight: 25,
-        colHeaders: ["", "신고번호", "파일 타입", "파일명", "", "업로드 일자"],
+        colHeaders: ["", "신고번호", "파일 타입", "파일명", "", "업로드 일자", "파일 경로"],
         manualRowResize: true,
         manualColumnResize: true,
         manualRowMove: true,
@@ -867,7 +903,7 @@ function fn_handsonGridViewListPopupOption() {
         autoColumnSize: { samplingRatio: 23 },
         mergeCells: false,
         allowInsertRow: false,
-        hiddenColumns: { copyPasteEnabled: false, indicators: false, columns: [1,4]},
+        hiddenColumns: { copyPasteEnabled: false, indicators: false, columns: [1,4,6,7]},
         afterGetColHeader: function(col, TH){
         	if(col == 0){
           	TH.innerHTML = "<input type='checkbox'  class='checker' id='id_expViewAllClick' onclick='fn_expViewAllClick();'>";
@@ -925,7 +961,6 @@ function fn_expViewFileDown(){
     var ExpViewRptNos = [];
     var rptNo = data[0].rptNo
     
-    // console.log(data);
     if (check === '' || check === null) {
 		alert('다운로드할 파일을 선택해 주세요.');
 		return false;
@@ -1010,7 +1045,7 @@ function fn_userMemoSave(row, col){
 
 function fn_exportViewExcelDownload(){
 	 var type = $("input:radio[name=exportView_srch1]:checked").val();
-		
+	 fn_loading(true);
 		//엑셀옵션
 		var exTitArr = [];
 		var exTit = "";
@@ -1040,8 +1075,6 @@ function fn_exportViewExcelDownload(){
 		exTit = exTitArr.join("||||");
 		exTitDiv = "1|수츨신고현황||2|수출신고란||3|수출신고규격";
 			
-	   console.log(exCol);
-	   console.log(exTit);
 	   
 	   var parameters = {exCol : "", exTit: "", exTitDiv: "", exType: "", srch40: ""};
 		
@@ -1050,19 +1083,12 @@ function fn_exportViewExcelDownload(){
 	   	parameters[attrName] = attrValue;
 	   });
 		
-		console.log(exCol);
-		console.log(exTit);
-		console.log(exTitDiv);
-		
 		parameters.exCol = exCol.replace(/ /g,"_");
 		parameters.exTit = exTit.replace(/ /g,"_");
 		parameters.exTitDiv = exTitDiv.replace(/ /g,"_");
 		parameters.exType = type;
 		parameters.srch40 = "수출신고현황";
 		
-		console.log(parameters);
-		///import/importDownloadExcel.do
-	    //$("#importViewForm").submit();
 		$.ajax({
 			 url: "/export/exportDownloadExcel.do",
 			 data: parameters,
@@ -1110,6 +1136,7 @@ function fn_exportViewExcelDownload(){
 				               window.location.href = downloadUrl;
 				           }
 				       }
+			       fn_loading(false);
 				} catch (e) {
 					console.log(e);
 					fn_loading(false);

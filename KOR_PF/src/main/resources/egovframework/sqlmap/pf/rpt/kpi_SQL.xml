@@ -3,7 +3,8 @@
 <mapper namespace="egovframework.pf.rpt.service.impl.KPIMapper">
 
 	<select id="selectKpiImportList" parameterType="searchVO" resultType="egovMap">
-		SELECT A.plant AS plant, <!-- 공장코드 -->
+		SELECT COUNT(*) OVER() as CNT,
+			   A.plant AS plant, <!-- 공장코드 -->
 		       A.po AS po, <!-- po -->
 		       A.BlNo AS blNo, <!-- B/L -->
 		       CONCAT(SUBSTRING(A.Rpt_No, 1, 5), '-' , SUBSTRING(A.Rpt_No, 6, 2), '-' , SUBSTRING(A.Rpt_No, 8)) AS rptNo, <!-- 신고번호 -->
@@ -13,13 +14,17 @@
 		       B.App_Divi AS appDivi,<!-- 귀책사유 -->
 		       C.Cont AS appDiviCont,<!-- 귀책사유 내용-->
 		       B.Reason_Doc1 AS reaseonDoc, <!-- 정정사유 -->
+		       <!-- 
 		       (CASE WHEN CAST(A.Rpt_Seq AS INT) &gt; 1 THEN (SELECT FORMAT(Tot_Tax_Sum, 0) 
 		                                                      FROM CUSDEC929A1 V 
 		                                                      WHERE V.Rpt_No = A.Rpt_No 
 		                                                      AND V.Rpt_Seq = CAST(A.Rpt_Seq AS INT) -1)
-					 ELSE 0 END) AS prevTaxSum, <!-- 세액증감내역 -->
-		       FORMAT(A.Tot_Tax_Sum, 0) AS totTaxSum, <!-- 납부금액 -->
-		       FORMAT(A.Ad_Cst_Krw, 0) AS adCstKrw, <!-- 가산세 -->
+					 ELSE 0 END) AS prevTaxSum, 세액증감내역 -->
+		       <!-- FORMAT(A.Tot_Tax_Sum, 0) AS totTaxSum, 납부금액 -->
+		       <!-- FORMAT(A.Ad_Cst_Krw, 0) AS adCstKrw, 가산세 -->
+		       FORMAT(B.Trans_Tax_Sum, 0) as transTaxSum, <!-- 세액증감내역 -->
+		       FORMAT(B.after_tax_sum, 0) as afterTaxSum, <!-- 납부금액 -->
+		       FORMAT(B.Add_Amt, 0) as addAmt, <!-- 가산세 -->
 		       A.Cus as cus, <!-- 세관 -->
 		       D.Cont as cusNm, <!-- 세관명 -->
 		       (CASE WHEN B.imp_rpt_day = NULL OR B.imp_rpt_day = '' 
@@ -86,7 +91,7 @@
 			</choose>
 		</if>
 		<if test="srch5 != null and srch5 != ''"><!-- 신고번호 -->
-			AND A.Rpt_No LIKE CONCAT('%', #{srch5}, '%')
+			AND A.Rpt_No LIKE CONCAT('%', REPLACE(#{srch5},'-',''), '%')
 		</if>
 		<if test="srch6 != null and srch6 != ''"><!-- BL번호 -->
 			AND A.BlNo LIKE CONCAT('%', #{srch6}, '%')
@@ -112,64 +117,10 @@
 		</if>
 		LIMIT #{recordCountPerPage} OFFSET #{startPage} 
 	</select>
-	<select id="selectKpiImportListCnt" parameterType="searchVO" resultType="int">
-		SELECT COUNT(*)
-		FROM
-			(SELECT SN,
-					Rpt_No,
-					BRANCH,
-					Nab_SdNo,
-					CUS_PRG,
-					SUBSTRING_INDEX(USER_MEMO, '\n', 1) AS plant,
-					CASE 
-						WHEN STR_CNT(USER_MEMO, '\n') >= 1 
-						THEN SUBSTRING_INDEX(SUBSTRING_INDEX(USER_MEMO, '\n', 2), '\n', -1)
-						ELSE '' 
-						END AS po,
-					BlNo,
-					Nab_Firm,
-					Cus,
-					Lis_Day
-				FROM CUSDEC929A1
-			) A
-			INNER JOIN CUSDMR5FEA1 B
-				ON A.SN = B.CUSDEC929SN 
-				AND A.Rpt_No = B.Imp_Rpt_No 
-				AND A.BRANCH = B.BRANCH 
-				AND A.CUS_PRG = B.CUS_PRG
-		WHERE 1=1
-			<if test="corpNo != null and corpNo != ''"><!-- 사업자번호 -->
-			AND A.Nab_SdNo = #{corpNo}
-			</if>
-			<if test="srch3 != null and srch3 != '' and srch4 != null and srch4 != ''">
-				<choose>
-			        <when test="srch2 == 'petDay'"><!-- 승일일자 -->
-					AND B.pet_day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
-			        </when>
-			         <when test="srch2 == 'rptDay'"><!-- 신청일자 -->
-					AND B.pet_day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
-			        </when>
-			        <when test="srch2 == 'lisDay'"><!-- 수리일자 -->
-					AND B.imp_rpt_day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
-			        </when>
-		    	</choose>
-			</if>
-			<if test="srch5 != null and srch5 != ''"><!-- 신고번호 -->
-			AND A.Rpt_No LIKE CONCAT('%', #{srch5}, '%')
-			</if>
-			<if test="srch6 != null and srch6 != ''"><!-- BL번호 -->
-			AND A.BlNo LIKE CONCAT('%', #{srch6}, '%')
-			</if>
-			<if test="srch8 != null and srch8 != ''"><!-- 공장코드 -->
-			AND A.plant like CONCAT('%', #{srch8}, '%')
-			</if>
-			<if test="srch9 != null and srch9 != ''"><!-- PO번호 -->
-			AND A.po LIKE CONCAT('%', #{srch9}, '%')
-			</if>
-	</select>
 	
 	<select id="selectKpiExportList" parameterType="searchVO" resultType="egovMap">
-		SELECT A.plant AS plant, <!-- 공장코드 -->
+		SELECT COUNT(*) OVER() as CNT,
+			   A.plant AS plant, <!-- 공장코드 -->
 			   A.so AS so, <!-- so-->
 			   B.invoice AS invoice, <!-- inVoice -->
 			   CONCAT(SUBSTRING(A.Rpt_No, 1, 5), '-' , SUBSTRING(A.Rpt_No, 6, 2), '-' , SUBSTRING(A.Rpt_No, 8)) AS rptNo, <!-- 신고번호 -->
@@ -243,10 +194,10 @@
 		    	</choose>
 			</if>
 			<if test="srch5 != null and srch5 != ''"><!-- 신고번호 -->
-			AND A.Rpt_No LIKE CONCAT('%', #{srch5}, '%')
+			AND A.Rpt_No LIKE CONCAT('%', REPLACE(#{srch5},'-',''), '%')
 			</if>
 			<if test="srch7 != null and srch7 != ''"><!-- Invoice -->
-			AND B.invoice LIKE CONCAT('%', #{srch6}, '%')
+			AND B.invoice LIKE CONCAT('%', #{srch7}, '%')
 			</if>
 			<if test="srch8 != null and srch8 != ''"><!-- 공장코드 -->
 			AND A.plant like CONCAT('%', #{srch8}, '%')
@@ -270,75 +221,10 @@
 		LIMIT #{recordCountPerPage} OFFSET #{startPage} 	
 	</select>
 	
-	<select id="selectKpiExportListCnt" parameterType="searchVO" resultType="int">
-		SELECT COUNT(*)
-		FROM
-			(SELECT SN,
-					Rpt_No,
-					BRANCH,
-					Exp_Sdno,
-					CUS_PRG,
-					SUBSTRING_INDEX(USER_MEMO, '\n', 1) AS plant,
-					CASE 
-						WHEN STR_CNT(USER_MEMO, '\n') >= 1 
-						THEN SUBSTRING_INDEX(SUBSTRING_INDEX(USER_MEMO, '\n', 2), '\n', -1)
-						ELSE '' 
-						END AS so,
-					Exp_Firm,
-					Rpt_Cus,
-					Exp_Lis_Day,
-					Rpt_Day
-			 FROM CUSDEC830A1
-			) A
-			INNER JOIN (SELECT SNA1, Rpt_No, BRANCH, CUS_PRG, GROUP_CONCAT(mg_code SEPARATOR ', ') AS invoice
-			            FROM CUSDEC830B1
-			            GROUP BY SNA1, Rpt_No, BRANCH, CUS_PRG, mg_code) B
-				ON A.SN = B.SNA1 
-				AND A.Rpt_No = B.Rpt_No
-				AND A.BRANCH = B.BRANCH
-				AND A.CUS_PRG = B.CUS_PRG
-			INNER JOIN CUSDMR5ASA1 C
-				ON A.Rpt_no = c.Exp_Rpt_No
-				AND A.SN = C.CUSDEC830SN
-				AND A.BRANCH = C.BRANCH
-				AND A.CUS_PRG = C.CUS_PRG
-			LEFT OUTER JOIN (SELECT code, Cont FROM CDSTD WHERE divi = '수출정정귀책사유') D
-				ON C.Send_divi = D.code
-			LEFT OUTER JOIN (SELECT code, Cont FROM CDSTD WHERE divi = '세관및출장소') E
-				ON A.Rpt_Cus = E.code
-		WHERE 1=1
-			<if test="corpNo != null and corpNo != ''"><!-- 사업자번호 -->
-				AND A.Exp_Sdno = #{corpNo}
-			</if>
-			<if test="srch3 != null and srch3 != '' and srch4 != null and srch4 != ''">
-				<choose>
-			        <when test="srch2 == 'petDay'"><!-- 승일일자 -->
-					AND C.dpt_day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
-			        </when>
-			         <when test="srch2 == 'rptDay'"><!-- 신청일자 -->
-					AND C.rpt_day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
-			        </when>
-			        <when test="srch2 == 'lisDay'"><!-- 수리일자 -->
-					AND C.lis_day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
-			        </when>
-		    	</choose>
-			</if>
-			<if test="srch5 != null and srch5 != ''"><!-- 신고번호 -->
-			AND A.Rpt_No LIKE CONCAT('%', #{srch5}, '%')
-			</if>
-			<if test="srch7 != null and srch7 != ''"><!-- Invoice -->
-			AND B.invoice LIKE CONCAT('%', #{srch6}, '%')
-			</if>
-			<if test="srch8 != null and srch8 != ''"><!-- 공장코드 -->
-			AND A.plant like CONCAT('%', #{srch8}, '%')
-			</if>
-			<if test="srch10 != null and srch10 != ''"><!-- PO번호 -->
-			AND A.so LIKE CONCAT('%', #{srch9}, '%')
-			</if>
-	</select>
 	
 	<select id="selectKpiLeadtimeList" parameterType="searchVO" resultType="egovMap">
-		SELECT A.plant AS plant, <!-- 공장코드 -->
+		SELECT COUNT(*) OVER() as CNT,
+			   A.plant AS plant, <!-- 공장코드 -->
 		       A.po AS po, <!-- po -->
 		       A.BlNo AS blNo, <!-- B/L -->
 		       CONCAT(SUBSTRING(A.Rpt_No, 1, 5), '-' , SUBSTRING(A.Rpt_No, 6, 2), '-' , SUBSTRING(A.Rpt_No, 8)) AS rptNo, <!-- 신고번호 -->
@@ -409,7 +295,7 @@
 		    	</choose>
 			</if>
 			<if test="srch5 != null and srch5 != ''"><!-- 신고번호 -->
-			AND A.Rpt_No LIKE CONCAT('%', #{srch5}, '%')
+			AND A.Rpt_No LIKE CONCAT('%', REPLACE(#{srch5},'-',''), '%')
 			</if>
 			<if test="srch6 != null and srch6 != ''"><!-- BL번호 -->
 			AND A.BlNo LIKE CONCAT('%', #{srch6}, '%')
@@ -432,58 +318,5 @@
 		</if>
 		LIMIT #{recordCountPerPage} OFFSET #{startPage} 
 	</select>
-	
-	<select id="selectKpiLeadtimeListCnt" parameterType="searchVO" resultType="int">
-		SELECT COUNT(*)
-		FROM
-			(SELECT SN,
-					Rpt_No,
-					BRANCH,
-					Nab_SdNo,
-					CUS_PRG,
-					SUBSTRING_INDEX(USER_MEMO, '\n', 1) AS plant,
-					CASE 
-						WHEN STR_CNT(USER_MEMO, '\n') >= 1 
-						THEN SUBSTRING_INDEX(SUBSTRING_INDEX(USER_MEMO, '\n', 2), '\n', -1)
-						ELSE '' 
-						END AS po,
-					BlNo,
-					Cus,
-					Rpt_Day,
-					Lis_Day,
-					Rece_Result,
-					Tg_Pln_Mark,
-					Tg_Pln_Cot,
-					Lev_Form,
-					Nab_Firm,
-					CONCAT(Mrn,Msn,Hsn) AS cargMtNo
-			 FROM CUSDEC929A1
-			) A
-		WHERE 1=1
-			<if test="corpNo != null and corpNo != ''"><!-- 사업자번호 -->
-			AND A.Nab_SdNo = #{corpNo}
-			</if>
-			<if test="srch3 != null and srch3 != '' and srch4 != null and srch4 != ''">
-				<choose>
-					<when test="srch2 == 'rptDay'"><!-- 신청일자 -->
-					AND A.Rpt_Day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
-			        </when>
-			        <when test="srch2 == 'lisDay'"><!-- 수리일자 -->
-					AND A.Lis_Day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
-			        </when>
-		    	</choose>
-			</if>
-			<if test="srch5 != null and srch5 != ''"><!-- 신고번호 -->
-			AND A.Rpt_No LIKE CONCAT('%', #{srch5}, '%')
-			</if>
-			<if test="srch6 != null and srch6 != ''"><!-- BL번호 -->
-			AND A.BlNo LIKE CONCAT('%', #{srch6}, '%')
-			</if>
-			<if test="srch8 != null and srch8 != ''"><!-- 공장코드 -->
-			AND A.plant like CONCAT('%', #{srch8}, '%')
-			</if>
-			<if test="srch9 != null and srch9 != ''"><!-- PO번호 -->
-			AND A.po LIKE CONCAT('%', #{srch9}, '%')
-			</if>
-	</select>
+
 </mapper>

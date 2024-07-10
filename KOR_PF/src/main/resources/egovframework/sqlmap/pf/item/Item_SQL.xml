@@ -4,7 +4,7 @@
 
 	<!--중복허용X 전체아이템 조회 -->
 	<select id="selectItemViewList" parameterType="searchVO" resultType="egovMap">
-		WITH ITEM AS (
+		<!-- WITH ITEM AS (
 		    SELECT
 		         itemCode,
 		         DATE_FORMAT(MIN(lis_day), '%Y-%m-%d') AS firstLisDay,
@@ -26,7 +26,7 @@
 	                AND a.BRANCH = c.BRANCH
 	                AND a.CUS_PRG = c.CUS_PRG
 		        WHERE 1=1
-			        <!-- AND a.nab_sdno = '1018672913' -->
+			        AND a.nab_sdno = '1018672913'
 			        AND a.nab_sdno = #{corpNo}
 			        AND a.Rpt_Seq = '00'
 					<if test="srch4 != null and srch4 != ''">
@@ -50,7 +50,7 @@
 	               	AND d.BRANCH = f.BRANCH
 	               	AND d.CUS_PRG = f.CUS_PRG
 		        WHERE 1=1
-			        <!-- AND a.Exp_sdno = '1018672913' -->
+			        AND a.Exp_sdno = '1018672913'
 			        AND d.Exp_sdno = #{corpNo}
 			        AND d.Rpt_Seq = '00'
 			        <if test="srch4 != null and srch4 != ''">
@@ -81,7 +81,7 @@
 	            AND a.CUS_PRG = b.CUS_PRG
 	            AND b.sn = c.snb1
 		     WHERE 1=1
-			        <!-- AND a.Exp_sdno = '1018672913' -->
+			        AND a.Exp_sdno = '1018672913'
 		        AND a.nab_sdno = #{corpNo}
 		        AND a.Rpt_Seq = '00'
 		    	AND a.Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
@@ -133,12 +133,82 @@
 			GROUP BY a.itemCode
 			ORDER BY lastLisDay DESC,firstLisDay DESC,saleNo ASC,itemCode ASC
 	
-			LIMIT #{recordCountPerPage} OFFSET #{startPage};
+			LIMIT #{recordCountPerPage} OFFSET #{startPage}; -->
+			
+			SELECT 
+			 COUNT(*) OVER() as CNT,
+			 a.item_code AS itemCode,
+			 b.EXC_GNAME AS saleNo, 
+			 REPORTER AS reporter,
+			 b.ITEM_DESC AS desCirp, 
+			 DATE_FORMAT((a.first_lis_day), '%Y-%m-%d') AS firstLisDay,
+ 		     DATE_FORMAT((a.last_lis_day), '%Y-%m-%d') AS lastLisDay
+			FROM
+			(
+				SELECT
+					cmpny_cd,
+					item_code,
+					max(max_seq) max_seq,
+					MIN(first_lis_day) first_lis_day,
+					MAX(last_lis_day) last_lis_day
+				FROM
+					item_info
+				WHERE cmpny_cd = #{corpNo}
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+				GROUP BY
+					cmpny_cd,
+					item_code
+			) a
+			INNER JOIN (
+				SELECT
+				*
+				FROM
+				item_info
+				WHERE cmpny_cd = #{corpNo}
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+			) b ON a.cmpny_cd = b.CMPNY_CD
+			AND a.item_code = b.item_code
+			AND a.max_seq = b.MAX_SEQ
+			<choose>
+		        <when test="srch10 == '01'">
+		           ORDER BY a.last_lis_day DESC,a.first_lis_day DESC,b.EXC_GNAME ASC,a.item_code ASC
+		        </when>
+		        <otherwise>
+		           ORDER BY a.first_lis_day DESC,a.last_lis_day DESC,b.EXC_GNAME ASC,a.item_code ASC
+		        </otherwise>
+		    </choose>
+			LIMIT #{recordCountPerPage} OFFSET #{startPage}; 
 	</select>
 	
 	<!--중복허용X 전체아이템 갯수 조회 -->
 	<select id="selectItemViewListCnt" parameterType="searchVO" resultType="int">
-		WITH ITEM AS (
+		<!-- WITH ITEM AS (
 		    SELECT
 		         itemCode,
 	             MIN(lis_day) AS firstLisDay,
@@ -155,7 +225,7 @@
                 AND a.BRANCH = c.BRANCH
                 AND a.CUS_PRG = c.CUS_PRG
 		        WHERE 1=1
-		        <!-- AND a.nab_sdno = '1018672913' -->
+		        AND a.nab_sdno = '1018672913'
 		        AND a.nab_sdno = #{corpNo}
 		        AND a.Rpt_Seq = '00'
 				<if test="srch4 != null and srch4 != ''">
@@ -176,7 +246,7 @@
                	AND d.BRANCH = f.BRANCH
                	AND d.CUS_PRG = f.CUS_PRG
 	        WHERE 1=1
-		        <!-- AND a.Exp_sdno = '1018672913' -->
+		        AND a.Exp_sdno = '1018672913'
 		        AND d.Exp_sdno = #{corpNo}
 		        AND d.Rpt_Seq = '00'
 		        <if test="srch4 != null and srch4 != ''">
@@ -203,7 +273,7 @@
 	            AND a.CUS_PRG = b.CUS_PRG
 	            AND b.sn = c.snb1
 		     WHERE 1=1
-			        <!-- AND a.Exp_sdno = '1018672913' -->
+			        AND a.Exp_sdno = '1018672913'
 		        AND a.nab_sdno = #{corpNo}
 		        AND a.Rpt_Seq = '00'
 		    	AND a.Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
@@ -248,12 +318,74 @@
 		FROM
 			ITEM a
 		   INNER JOIN CUSDEC b ON a.seq = b.seq AND a.itemCode = b.itemCode
-				GROUP BY a.itemCode) A;
+				GROUP BY a.itemCode) A; -->
+			SELECT 
+			 COUNT(*)
+			FROM
+			(
+				SELECT
+					cmpny_cd,
+					item_code,
+					max(max_seq) max_seq,
+					MIN(first_lis_day) first_lis_day,
+					MAX(last_lis_day) last_lis_day
+				FROM
+					item_info
+				WHERE cmpny_cd = #{corpNo}
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>	
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+				GROUP BY
+					cmpny_cd,
+					item_code
+			) a
+			INNER JOIN (
+				SELECT
+				*
+				FROM
+				item_info
+				WHERE cmpny_cd = #{corpNo}
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>			
+			    <if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+			) b ON a.cmpny_cd = b.CMPNY_CD
+			AND a.item_code = b.item_code
+			AND a.max_seq = b.MAX_SEQ
+			<choose>
+		        <when test="srch10 == 'last_LisDay'">
+					ORDER BY a.last_lis_day DESC,a.first_lis_day DESC,b.EXC_GNAME ASC,a.item_code ASC;
+				</when>
+				 <otherwise>
+	           		ORDER BY a.first_lis_day DESC,a.last_lis_day DESC,b.EXC_GNAME ASC,a.item_code ASC;
+		        </otherwise>
+	        </choose>
 	</select>
 	
 	<!--중복허용X 수입아이템 조회 -->
 	<select id="selectItemViewimportList" parameterType="searchVO" resultType="egovMap">
-		WITH ITEM AS (
+		<!-- WITH ITEM AS (
 		    SELECT
 		         itemCode,
 		         DATE_FORMAT(MIN(lis_day), '%Y-%m-%d') AS firstLisDay,
@@ -275,7 +407,7 @@
 	                AND a.BRANCH = c.BRANCH
 	                AND a.CUS_PRG = c.CUS_PRG
 		        WHERE 1=1
-			        <!-- AND a.nab_sdno = '1018672913' -->
+			        AND a.nab_sdno = '1018672913'
 			        AND a.nab_sdno = #{corpNo}
 			        AND a.Rpt_Seq = '00'
 					<if test="srch4 != null and srch4 != ''">
@@ -305,7 +437,7 @@
 	            AND a.CUS_PRG = b.CUS_PRG
 	            AND b.sn = c.snb1
 		     WHERE 1=1
-			        <!-- AND a.Exp_sdno = '1018672913' -->
+			        AND a.Exp_sdno = '1018672913'
 		        AND a.nab_sdno = #{corpNo}
 		        AND a.Rpt_Seq = '00'
 		    	AND a.Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
@@ -327,12 +459,84 @@
 			GROUP BY a.itemCode
 			ORDER BY lastLisDay DESC,firstLisDay DESC,saleNo ASC,itemCode ASC
 	
-			LIMIT #{recordCountPerPage} OFFSET #{startPage};
+			LIMIT #{recordCountPerPage} OFFSET #{startPage}; -->
+			
+			SELECT
+			 COUNT(*) OVER() as CNT,
+			 a.item_code AS itemCode,
+			 b.EXC_GNAME AS saleNo, 
+			 REPORTER AS reporter,
+			 b.ITEM_DESC AS desCirp, 
+			 DATE_FORMAT((a.first_lis_day), '%Y-%m-%d') AS firstLisDay,
+ 		     DATE_FORMAT((a.last_lis_day), '%Y-%m-%d') AS lastLisDay
+			FROM
+			(
+				SELECT
+					cmpny_cd,
+					item_code,
+					max(max_seq) max_seq,
+					MIN(first_lis_day) first_lis_day,
+					MAX(last_lis_day) last_lis_day
+				FROM
+					item_info
+				WHERE cmpny_cd = #{corpNo}
+				AND trade_type = 'imp'
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+				GROUP BY
+					cmpny_cd,
+					item_code
+			) a
+			INNER JOIN (
+				SELECT
+				*
+				FROM
+				item_info
+				WHERE cmpny_cd = #{corpNo}
+				AND trade_type = 'imp'
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+			) b ON a.cmpny_cd = b.CMPNY_CD
+			AND a.item_code = b.item_code
+			AND a.max_seq = b.MAX_SEQ
+			<choose>
+		        <when test="srch10 == '01'">
+		          ORDER BY a.last_lis_day DESC,a.first_lis_day DESC,b.EXC_GNAME ASC,a.item_code ASC
+		        </when>
+		        <otherwise>
+		            ORDER BY a.first_lis_day DESC,a.last_lis_day DESC,b.EXC_GNAME ASC,a.item_code ASC
+		        </otherwise>
+		    </choose>
+			LIMIT #{recordCountPerPage} OFFSET #{startPage}; 
 	</select>
 	
 	<!--중복허용X 수입아이템 조회 -->
 	<select id="selectItemViewimportListCnt" parameterType="searchVO" resultType="int">
-		WITH ITEM AS (
+		<!-- WITH ITEM AS (
 		    SELECT
 		         itemCode,
 	             MIN(lis_day) AS firstLisDay,
@@ -349,7 +553,7 @@
                 AND a.BRANCH = c.BRANCH
                 AND a.CUS_PRG = c.CUS_PRG
 		        WHERE 1=1
-		        <!-- AND a.nab_sdno = '1018672913' -->
+		        AND a.nab_sdno = '1018672913'
 		        AND a.nab_sdno = #{corpNo}
 		        AND a.Rpt_Seq = '00'
 				<if test="srch4 != null and srch4 != ''">
@@ -376,7 +580,7 @@
 	            AND a.CUS_PRG = b.CUS_PRG
 	            AND b.sn = c.snb1
 		     WHERE 1=1
-			        <!-- AND a.Exp_sdno = '1018672913' -->
+			        AND a.Exp_sdno = '1018672913'
 		        AND a.nab_sdno = #{corpNo}
 		        AND a.Rpt_Seq = '00'
 		    	AND a.Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
@@ -395,12 +599,78 @@
 		FROM
 			ITEM a
 		   INNER JOIN CUSDEC b ON a.seq = b.seq AND a.itemCode = b.itemCode
-				GROUP BY a.itemCode) A;
+				GROUP BY a.itemCode) A; -->
+				
+		SELECT 
+			 COUNT(*)
+			FROM
+			(
+				SELECT
+					cmpny_cd,
+					item_code,
+					max(max_seq) max_seq,
+					MIN(first_lis_day) first_lis_day,
+					MAX(last_lis_day) last_lis_day
+				FROM
+					item_info
+				WHERE cmpny_cd = #{corpNo}
+				AND trade_type = 'imp'
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+				GROUP BY
+					cmpny_cd,
+					item_code
+			) a
+			INNER JOIN (
+				SELECT
+				*
+				FROM
+				item_info
+				WHERE cmpny_cd = #{corpNo}
+				AND trade_type = 'imp'
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+			) b ON a.cmpny_cd = b.CMPNY_CD
+			AND a.item_code = b.item_code
+			AND a.max_seq = b.MAX_SEQ
+			
+			<choose>
+		        <when test="srch10 == '01'">
+		           ORDER BY a.last_lis_day DESC,a.first_lis_day DESC,b.EXC_GNAME ASC,a.item_code ASC;  
+		        </when>
+		        <otherwise>
+		           ORDER BY a.first_lis_day DESC,a.last_lis_day DESC,b.EXC_GNAME ASC,a.item_code ASC;  
+		        </otherwise>
+		    </choose>
 	</select>
 	
 	<!--중복허용X 수출아이템 조회 -->
 	<select id="selectItemViewExportList" parameterType="searchVO" resultType="egovMap">
-		WITH ITEM AS (
+		<!-- WITH ITEM AS (
 		    SELECT
 		         itemCode,
 		         DATE_FORMAT(MIN(lis_day), '%Y-%m-%d') AS firstLisDay,
@@ -422,7 +692,7 @@
 	               	AND d.BRANCH = f.BRANCH
 	               	AND d.CUS_PRG = f.CUS_PRG
 		        WHERE 1=1
-			        <!-- AND a.Exp_sdno = '1018672913' -->
+			        AND a.Exp_sdno = '1018672913'
 			        AND d.Exp_sdno = #{corpNo}
 			        AND d.Rpt_Seq = '00'
 			        <if test="srch4 != null and srch4 != ''">
@@ -475,12 +745,84 @@
 			GROUP BY a.itemCode
 			ORDER BY lastLisDay DESC,firstLisDay DESC,saleNo ASC,itemCode ASC
 	
-			LIMIT #{recordCountPerPage} OFFSET #{startPage};
+			LIMIT #{recordCountPerPage} OFFSET #{startPage}; -->
+			
+			SELECT 
+			 COUNT(*) OVER() as CNT,
+			 a.item_code AS itemCode,
+			 b.EXC_GNAME AS saleNo, 
+			 REPORTER AS reporter,
+			 b.ITEM_DESC AS desCirp, 
+			 DATE_FORMAT((a.first_lis_day), '%Y-%m-%d') AS firstLisDay,
+ 		     DATE_FORMAT((a.last_lis_day), '%Y-%m-%d') AS lastLisDay
+			FROM
+			(
+				SELECT
+					cmpny_cd,
+					item_code,
+					max(max_seq) max_seq,
+					MIN(first_lis_day) first_lis_day,
+					MAX(last_lis_day) last_lis_day
+				FROM
+					item_info
+				WHERE cmpny_cd = #{corpNo}
+				AND trade_type = 'exp'
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+				GROUP BY
+					cmpny_cd,
+					item_code
+			) a
+			INNER JOIN (
+				SELECT
+				*
+				FROM
+				item_info
+				WHERE cmpny_cd = #{corpNo}
+				AND trade_type = 'exp'
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+			) b ON a.cmpny_cd = b.CMPNY_CD
+			AND a.item_code = b.item_code
+			AND a.max_seq = b.MAX_SEQ
+			<choose>
+		        <when test="srch10 == '01'">
+		          ORDER BY a.last_lis_day DESC,a.first_lis_day DESC,b.EXC_GNAME ASC,a.item_code ASC
+		        </when>
+		        <otherwise>
+		            ORDER BY a.first_lis_day DESC,a.last_lis_day DESC,b.EXC_GNAME ASC,a.item_code ASC
+		        </otherwise>
+		    </choose>
+			LIMIT #{recordCountPerPage} OFFSET #{startPage}; 
 	</select>
 	
 	<!--중복허용X 수출아이템 조회 수 -->
 	<select id="selectItemViewExportListCnt" parameterType="searchVO" resultType="int">
-		WITH ITEM AS (
+		<!-- WITH ITEM AS (
 		    SELECT
 		         itemCode,
 	             MIN(lis_day) AS firstLisDay,
@@ -498,7 +840,7 @@
                	AND d.BRANCH = f.BRANCH
                	AND d.CUS_PRG = f.CUS_PRG
 	        WHERE 1=1
-		        <!-- AND a.Exp_sdno = '1018672913' -->
+		        AND a.Exp_sdno = '1018672913'
 		        AND d.Exp_sdno = #{corpNo}
 		        AND d.Rpt_Seq = '00'
 		        <if test="srch4 != null and srch4 != ''">
@@ -543,12 +885,69 @@
 		FROM
 			ITEM a
 		   INNER JOIN CUSDEC b ON a.seq = b.seq AND a.itemCode = b.itemCode
-				GROUP BY a.itemCode) A;
+				GROUP BY a.itemCode) A; -->
+				
+		SELECT 
+			 COUNT(*)
+			FROM
+			(
+				SELECT
+					cmpny_cd,
+					item_code,
+					max(max_seq) max_seq,
+					MIN(first_lis_day) first_lis_day,
+					MAX(last_lis_day) last_lis_day
+				FROM
+					item_info
+				WHERE cmpny_cd = #{corpNo}
+				AND trade_type = 'exp'
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+				GROUP BY
+					cmpny_cd,
+					item_code
+			) a
+			INNER JOIN (
+				SELECT
+				*
+				FROM
+				item_info
+				WHERE cmpny_cd = #{corpNo}
+				AND trade_type = 'exp'
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+			) b ON a.cmpny_cd = b.CMPNY_CD
+			AND a.item_code = b.item_code
+			AND a.max_seq = b.MAX_SEQ
 	</select>
 	
 	<!-- Item목록 현황 (중복허용) 목록 조회 -->
 	<select id="selectDuplicationItemViewList" parameterType="searchVO" resultType="egovMap">
-		WITH ITEMVIEW AS (
+		<!-- WITH ITEMVIEW AS (
 		SELECT
 			itemCode,
 			saleNo,
@@ -570,7 +969,7 @@
 				INNER JOIN CUSDEC929B1 b ON a.sn = b.sna1 AND a.rpt_no = b.rpt_no AND a.BRANCH = b.BRANCH AND a.CUS_PRG = b.CUS_PRG
 				INNER JOIN CUSDEC929C1 c ON a.sn = c.sna1 AND b.sn = c.snb1 and a.rpt_no = b.rpt_no AND a.BRANCH = c.BRANCH AND a.CUS_PRG = c.CUS_PRG
 			WHERE 1=1
-			<!-- AND a.nab_sdno = '1018672913' -->
+			AND a.nab_sdno = '1018672913'
 			AND a.nab_sdno = #{corpNo}
 			AND a.Rpt_Seq = '00'
 					
@@ -589,7 +988,7 @@
 			INNER JOIN CUSDEC830C1 c ON a.sn = c.sna1 AND b.sn = c.snb1 and a.rpt_no = b.rpt_no AND a.BRANCH = c.BRANCH AND a.CUS_PRG = c.CUS_PRG
 			
 			WHERE 1=1
-			<!-- AND a.Exp_sdno = '1018672913' -->
+			AND a.Exp_sdno = '1018672913'
 			AND a.Exp_sdno = #{corpNo}
 			AND a.Rpt_Seq = '00'               
 		) a
@@ -604,7 +1003,7 @@
 	<if test="srch5 != null and srch5 != ''">
 	 AND desCirp LIKE CONCAT('%', UPPER(#{srch5}), '%')
 	 </if>
-	 <if test="srch4 != null and srch4 != ''"><!--자재코드 -->
+	 <if test="srch4 != null and srch4 != ''">자재코드
 	 AND itemCode = UPPER(#{srch4})
 	 </if>
 	 <choose>
@@ -616,13 +1015,48 @@
 	       </otherwise>
 	  </choose>
 	ORDER BY lastLisDay desc, firstLisDay desc
-	LIMIT #{recordCountPerPage} OFFSET #{startPage};
+	LIMIT #{recordCountPerPage} OFFSET #{startPage}; -->
+	
+	SELECT 
+	 COUNT(*) OVER() as CNT,
+	 item_code AS itemCode,
+	 EXC_GNAME AS saleNo, 
+	 REPORTER AS reporter,
+	 ITEM_DESC AS desCirp, 
+	 DATE_FORMAT((first_lis_day), '%Y-%m-%d') AS firstLisDay,
+	 DATE_FORMAT((last_lis_day), '%Y-%m-%d') AS lastLisDay
+	FROM 
+	ITEM_INFO 
+	WHERE cmpny_cd = #{corpNo}
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+			    </choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+			 	<choose>
+			        <when test="srch10 == '01'">
+			            ORDER BY last_lis_day DESC,first_lis_day DESC,EXC_GNAME ASC,item_code ASC
+			        </when>
+			        <otherwise>
+			            ORDER BY first_lis_day DESC,last_lis_day DESC,EXC_GNAME ASC,item_code ASC
+			        </otherwise>
+			    </choose>
+				LIMIT #{recordCountPerPage} OFFSET #{startPage};
 	</select>
 	
 	
 	<!-- Item목록 현황 (중복허용) 목록 갯수 조회 -->
 	<select id="selectDuplicationItemViewListCnt" parameterType="searchVO" resultType="int">
-		WITH ITEMVIEW AS (
+		<!-- WITH ITEMVIEW AS (
 			SELECT
 				itemCode,
 				saleNo,
@@ -640,7 +1074,7 @@
 					INNER JOIN CUSDEC929B1 b ON a.sn = b.sna1 AND a.rpt_no = b.rpt_no AND a.BRANCH = b.BRANCH AND a.CUS_PRG = b.CUS_PRG
 					INNER JOIN CUSDEC929C1 c ON a.sn = c.sna1 AND b.sn = c.snb1 and a.rpt_no = b.rpt_no AND a.BRANCH = c.BRANCH AND a.CUS_PRG = c.CUS_PRG
 				WHERE 1=1
-				<!-- AND a.nab_sdno = '1018672913' -->
+				AND a.nab_sdno = '1018672913'
 				AND a.nab_sdno = #{corpNo}
 				AND a.Rpt_Seq = '00'
 						
@@ -656,7 +1090,7 @@
 				INNER JOIN CUSDEC830C1 c ON a.sn = c.sna1 AND b.sn = c.snb1 and a.rpt_no = b.rpt_no AND a.BRANCH = c.BRANCH AND a.CUS_PRG = c.CUS_PRG
 				
 				WHERE 1=1
-				<!-- AND a.Exp_sdno = '1018672913' -->
+				AND a.Exp_sdno = '1018672913'
 				AND a.Exp_sdno = #{corpNo}
 				AND a.Rpt_Seq = '00'               
 			) a
@@ -671,7 +1105,7 @@
 		<if test="srch5 != null and srch5 != ''">
 		 AND desCirp LIKE CONCAT('%', UPPER(#{srch5}), '%')
 		 </if>
-		 <if test="srch4 != null and srch4 != ''"><!--자재코드 -->
+		 <if test="srch4 != null and srch4 != ''">자재코드
 		 AND itemCode = UPPER(#{srch4})
 		 </if>
 		 <choose>
@@ -682,11 +1116,31 @@
 		          AND lastLisDay BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 		       </otherwise>
 		  </choose>
-		ORDER BY lastLisDay desc, firstLisDay desc	
+		ORDER BY lastLisDay desc, firstLisDay desc	 -->
+		
+		SELECT 
+			 COUNT(*)
+		FROM 
+			ITEM_INFO 
+		WHERE cmpny_cd = #{corpNo}
+			<choose>
+		        <when test="srch10 == '01'">
+		            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+		        </when>
+		        <otherwise>
+		            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+		        </otherwise>
+		    </choose>
+			<if test="srch4 != null and srch4 != ''">
+		 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+		 	</if>
+		 	<if test="srch5 != null and srch5 != ''">
+		 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+		 	</if>;
 	</select>
 	
 	<select id = "selectDuplicationItemViewimportList" parameterType="searchVO" resultType="egovMap">
-		WITH ITEMVIEW AS (
+		<!-- WITH ITEMVIEW AS (
 			SELECT
 				itemCode,
 				saleNo,
@@ -708,7 +1162,7 @@
 					INNER JOIN CUSDEC929B1 b ON a.sn = b.sna1 AND a.rpt_no = b.rpt_no AND a.BRANCH = b.BRANCH AND a.CUS_PRG = b.CUS_PRG
 					INNER JOIN CUSDEC929C1 c ON a.sn = c.sna1 AND b.sn = c.snb1 and a.rpt_no = b.rpt_no AND a.BRANCH = c.BRANCH AND a.CUS_PRG = c.CUS_PRG
 				WHERE 1=1
-				<!-- AND a.nab_sdno = '1018672913' -->
+				AND a.nab_sdno = '1018672913'
 				AND a.nab_sdno = #{corpNo}
 				AND a.Rpt_Seq = '00'
 			) a
@@ -723,7 +1177,7 @@
 		<if test="srch5 != null and srch5 != ''">
 		 AND desCirp LIKE CONCAT('%', UPPER(#{srch5}), '%')
 		 </if>
-		 <if test="srch4 != null and srch4 != ''"><!--자재코드 -->
+		 <if test="srch4 != null and srch4 != ''">자재코드
 		 AND itemCode = UPPER(#{srch4})
 		 </if>
 		 <choose>
@@ -735,11 +1189,47 @@
 		       </otherwise>
 		  </choose>
 		ORDER BY lastLisDay desc, firstLisDay desc
-		LIMIT #{recordCountPerPage} OFFSET #{startPage};
+		LIMIT #{recordCountPerPage} OFFSET #{startPage}; ]-->
+		
+	SELECT 
+	 COUNT(*) OVER() as CNT,
+	 item_code AS itemCode,
+	 EXC_GNAME AS saleNo, 
+	 REPORTER AS reporter,
+	 ITEM_DESC AS desCirp, 
+	 DATE_FORMAT((first_lis_day), '%Y-%m-%d') AS firstLisDay,
+	 DATE_FORMAT((last_lis_day), '%Y-%m-%d') AS lastLisDay
+	FROM 
+	ITEM_INFO 
+	WHERE cmpny_cd = #{corpNo}
+				AND trade_type = 'imp'
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+		    	</choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+			 	<choose>
+			        <when test="srch10 == '01'">
+			            ORDER BY last_lis_day DESC,first_lis_day DESC,EXC_GNAME ASC,item_code ASC
+			        </when>
+			        <otherwise>
+			            ORDER BY first_lis_day DESC,last_lis_day DESC,EXC_GNAME ASC,item_code ASC
+			        </otherwise>
+			    </choose>
+				LIMIT #{recordCountPerPage} OFFSET #{startPage};
 	</select>
 	
 	<select id="selectDuplicationItemViewimportListCnt" parameterType="searchVO" resultType="int">
-		WITH ITEMVIEW AS (
+		<!-- WITH ITEMVIEW AS (
 					SELECT
 						itemCode,
 						saleNo,
@@ -757,7 +1247,7 @@
 							INNER JOIN CUSDEC929B1 b ON a.sn = b.sna1 AND a.rpt_no = b.rpt_no AND a.BRANCH = b.BRANCH AND a.CUS_PRG = b.CUS_PRG
 							INNER JOIN CUSDEC929C1 c ON a.sn = c.sna1 AND b.sn = c.snb1 and a.rpt_no = b.rpt_no AND a.BRANCH = c.BRANCH AND a.CUS_PRG = c.CUS_PRG
 						WHERE 1=1
-						<!-- AND a.nab_sdno = '1018672913' -->
+						AND a.nab_sdno = '1018672913'
 						AND a.nab_sdno = #{corpNo}
 						AND a.Rpt_Seq = '00'
 					) a
@@ -772,7 +1262,7 @@
 				<if test="srch5 != null and srch5 != ''">
 				 AND desCirp LIKE CONCAT('%', UPPER(#{srch5}), '%')
 				 </if>
-				 <if test="srch4 != null and srch4 != ''"><!--자재코드 -->
+				 <if test="srch4 != null and srch4 != ''">자재코드
 				 AND itemCode = UPPER(#{srch4})
 				 </if>
 				 <choose>
@@ -783,11 +1273,32 @@
 				          AND lastLisDay BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 				       </otherwise>
 				  </choose>
-				ORDER BY lastLisDay desc, firstLisDay desc	
+				ORDER BY lastLisDay desc, firstLisDay desc	 -->
+		SELECT 
+		 COUNT(*)
+		FROM 
+		ITEM_INFO 
+		WHERE cmpny_cd = #{corpNo}
+					AND trade_type = 'imp'
+					<choose>
+				        <when test="srch10 == '01'">
+				            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+				        </when>
+				        <otherwise>
+				            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+				        </otherwise>
+		    		</choose>
+					<if test="srch4 != null and srch4 != ''">
+				 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+				 	</if>
+				 	<if test="srch5 != null and srch5 != ''">
+				 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+				 	</if>
+					LIMIT #{recordCountPerPage} OFFSET #{startPage};
 	</select>
 	
 	<select id="selectDuplicationItemViewExportList" parameterType="searchVO" resultType="egovMap">
-		WITH ITEMVIEW AS (
+		<!-- WITH ITEMVIEW AS (
 			SELECT
 				itemCode,
 				saleNo,
@@ -809,7 +1320,7 @@
 				INNER JOIN CUSDEC830C1 c ON a.sn = c.sna1 AND b.sn = c.snb1 and a.rpt_no = b.rpt_no AND a.BRANCH = c.BRANCH AND a.CUS_PRG = c.CUS_PRG
 				
 				WHERE 1=1
-				<!-- AND a.Exp_sdno = '1018672913' -->
+				AND a.Exp_sdno = '1018672913'
 				AND a.Exp_sdno = #{corpNo}
 				AND a.Rpt_Seq = '00'               
 			) a
@@ -824,7 +1335,7 @@
 		<if test="srch5 != null and srch5 != ''">
 		 AND desCirp LIKE CONCAT('%', UPPER(#{srch5}), '%')
 		 </if>
-		 <if test="srch4 != null and srch4 != ''"><!--자재코드 -->
+		 <if test="srch4 != null and srch4 != ''">자재코드
 		 AND itemCode = UPPER(#{srch4})
 		 </if>
 		 <choose>
@@ -836,11 +1347,46 @@
 		       </otherwise>
 		  </choose>
 		ORDER BY lastLisDay desc, firstLisDay desc
-		LIMIT #{recordCountPerPage} OFFSET #{startPage};
+		LIMIT #{recordCountPerPage} OFFSET #{startPage}; -->
+		SELECT 
+	 COUNT(*) OVER() as CNT,
+	 item_code AS itemCode,
+	 EXC_GNAME AS saleNo, 
+	 REPORTER AS reporter,
+	 ITEM_DESC AS desCirp, 
+	 DATE_FORMAT((first_lis_day), '%Y-%m-%d') AS firstLisDay,
+	 DATE_FORMAT((last_lis_day), '%Y-%m-%d') AS lastLisDay
+	FROM 
+	ITEM_INFO 
+	WHERE cmpny_cd = #{corpNo}
+				AND trade_type = 'exp'
+				<choose>
+			        <when test="srch10 == '01'">
+			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </when>
+			        <otherwise>
+			            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+			        </otherwise>
+		    	</choose>
+				<if test="srch4 != null and srch4 != ''">
+			 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+			 	</if>
+			 	<if test="srch5 != null and srch5 != ''">
+			 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+			 	</if>
+			 	<choose>
+			        <when test="srch10 == '01'">
+			            ORDER BY last_lis_day DESC,first_lis_day DESC,EXC_GNAME ASC,item_code ASC
+			        </when>
+			        <otherwise>
+			            ORDER BY first_lis_day DESC,last_lis_day DESC,EXC_GNAME ASC,item_code ASC
+			        </otherwise>
+			    </choose>
+				LIMIT #{recordCountPerPage} OFFSET #{startPage};
 	</select>
 	
 	<select id="selectDuplicationItemViewExportListCnt" parameterType="searchVO" resultType="int">
-		WITH ITEMVIEW AS (
+		<!-- WITH ITEMVIEW AS (
 			SELECT
 				itemCode,
 				saleNo,
@@ -858,7 +1404,7 @@
 				INNER JOIN CUSDEC830C1 c ON a.sn = c.sna1 AND b.sn = c.snb1 and a.rpt_no = b.rpt_no AND a.BRANCH = c.BRANCH AND a.CUS_PRG = c.CUS_PRG
 				
 				WHERE 1=1
-				<!-- AND a.Exp_sdno = '1018672913' -->
+				AND a.Exp_sdno = '1018672913'
 				AND a.Exp_sdno = #{corpNo}
 				AND a.Rpt_Seq = '00'               
 			) a
@@ -873,7 +1419,7 @@
 		<if test="srch5 != null and srch5 != ''">
 		 AND desCirp LIKE CONCAT('%', UPPER(#{srch5}), '%')
 		 </if>
-		 <if test="srch4 != null and srch4 != ''"><!--자재코드 -->
+		 <if test="srch4 != null and srch4 != ''">자재코드
 		 AND itemCode = UPPER(#{srch4})
 		 </if>
 		 <choose>
@@ -884,7 +1430,28 @@
 		          AND lastLisDay BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 		       </otherwise>
 		  </choose>
-		ORDER BY lastLisDay desc, firstLisDay desc
+		ORDER BY lastLisDay desc, firstLisDay desc -->
+		SELECT 
+		 COUNT(*)
+		FROM 
+		ITEM_INFO 
+		WHERE cmpny_cd = #{corpNo}
+					AND trade_type = 'exp'
+					<choose>
+				        <when test="srch10 == '01'">
+				            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+				        </when>
+				        <otherwise>
+				            AND first_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+				        </otherwise>
+		    		</choose>
+					<if test="srch4 != null and srch4 != ''">
+				 	AND item_code like CONCAT('%', UPPER(#{srch4}),'%')
+				 	</if>
+				 	<if test="srch5 != null and srch5 != ''">
+				 	AND ITEM_DESC like CONCAT('%', UPPER(#{srch5}),'%')
+				 	</if>
+					;
 	</select>
 	
 	<select id="selectItemViewLanList" parameterType="searchVO" resultType="egovMap">
@@ -895,8 +1462,10 @@
 		    FROM (
 		        SELECT 
 		            CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END AS itemcode, 
-		            '' AS plntCd, 
-		            IFNULL(a.Po_No,'') AS prOrdr, 
+		            SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plntCd,
+				    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
+					SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
+					ELSE '' END AS prOrdr,
 		            a.BlNo AS blNo, 
 		            '' AS saleOrder, 
 		            '' AS invoice, 
@@ -946,8 +1515,10 @@
 		
 		        SELECT 
 		            CASE WHEN c.Mg_Cd = '' THEN c.Gnm1 ELSE c.Mg_Cd END AS itemcode, 
-		            '' AS plntCd, 
-		            IFNULL(a.Po_No,'') AS prOrdr, 
+		           	SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plntCd,
+				    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
+					SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
+					ELSE '' END AS prOrdr,
 		            a.BlNo AS blNo, 
 		            '' AS saleOrder, 
 		            b.Mg_Code AS invoice, 
@@ -998,6 +1569,7 @@
 		    ) AS sub
 		)
 		SELECT 
+		    COUNT(*) OVER() as CNT,
 		    itemcode,
 		    plntCd,
 		    prOrdr,
@@ -1017,12 +1589,10 @@
 		    upi,
 		    originMark,
 		    CASE 
-		    WHEN c.rn = 1 OR c.rn = (SELECT COUNT(*) FROM CTE) THEN 'All Equal'
-		    WHEN hsCode = (SELECT hsCode FROM CTE WHERE rn = c.rn - 1) AND hsCode = (SELECT hsCode FROM CTE WHERE rn = c.rn + 1) THEN 'All Equal' 
-		    WHEN hsCode = (SELECT hsCode FROM CTE WHERE rn = c.rn - 1) THEN 'Not Equal' 
-		    WHEN hsCode = (SELECT hsCode FROM CTE WHERE rn = c.rn + 1) THEN 'Not Equal' 
-		    ELSE 'Not Equal' 
-		    END AS result
+			WHEN COALESCE(LAG(hscode) OVER (ORDER BY rn),'first') = 'first' OR COALESCE(LEAD(hscode) OVER (ORDER BY rn),'last') = 'last' THEN 'All Equal'
+			WHEN hscode = LAG(hscode) OVER (ORDER BY rn) AND hscode = LEAD(hscode) OVER (ORDER BY rn) THEN 'All Equal'
+			ELSE 'Not Equal'
+			END AS result
 		FROM 
 		    CTE c
 		ORDER BY lisDay DESC;
@@ -1036,8 +1606,10 @@
 		    FROM (
 		        SELECT 
 		            CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END AS itemcode, 
-		            '' AS plntCd, 
-		            IFNULL(a.Po_No,'') AS prOrdr, 
+		            SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plntCd,
+				    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
+					SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
+					ELSE '' END AS prOrdr, 
 		            a.BlNo AS blNo, 
 		            '' AS saleOrder, 
 		            '' AS invoice, 
@@ -1087,22 +1659,15 @@
 		            <if test="srch6 != null and srch6 != ''"><!--신고번호  -->
 		            AND a.rpt_no LIKE CONCAT('%', UPPER(REPLACE(#{srch6},'-','')), '%')
 		            </if>
-		            <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
-		            AND a.Po_No LIKE CONCAT('%', UPPER(#{srch9}), '%')
-		            </if>
-		            <if test="srch12 != null and srch12 != ''"><!--인보이스번호  -->
-		            AND b.Mg_Code LIKE CONCAT('%', UPPER(#{srch12}), '%')
-		            </if>
-	              <!--<if test="srch11 != null and srch11 != ''">공장코드  
-		            AND '' LIKE CONCAT('%', UPPER(#{srch11}), '%')
-		            </if>-->
 		        
 		        UNION 
 		
 		        SELECT 
 		            CASE WHEN c.Mg_Cd = '' THEN c.Gnm1 ELSE c.Mg_Cd END AS itemcode, 
-		            '' AS plntCd, 
-		            IFNULL(a.Po_No,'') AS prOrdr, 
+		            SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plntCd,
+				    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
+					SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
+					ELSE '' END AS prOrdr, 
 		            a.BlNo AS blNo, 
 		            '' AS saleOrder, 
 		            b.Mg_Code AS invoice, 
@@ -1155,15 +1720,13 @@
 		            <if test="srch6 != null and srch6 != ''"><!--신고번호  -->
 		            AND a.rpt_no LIKE CONCAT('%', UPPER(REPLACE(#{srch6},'-','')), '%')
 		            </if>
-		            <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
-		            AND a.Po_No LIKE CONCAT('%', UPPER(#{srch9}), '%')
-		            </if>
 		            <if test="srch12 != null and srch12 != ''"><!--인보이스번호  -->
 		            AND b.Mg_Code LIKE CONCAT('%', UPPER(#{srch12}), '%')
-		            </if> 
+		            </if>
 		    ) AS sub
 		)
 		SELECT 
+		    COUNT(*) OVER() as CNT,
 		    itemcode,
 		    plntCd,
 		    prOrdr,
@@ -1183,14 +1746,19 @@
 		    upi,
 		    originMark,
 		    CASE 
-		    WHEN c.rn = 1 OR c.rn = (SELECT COUNT(*) FROM CTE) THEN 'All Equal'
-		    WHEN hsCode = (SELECT hsCode FROM CTE WHERE rn = c.rn - 1) AND hsCode = (SELECT hsCode FROM CTE WHERE rn = c.rn + 1) THEN 'All Equal' 
-		    WHEN hsCode = (SELECT hsCode FROM CTE WHERE rn = c.rn - 1) THEN 'Not Equal' 
-		    WHEN hsCode = (SELECT hsCode FROM CTE WHERE rn = c.rn + 1) THEN 'Not Equal' 
-		    ELSE 'Not Equal' 
-		    END AS result
+			WHEN COALESCE(LAG(hscode) OVER (ORDER BY rn),'first') = 'first' OR COALESCE(LEAD(hscode) OVER (ORDER BY rn),'last') = 'last' THEN 'All Equal'
+			WHEN hscode = LAG(hscode) OVER (ORDER BY rn) AND hscode = LEAD(hscode) OVER (ORDER BY rn) THEN 'All Equal'
+			ELSE 'Not Equal'
+			END AS result
 		FROM 
 		    CTE c
+		 WHERE 1=1
+		  <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
+		  AND  prOrdr LIKE CONCAT('%', UPPER(#{srch9}), '%')
+		  </if>
+		  <if test="srch8 != null and srch8 != ''"><!-- 공장코드   -->
+           AND  plntCd LIKE CONCAT('%', UPPER(#{srch8}), '%')
+          </if>
 		ORDER BY lisDay DESC;
 	</select>
 	
@@ -1203,8 +1771,10 @@
 			    FROM (
 			        SELECT 
 			            CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END AS itemcode, 
-			            '' AS plntCd, 
-			            IFNULL(a.Po_No,'') AS prOrdr, 
+			            SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plntCd,
+					    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
+						SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
+						ELSE '' END AS prOrdr, 
 			            a.BlNo AS blNo, 
 			            '' AS saleOrder, 
 			            '' AS invoice, 
@@ -1252,6 +1822,7 @@
 			    ) AS sub
 			)
 			SELECT 
+			    COUNT(*) OVER() as CNT,
 			    itemcode,
 			    plntCd,
 			    prOrdr,
@@ -1290,8 +1861,10 @@
 		    FROM (
 		        SELECT 
 		            CASE WHEN c.Mg_Cd = '' THEN c.Gnm1 ELSE c.Mg_Cd END AS itemcode, 
-		            '' AS plntCd, 
-		            IFNULL(a.Po_No,'') AS prOrdr, 
+		            SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plntCd,
+				    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
+					SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
+					ELSE '' END AS prOrdr, 
 		            a.BlNo AS blNo, 
 		            '' AS saleOrder, 
 		            b.Mg_Code AS invoice, 
@@ -1342,6 +1915,7 @@
 		    ) AS sub
 		)
 		SELECT 
+		    COUNT(*) OVER() as CNT,
 		    itemcode,
 		    plntCd,
 		    prOrdr,
@@ -1380,8 +1954,10 @@
 		    FROM (
 		        SELECT 
 		            CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END AS itemcode, 
-		            '' AS plntCd, 
-		            IFNULL(a.Po_No,'') AS prOrdr, 
+		            SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plntCd,
+				    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
+					SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
+					ELSE '' END AS prOrdr, 
 		            a.BlNo AS blNo, 
 		            '' AS saleOrder, 
 		            '' AS invoice, 
@@ -1431,22 +2007,16 @@
 		            <if test="srch6 != null and srch6 != ''"><!--신고번호  -->
 		            AND a.rpt_no LIKE CONCAT('%', UPPER(REPLACE(#{srch6},'-','')), '%')
 		            </if>
-		            <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
-		            AND a.Po_No LIKE CONCAT('%', UPPER(#{srch9}), '%')
-		            </if>
-		            <if test="srch12 != null and srch12 != ''"><!--인보이스번호  -->
-		            AND b.Mg_Code LIKE CONCAT('%', UPPER(#{srch12}), '%')
-		            </if>
-	              <!--<if test="srch11 != null and srch11 != ''">공장코드  
-		            AND '' LIKE CONCAT('%', UPPER(#{srch11}), '%')
-		            </if>-->
+	
 		        
 		        UNION 
 		
 		        SELECT 
 		            CASE WHEN c.Mg_Cd = '' THEN c.Gnm1 ELSE c.Mg_Cd END AS itemcode, 
-		            '' AS plntCd, 
-		            IFNULL(a.Po_No,'') AS prOrdr, 
+		            SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plntCd,
+				    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
+					SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
+					ELSE '' END AS prOrdr, 
 		            a.BlNo AS blNo, 
 		            '' AS saleOrder, 
 		            b.Mg_Code AS invoice, 
@@ -1499,9 +2069,6 @@
 		            <if test="srch6 != null and srch6 != ''"><!--신고번호  -->
 		            AND a.rpt_no LIKE CONCAT('%', UPPER(REPLACE(#{srch6},'-','')), '%')
 		            </if>
-		            <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
-		            AND a.Po_No LIKE CONCAT('%', UPPER(#{srch9}), '%')
-		            </if>
 		            <if test="srch12 != null and srch12 != ''"><!--인보이스번호  -->
 		            AND b.Mg_Code LIKE CONCAT('%', UPPER(#{srch12}), '%')
 		            </if> 
@@ -1509,8 +2076,16 @@
 		)
 		SELECT 
 		    count(*)
+		     
 		FROM 
 		    CTE c
+	    WHERE 1=1
+		  <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
+		  AND  prOrdr LIKE CONCAT('%', UPPER(#{srch9}), '%')
+		  </if>
+		  <if test="srch8 != null and srch8 != ''"><!-- 공장코드   -->
+           AND  plntCd LIKE CONCAT('%', UPPER(#{srch8}), '%')
+          </if>
 	</select>
 	
 	<select id="selectItemViewLanImportListCnt" parameterType="searchVO" resultType="int">
@@ -1521,8 +2096,10 @@
 		    FROM (
 		        SELECT 
 		            CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END AS itemcode, 
-		            '' AS plntCd, 
-		            IFNULL(a.Po_No,'') AS prOrdr, 
+		            SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plntCd,
+				    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
+					SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
+					ELSE '' END AS prOrdr, 
 		            a.BlNo AS blNo, 
 		            '' AS saleOrder, 
 		            '' AS invoice, 
@@ -1572,21 +2149,19 @@
 		            <if test="srch6 != null and srch6 != ''"><!--신고번호  -->
 		            AND a.rpt_no LIKE CONCAT('%', UPPER(REPLACE(#{srch6},'-','')), '%')
 		            </if>
-		            <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
-		            AND a.Po_No LIKE CONCAT('%', UPPER(#{srch9}), '%')
-		            </if>
-		            <if test="srch12 != null and srch12 != ''"><!--인보이스번호  -->
-		            AND b.Mg_Code LIKE CONCAT('%', UPPER(#{srch12}), '%')
-		            </if>
-	              <!--<if test="srch11 != null and srch11 != ''">공장코드  
-		            AND '' LIKE CONCAT('%', UPPER(#{srch11}), '%')
-		            </if>-->
 		    ) AS sub
 		)
 		SELECT 
 		    count(*)
 		FROM 
 		    CTE c
+		WHERE 1=1
+		  <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
+		  AND  prOrdr LIKE CONCAT('%', UPPER(#{srch9}), '%')
+		  </if>
+		  <if test="srch8 != null and srch8 != ''"><!-- 공장코드   -->
+           AND  plntCd LIKE CONCAT('%', UPPER(#{srch8}), '%')
+          </if>
 	</select>
 	
 	<select id="selectItemViewLanExportListCnt" parameterType="searchVO" resultType="int">
@@ -1599,8 +2174,10 @@
 		
 		        SELECT 
 		            CASE WHEN c.Mg_Cd = '' THEN c.Gnm1 ELSE c.Mg_Cd END AS itemcode, 
-		            '' AS plntCd, 
-		            IFNULL(a.Po_No,'') AS prOrdr, 
+		            SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plntCd,
+				    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
+					SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
+					ELSE '' END AS prOrdr, 
 		            a.BlNo AS blNo, 
 		            '' AS saleOrder, 
 		            b.Mg_Code AS invoice, 
@@ -1653,9 +2230,6 @@
 		            <if test="srch6 != null and srch6 != ''"><!--신고번호  -->
 		            AND a.rpt_no LIKE CONCAT('%', UPPER(REPLACE(#{srch6},'-','')), '%')
 		            </if>
-		            <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
-		            AND a.Po_No LIKE CONCAT('%', UPPER(#{srch9}), '%')
-		            </if>
 		            <if test="srch12 != null and srch12 != ''"><!--인보이스번호  -->
 		            AND b.Mg_Code LIKE CONCAT('%', UPPER(#{srch12}), '%')
 		            </if> 
@@ -1665,6 +2239,13 @@
 		    count(*)
 		FROM 
 		    CTE c
+		WHERE 1=1
+		  <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
+		  AND  prOrdr LIKE CONCAT('%', UPPER(#{srch9}), '%')
+		  </if>
+		  <if test="srch8 != null and srch8 != ''"><!-- 공장코드   -->
+           AND  plntCd LIKE CONCAT('%', UPPER(#{srch8}), '%')
+          </if>
 	</select>
 	
 	<!-- 수입통관 정보 검색 -->
@@ -1676,8 +2257,10 @@
 		    FROM (
 		        SELECT 
 		            CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END AS itemcode, 
-		            '' AS plntCd, 
-		            IFNULL(a.Po_No,'') AS prOrdr, 
+		            SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plntCd,
+				    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
+					SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
+					ELSE '' END AS prOrdr, 
 		            a.BlNo AS blNo, 
 		            '' AS saleOrder, 
 		            '' AS invoice, 
@@ -1727,19 +2310,10 @@
 		            <if test="srch6 != null and srch6 != ''"><!--신고번호  -->
 		            AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch6},'-','')), '%')
 		            </if>
-		            <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
-		            AND a.Po_No LIKE CONCAT('%', UPPER(#{srch9}), '%')
-		            </if>
-		            <if test="srch12 != null and srch12 != ''"><!--인보이스번호  -->
-		            AND b.Mg_Code LIKE CONCAT('%', UPPER(#{srch12}), '%')
-		            </if>
-	              <!--<if test="srch11 != null and srch11 != ''">공장코드  
-		            AND '' LIKE CONCAT('%', UPPER(#{srch11}), '%')
-		            </if>-->
-		        
 		    ) AS sub
 		)
 		SELECT 
+		    COUNT(*) OVER() as CNT,
 		    itemcode,
 		    plntCd,
 		    prOrdr,
@@ -1767,6 +2341,13 @@
 		    END AS result
 		FROM 
 		    CTE c
+		WHERE 1=1
+		  <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
+		  AND  prOrdr LIKE CONCAT('%', UPPER(#{srch9}), '%')
+		  </if>
+		  <if test="srch8 != null and srch8 != ''"><!-- 공장코드   -->
+           AND  plntCd LIKE CONCAT('%', UPPER(#{srch8}), '%')
+          </if>
 		ORDER BY lisDay DESC,RN ASC;
 	</select>
 	<!-- 수출통관 정보 검색 -->
@@ -1778,8 +2359,10 @@
 		    FROM (
 		        SELECT 
 		            CASE WHEN c.Mg_Cd = '' THEN c.Gnm1 ELSE c.Mg_Cd END AS itemcode, 
-		            '' AS plntCd, 
-		            IFNULL(a.Po_No,'') AS prOrdr, 
+		            SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plntCd,
+				    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
+					SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
+					ELSE '' END AS prOrdr, 
 		            a.BlNo AS blNo, 
 		            '' AS saleOrder, 
 		            b.Mg_Code AS invoice, 
@@ -1842,6 +2425,7 @@
 		    ) AS sub
 		)
 		SELECT 
+		    COUNT(*) OVER() as CNT,
 		    itemcode,
 		    plntCd,
 		    prOrdr,
@@ -1869,11 +2453,18 @@
 		    END AS result
 		FROM 
 		    CTE c
+		WHERE 1=1
+		  <if test="srch9 != null and srch9 != ''"><!--PO번호  -->
+		  AND  prOrdr LIKE CONCAT('%', UPPER(#{srch9}), '%')
+		  </if>
+		  <if test="srch8 != null and srch8 != ''"><!-- 공장코드   -->
+           AND  plntCd LIKE CONCAT('%', UPPER(#{srch8}), '%')
+          </if>
 		ORDER BY lisDay DESC,RN ASC;
 	</select>
 	<!-- 레디 요건 정보  -->
 	<select id="selectItemViewSpecListView" parameterType="searchVO" resultType="egovMap">
-		SELECT 
+		<!-- SELECT 
 			CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END AS 'itemCode',
 			c.ran_no AS ran,
 		 	C.sil AS sil,
@@ -1897,7 +2488,7 @@
 				AND c.ran_NO = e.Ran_no AND CAST(c.sil AS INTEGER) = CAST(e.sil AS INTEGER)
 		WHERE 1=1
 			AND (CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END) = #{srch2}
-			<!-- and a.nab_sdno = '1018672913' -->
+			and a.nab_sdno = '1018672913'
 			and a.nab_sdno = #{corpNo}
 			and a.Rpt_Seq = '00'
 			AND a.rpt_no = REPLACE(#{srch3},'-','')
@@ -1926,73 +2517,117 @@
 				ON d.law_cd = f.code	  
 		WHERE 1=1
 				AND (CASE WHEN c.Mg_Cd = '' THEN c.Gnm1 ELSE c.Mg_Cd END) = #{srch2}
-				<!-- AND a.Exp_sdno = '1018672913' -->
+				AND a.Exp_sdno = '1018672913'
 				AND a.Exp_sdno = #{corpNo}
 				AND a.Rpt_Seq = '00'
 				AND a.rpt_no = REPLACE(#{srch3},'-','')
 				AND c.ran_NO = #{srch4}
 				AND c.sil = #{srch5}
-		GROUP BY F.CONT, d.VIT_NO,c.Mg_Cd, c.Gnm1,c.ran_no,c.sil
+		GROUP BY F.CONT, d.VIT_NO,c.Mg_Cd, c.Gnm1,c.ran_no,c.sil -->
+		
+		SELECT  
+		    CASE 
+		        WHEN c.RG_code = '' THEN c.IMP_GName1 
+		        ELSE c.RG_code 
+		    END AS 'itemCode', 
+		    c.ran_no AS ran, 
+		    c.sil AS sil, 
+		    a.rpt_no AS rptNo,
+		    d.CONT AS criteria, 
+		    d.VIT_NO AS certNum,
+		    e.Exclude_NM AS nonEli
+		FROM 
+		    cusdec929a1 a
+		    INNER JOIN CUSDEC929C1 c 
+		        ON a.SN = c.SNA1 
+		        AND a.rpt_no = c.rpt_no 
+		        AND a.BRANCH = c.BRANCH 
+		        AND a.CUS_PRG = c.CUS_PRG
+		    INNER JOIN (
+		        SELECT 
+		            sna1, 
+		            rpt_no,
+		            branch, 
+		            cus_prg, 
+		            law_cd,
+		            GROUP_CONCAT(DISTINCT b.cont SEPARATOR ',') AS cont,
+		            GROUP_CONCAT(DISTINCT VIT_NO SEPARATOR ',') AS VIT_NO 
+		        FROM 
+		            cusdec929d1 a
+		            LEFT OUTER JOIN (
+		                SELECT DISTINCT CODE, cont
+		                FROM cdstd
+		                WHERE divi = '법령코드'
+		            ) b ON a.LAW_CD = b.code
+		        GROUP BY 
+		            a.sna1, 
+		            a.rpt_no, 
+		            a.branch, 
+		            a.cus_prg
+		    ) d ON a.SN = d.SNA1 
+		        AND a.rpt_no = d.rpt_no 
+		        AND a.BRANCH = d.BRANCH 
+		        AND a.CUS_PRG = d.CUS_PRG
+		    LEFT JOIN CUSDEC929C4 e 
+		        ON c.SNA1 = e.SNA1 
+		        AND c.rpt_no = e.rpt_no 
+		        AND c.BRANCH = e.BRANCH 
+		        AND c.CUS_PRG = e.CUS_PRG  
+		        AND c.ran_NO = e.ran_no 
+		        AND CAST(c.sil AS INTEGER) = CAST(e.sil AS INTEGER)
+		WHERE 
+		    1=1 
+		    AND (CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END) = #{srch2}
+		    AND a.nab_sdno = #{corpNo}
+		    AND a.Rpt_Seq = '00'
+		    AND a.rpt_no = REPLACE(#{srch3}, '-', '')
+		    AND c.ran_NO = #{srch4}
+		    AND c.sil = #{srch5}
 	</select>
 	
 	<!-- 엑셀 레디 요건 정보  -->
 	<select id="selectItemViewSpecExcelList" parameterType="searchVO" resultType="egovMap">
-		SELECT 
-			CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END AS 'itemCode',
-			c.ran_no AS ran,
-		 	C.sil AS sil,
-		 	a.rpt_no AS rptNo,
-			f.CONT as criteria,
-			d.VIT_NO as certNum,
-			e.Exclude_NM as nonEli
-		FROM
-			CUSDEC929A1 a
-			inner join CUSDEC929C1 c
-			on a.SN = c.SNA1 AND a.rpt_no = C.rpt_no AND a.BRANCH = C.BRANCH AND A.CUS_PRG = C.CUS_PRG
-			inner join CUSDEC929D1 d
-			on a.SN = d.SNA1  AND a.rpt_no = D.rpt_no AND a.BRANCH = D.BRANCH AND A.CUS_PRG = D.CUS_PRG
-			left outer JOIN (
-				SELECT DISTINCT CODE, cont
-				from cdstd
-				WHERE divi = '법령코드'
-			) f
-			ON d.law_cd = f.code
-			left outer join CUSDEC929C4 e
-				on a.SN = E.SNA1 AND a.rpt_no = E.rpt_no AND a.BRANCH = E.BRANCH AND A.CUS_PRG = E.CUS_PRG
-				AND c.ran_NO = e.Ran_no AND CAST(c.sil AS INTEGER) = CAST(e.sil AS INTEGER)
-		WHERE 1=1
+		SELECT  
+			CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END AS 'itemCode', 
+			c.ran_no AS ran, 
+			C.sil AS sil, 
+			a.rpt_no AS rptNo,
+			d.CONT AS criteria, 
+			d.VIT_NO AS certNum,
+			e.Exclude_NM AS nonEli
+			FROM cusdec929a1 a
+			INNER JOIN CUSDEC929C1 c 
+			ON a.SN = c.SNA1 
+			AND a.rpt_no = C.rpt_no 
+			AND a.BRANCH = C.BRANCH 
+			AND A.CUS_PRG = C.CUS_PRG
+			INNER JOIN 
+			(
+			SELECT sna1, rpt_no ,branch, cus_prg, law_cd
+			,GROUP_CONCAT(distinct b.cont SEPARATOR ',') as cont
+			,GROUP_CONCAT(distinct VIT_NO SEPARATOR ',') as VIT_NO 
+			FROM cusdec929d1 a
+			LEFT OUTER JOIN (SELECT DISTINCT CODE, cont
+			FROM cdstd
+			WHERE divi = '법령코드') b
+			ON a.LAW_CD = b.code
+			GROUP BY a.sna1
+			) d 
+			ON a.SN = d.SNA1 
+			AND a.rpt_no = D.rpt_no 
+			AND a.BRANCH = D.BRANCH 
+			AND A.CUS_PRG = D.CUS_PRG
+			left JOIN CUSDEC929C4 e 
+			on c.SNA1 = E.SNA1 
+			AND c.rpt_no = E.rpt_no 
+			AND c.BRANCH = E.BRANCH 
+			AND c.CUS_PRG = E.CUS_PRG  
+			AND c.ran_NO = e.Ran_no 
+			AND CAST(c.sil AS INTEGER) = CAST(e.sil AS INTEGER)
+			WHERE 1=1 
 			AND (CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END) = #{srch2}
-			<!-- and a.nab_sdno = '1018672913' -->
-			and a.nab_sdno = #{corpNo}
-			and a.Rpt_Seq = '00'
-		GROUP BY f.CONT, d.VIT_NM,e.Exclude_NM,c.RG_code,c.IMP_GName1,c.ran_no,c.sil
-			
-		UNION
-			
-		SELECT 
-				CASE WHEN c.Mg_Cd = '' THEN c.Gnm1 ELSE c.Mg_Cd END AS 'itemCode',
-				c.ran_no AS ran,
-		 		c.sil AS sil,
-		 		a.rpt_no AS rptNo,
-				f.cont as criteria,
-				d.VIT_NO as certNum ,
-				'' as nonEli
-		 FROM
-		        CUSDEC830A1 a
-		        INNER JOIN CUSDEC830C1 c ON a.SN = c.SNA1 AND a.rpt_no = C.rpt_no AND a.BRANCH = C.BRANCH AND A.CUS_PRG = C.CUS_PRG
-				INNER JOIN CUSDEC830D1 d on a.sn = d.sna1 AND a.rpt_no = D.rpt_no AND a.BRANCH = D.BRANCH AND A.CUS_PRG = D.CUS_PRG
-				left outer JOIN (
-				SELECT DISTINCT CODE, cont
-				from cdstd
-				WHERE divi = '법령코드'
-				) f
-				ON d.law_cd = f.code	  
-		WHERE 1=1
-				AND (CASE WHEN c.Mg_Cd = '' THEN c.Gnm1 ELSE c.Mg_Cd END) = #{srch2}
-				<!-- AND a.Exp_sdno = '1018672913' -->
-				AND a.Exp_sdno = #{corpNo}
-				AND a.Rpt_Seq = '00'
-		GROUP BY F.CONT, d.VIT_NO,c.Mg_Cd, c.Gnm1,c.ran_no,c.sil
+			AND a.nab_sdno = #{corpNo}
+			AND a.Rpt_Seq = '00'
 	</select>
 	
 	<!-- iOOM 요건 정보  -->

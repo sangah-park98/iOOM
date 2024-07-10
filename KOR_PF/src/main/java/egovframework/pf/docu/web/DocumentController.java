@@ -156,14 +156,10 @@ public class DocumentController {
 		}
 		
 		List<?> resultList = null;
-		int imptotCnt = 0;
 		
-		imptotCnt = pfdocumentService.selectDocuViewImpTotCnt(vo);
 		resultList = pfdocumentService.selectDocumentImpViewList(vo);
-		
 		ModelAndView mav = new ModelAndView("jsonView");
 	    mav.addObject("resultList", resultList);
-	    mav.addObject("imptotCnt", imptotCnt);
 
 	    return mav;
 	    
@@ -180,14 +176,10 @@ public class DocumentController {
 			vo.setCorpNo(userVO.getCorpNo());
 		}
 		List<?> resultList = null;
-		int exptotCnt = 0;
 		
-		exptotCnt = pfdocumentService.selectDocuViewExpTotCnt(vo);
 		resultList = pfdocumentService.selectDocumentExpViewList(vo);
-		
 		ModelAndView mav = new ModelAndView("jsonView");
 		mav.addObject("resultList", resultList);
-		mav.addObject("exptotCnt", exptotCnt);
 		
 		return mav;
 	}
@@ -197,6 +189,7 @@ public class DocumentController {
 	public ModelAndView insertDocuFilesInfo(
 					@RequestParam("fileBL[]") MultipartFile[] filesBl,
 					@RequestParam("fileDC[]") MultipartFile[] filesDc,
+					@RequestParam("fileUC[]") MultipartFile[] filesUc,
 					@RequestParam("fileCI[]") MultipartFile[] filesCi,
 					@RequestParam("filePL[]") MultipartFile[] filesPl,
 					@RequestParam("fileCO[]") MultipartFile[] filesCo,
@@ -281,6 +274,38 @@ public class DocumentController {
 				
 				pfdocumentService.insertImpDocuFilesInfo(vo);
 			}
+			
+			for (MultipartFile file : filesUc) {
+				  
+				System.out.println("Received file Uc: " + file.getOriginalFilename());
+				String fileName = file.getOriginalFilename();
+				String directory = "/home/files";
+				String filepath = Paths.get(directory, fileName).toString();
+				BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(new File(filepath)));
+				stream.write(file.getBytes());
+				stream.close();
+				
+				SaveDocuFileVO vo = new SaveDocuFileVO();
+				
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+				Calendar date = Calendar.getInstance();
+				String uploadDt = sdf.format(date.getTime());
+				SimpleDateFormat sdf2 = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+				Calendar date2 = Calendar.getInstance();
+				String regDt = sdf2.format(date2.getTime());
+				
+				vo.setOrgFileName(fileName);
+				vo.setDocuType("UC");
+				vo.setFileName(fileName);
+				vo.setUploadDt(uploadDt);
+				vo.setRegDt(regDt);
+				vo.setRegId(regId);
+				vo.setCmpnyCd(cmpnyCd);
+				vo.setRptNo(docuRptNo);
+				vo.setBlNo(docuBlNo);
+				
+				pfdocumentService.insertImpDocuFilesInfo(vo);
+		    }
 			
 			for (MultipartFile file : filesCi) {
 			    System.out.println("Received file In: " + file.getOriginalFilename());
@@ -566,6 +591,38 @@ public class DocumentController {
 				pfdocumentService.insertExpDocuFilesInfo(vo);
 			}
 			
+			for (MultipartFile file : filesUc) {
+				
+				System.out.println("exp_Uc: " + file.getOriginalFilename());
+				String fileName = file.getOriginalFilename();
+				String directory = "/home/files";
+				String filepath = Paths.get(directory, fileName).toString();
+				BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(new File(filepath)));
+				stream.write(file.getBytes());
+				stream.close();
+				
+				SaveDocuFileVO vo = new SaveDocuFileVO();
+				
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+				Calendar date = Calendar.getInstance();
+				String uploadDt = sdf.format(date.getTime());
+				SimpleDateFormat sdf2 = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+				Calendar date2 = Calendar.getInstance();
+				String regDt = sdf2.format(date2.getTime());
+				
+				vo.setOrgFileName(fileName);
+				vo.setDocuType("UC");
+				vo.setFileName(fileName);
+				vo.setUploadDt(uploadDt);
+				vo.setRegDt(regDt);
+				vo.setRegId(regId);
+				vo.setCmpnyCd(cmpnyCd);
+				vo.setRptNo(docuRptNo);
+				vo.setInvoiceNo(docuInvoiceNo);
+				
+				pfdocumentService.insertExpDocuFilesInfo(vo);
+			}
+			
 			for (MultipartFile file : filesCi) {
 			    System.out.println("exp_In: " + file.getOriginalFilename());
 			  	String name = file.getName();
@@ -809,8 +866,10 @@ public class DocumentController {
 	    	List<ZipDocuFileDownload> zipFiles = new ArrayList<>(); //선택한 파일을 확인하기 위한 새로운 배열 선언
 	    	Map<String, Object> paramMap = new HashMap<>();
 	    	System.out.println(zipFile.getRptNo());
+	    	System.out.println(zipFile.getMgCode());
+	    	System.out.println(zipFile.getBlno());
 	    	// System.out.println(zipFile.getCi()); // true Or false
-	    	zipFiles.add(zipFile); //다운로드 시도 할 신고번호를 paramMap 오브젝트에 넣기 위해 배열에 추가
+	    	zipFiles.add(zipFile); //다운로드 시도할 신고번호를 paramMap 오브젝트에 넣기 위해 배열에 추가
 	    
 	    paramMap.put("zipFiles", zipFiles);
 	    System.out.println(paramMap);
@@ -833,7 +892,16 @@ public class DocumentController {
 	        System.out.println("docuOrgFiles: " + docuOrgFiles);
 	        System.out.println("docuPath: " + saveDir);
 	        
-	        String zipFileName = zipFile.getRptNo() + "" + ".zip";
+	        String zipFileName;
+	        if (zipFile.getBlno() != null && !zipFile.getBlno().isEmpty()) {
+	        	zipFileName = zipFile.getBlno() + "_" + zipFile.getRptNo() + ".zip";
+	        } else if (zipFile.getMgCode() != null && !zipFile.getMgCode().isEmpty()) {
+	        	zipFileName = zipFile.getMgCode() + "_" + zipFile.getRptNo() + ".zip";
+	        } else {
+	        	zipFileName = zipFile.getRptNo() + ".zip";
+	        }
+	        
+	        System.out.println("파일명: " + zipFileName);
 	        createZipFile(docuOrgFiles, zipFileName, saveDir); // 선언된 배열 zip 파일로 만들기
 	    }
 	        return ResponseEntity.status(HttpStatus.OK).body("success");
@@ -868,6 +936,7 @@ public class DocumentController {
   	public void downloadDocuFile(
   			HttpServletRequest request, HttpServletResponse response) throws Exception {
 		String zipName = request.getParameter("zipDownloadName");
+		System.out.println("zipName: " + zipName);
   		String saveDir = "/home/files";
   		File file = new File(saveDir + "/" + zipName + ".zip");
   		response.setHeader("Content-Disposition","attachment;filename=\"" + zipName + ".zip\";");

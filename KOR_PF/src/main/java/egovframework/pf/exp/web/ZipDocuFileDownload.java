@@ -2,6 +2,8 @@ package egovframework.pf.exp.web;
 
 public class ZipDocuFileDownload {
 	
+	private String blno;
+	private String mgCode;
 	private String rptNo;
 	private String dc;
 	private String ci;
@@ -12,7 +14,27 @@ public class ZipDocuFileDownload {
 	private String ac;
 	private String cb;
 	private String ot;
+	private String uc;
 	
+	
+	public String getMgCode() {
+		return mgCode;
+	}
+	public void setMgCode(String mgCode) {
+		this.mgCode = mgCode;
+	}
+	public String getBlno() {
+		return blno;
+	}
+	public void setBlno(String blno) {
+		this.blno = blno;
+	}
+	public String getUc() {
+		return uc;
+	}
+	public void setUc(String uc) {
+		this.uc = uc;
+	}
 	public String getCb() {
 		return cb;
 	}

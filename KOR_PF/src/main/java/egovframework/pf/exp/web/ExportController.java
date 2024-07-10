@@ -58,6 +58,7 @@ import egovframework.pf.cmmn.service.UserSessionVO;
 import egovframework.pf.exp.service.SaveExpFileVO;
 import egovframework.pf.exp.service.SaveExpMainVO;
 import egovframework.pf.exp.service.pfExportService;
+import egovframework.pf.imp.service.ImportService;
 import egovframework.pf.member.utill.EmailUtill;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -81,6 +82,9 @@ public class ExportController {
 
 	@Resource(name = "pfExportService")
 	private pfExportService pfexportService;
+	
+	@Resource(name = "importService")
+	private ImportService importService;
 	
 	private Connection conn;
 	
@@ -324,12 +328,9 @@ public class ExportController {
 		}
 		System.out.println("srch4: " + vo.getSrch4());
 		List<?> resultList = null;
-	    int totCnt = 0;
 	    
 	    resultList = pfexportService.selectExportInList(vo);
-		totCnt = pfexportService.selectExportInTotCnt(vo);
 		model.addAttribute("resultList", resultList);
-		model.addAttribute("totCnt", totCnt);
 
 		ModelAndView mav = new ModelAndView("jsonView", model);
 		return mav;
@@ -376,8 +377,8 @@ public class ExportController {
 		vo.setCmpnyCd(userVO.getCmpnyCd());
 
 		String saveDir = "/home/files";
-		String zipFileName = downloadFile.get(0).getRptNo() + ".zip";
-		System.out.println(downloadFile.get(0).getRptNo());
+		String saveDir2 = "";
+		String zipFileName = downloadFile.get(0).getInvoiceNo() + "_" + downloadFile.get(0).getRptNo() + ".zip";
 		System.out.println(zipFileName);
 
 		try {
@@ -385,7 +386,12 @@ public class ExportController {
             ZipOutputStream zipOut = new ZipOutputStream(fos);
             // 파일 목록을 순회하며 압축 파일에 추가
             for (ZipFileDownload file : downloadFile) {
-                addFileToZip(saveDir, file.getDocuFile(), zipOut);
+            	if(file.getDocuType().equals("DC")) {
+            		saveDir2 = file.getDocuPath();
+            	} else {
+            		saveDir2 = "/home/files";
+            	}
+                addFileToZip(saveDir2, file.getDocuFile(), zipOut);
             }
 	        zipOut.close(); // ZIP 출력 스트림 닫기
 		} catch (Exception e) {
@@ -420,14 +426,14 @@ public class ExportController {
 	public void downLoadZipFileBlList(@RequestBody List<ZipFileDownload> downloadFile,
 			@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, ModelMap model,
 			HttpServletResponse response) throws Exception {
-		System.out.println("downLoadZipFileInList_____________");
+		System.out.println("---------------downLoadZipFileInList---------------");
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
 		vo.setLang(userVO.getLang());
 		vo.setCmpnyCd(userVO.getCmpnyCd());
 
 		String saveDir = "/home/files";
-		String zipFileName = downloadFile.get(0).getInvoiceNo() + ".zip";
+		String zipFileName = downloadFile.get(0).getInvoiceNo() + "_" + downloadFile.get(0).getRptNo() + ".zip";
 		System.out.println(zipFileName);
 
 		try {
@@ -768,13 +774,10 @@ public class ExportController {
 		}
 		
 		List<?> resultList = null;
-	    int totCnt = 0;
 	    // 페이징 처리 
         resultList = pfexportService.selectExportViewList(vo);
-    	totCnt = pfexportService.selectExportViewTotCnt(vo);
 	    ModelAndView mav = new ModelAndView("jsonView");
 	    mav.addObject("resultList", resultList);
-	    mav.addObject("totCnt", totCnt);
 
 	    return mav;
 	}
@@ -790,9 +793,6 @@ public class ExportController {
 
 		List<?> resultList = pfexportService.selectExportViewLanList(vo);
 		model.addAttribute("resultList", resultList);
-
-		int totCnt = pfexportService.selectExportViewTotCnt(vo);
-		model.addAttribute("totCnt", totCnt);
 
 		ModelAndView mav = new ModelAndView("jsonView", model);
 		return mav;
@@ -871,13 +871,10 @@ public class ExportController {
 		}
 		
 		List<?> resultList = null;
-	    int totCnt = 0;
 	    // 페이징 처리 
         resultList = pfexportService.selectExportUpdateList(vo);
-    	totCnt = pfexportService.selectExportUpdateTotCnt(vo);
 	    ModelAndView mav = new ModelAndView("jsonView");
 	    mav.addObject("resultList", resultList);
-	    mav.addObject("totCnt", totCnt);
 
 	    return mav;
 	}
@@ -1213,6 +1210,16 @@ public class ExportController {
   		System.out.println("sendCmpnyCd : " + sendCmpnyCd);
   		SearchVO vo = new SearchVO();
   		vo.setSrch1(sendInvoiceNo);
+  		vo.setSrch2(sendCmpnyCd);
+  		
+  		String sendEmail = "";
+			
+  		sendEmail =  importService.impSendEmail(vo);
+  		if(sendEmail == null ) {
+  			sendEmail = "isseo@kordsystems.com";
+  		}
+  		
+  		System.out.println("sendEmail : " + sendEmail);
   		
   		pfexportService.expRequestBl(vo); // 통관의뢰 -> 통관진행중
   		List<?> expInList = pfexportService.selectInFilesList(vo);
@@ -1238,7 +1245,7 @@ public class ExportController {
 			e.printStackTrace();
 		} finally {}
   		
-  		EmailUtill.sendEmailWithFile(sendInvoiceNo, sendCmpnyCd, "isseo@kordsystems.com", "EXPORT", null, "kr", zipFileName);
+  		EmailUtill.sendEmailWithFile(sendInvoiceNo, sendCmpnyCd, sendEmail, "EXPORT", null, "kr", zipFileName);
   	}
 	
 	
@@ -1393,6 +1400,7 @@ public class ExportController {
 				sheetSearchVo.setSrch5((String) vo.getSrch5());
 				sheetSearchVo.setSrch6((String) vo.getSrch6());
 				sheetSearchVo.setSrch7((String) vo.getSrch7());
+				sheetSearchVo.setSrch8((String) vo.getSrch8());
 				
 				
 				if("01".equals(vo.getExType())) {

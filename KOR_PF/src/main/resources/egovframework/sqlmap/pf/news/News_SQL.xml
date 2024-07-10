@@ -40,5 +40,9 @@
 		FROM news_info
 		WHERE SEQ = #{srch3};
 	</select>
+	
+	<delete id="deleteNewsViewList" parameterType="searchVO">
+		DELETE FROM news_info WHERE seq = #{srch3};
+	</delete>
 </mapper>
 
