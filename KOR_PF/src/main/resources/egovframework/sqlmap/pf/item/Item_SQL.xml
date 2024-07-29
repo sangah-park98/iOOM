@@ -153,7 +153,13 @@
 					MAX(last_lis_day) last_lis_day
 				FROM
 					item_info
-				WHERE cmpny_cd = #{corpNo}
+				WHERE 1=1<!-- cmpny_cd = #{corpNo} -->
+				<if test="list != null and list.size() > 0">
+		            AND cmpny_cd IN 
+		            <foreach item="id" collection="list" open="(" separator="," close=")">
+		                #{id}
+		            </foreach>
+	        	</if>
 				<choose>
 			        <when test="srch10 == '01'">
 			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
@@ -177,7 +183,14 @@
 				*
 				FROM
 				item_info
-				WHERE cmpny_cd = #{corpNo}
+				WHERE 1=1
+				<!-- WHERE cmpny_cd = #{corpNo} -->
+				<if test="list != null and list.size() > 0">
+		            AND cmpny_cd IN 
+		            <foreach item="id" collection="list" open="(" separator="," close=")">
+		                #{id}
+		            </foreach>
+	        	</if>
 				<choose>
 			        <when test="srch10 == '01'">
 			            AND last_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')

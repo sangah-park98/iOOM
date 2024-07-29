@@ -22,6 +22,7 @@
 				ELSE CONCAT('(', a.lev_form, ')')
 			END AS levForm,
 			CASE
+			    WHEN a.cus_prg = 'ENC' then '-' 
 				WHEN a.lev_form = '43' THEN IFNULL(LAST_DAY(a.lis_day),'-')
 				WHEN a.lev_form IN ('13','14','18') THEN IFNULL(DATE_FORMAT(c.nab_day1, '%Y-%m-%d'),'-')
 				ELSE IFNULL(DATE_FORMAT(DATE_ADD(a.lis_day, INTERVAL 15 DAY), '%Y-%m-%d'),'-')
@@ -35,7 +36,9 @@
 			IFNULL(DATE_FORMAT(a.rpt_day, '%Y-%m-%d'), '-') AS rptDay, -- '신고일자' 
 			IFNULL(DATE_FORMAT(a.lis_day, '%Y-%m-%d'), '-') AS lisDay, -- '수리일자' 
 			'-' AS banIpDay, '-' AS date4, 
-			CASE WHEN a.lis_day = '' THEN '-' ELSE DATE_FORMAT(DATE_ADD(a.lis_day, INTERVAL 30 DAY), '%Y-%m-%d') END AS date5, 
+			CASE WHEN a.lis_day = '' THEN '-' 
+				 WHEN a.chk_pa_mark IN (SELECT cmmn_cd FROM cmmn_cd WHERE grp_cd = 'chkpamark') then DATE_FORMAT(DATE_ADD(a.lis_day, INTERVAL 15 DAY), '%Y-%m-%d')
+				 ELSE DATE_FORMAT(DATE_ADD(a.lis_day, INTERVAL 30 DAY), '%Y-%m-%d') END AS date5, 
 			CASE WHEN a.lis_day = '' THEN '-' ELSE DATE_FORMAT(DATE_ADD(a.lis_day, INTERVAL 6 MONTH), '%Y-%m-%d') END AS date6, 
 			CASE WHEN a.lis_day = '' THEN '-' ELSE DATE_FORMAT(DATE_ADD(a.lis_day, INTERVAL 30 DAY), '%Y-%m-%d') END AS date7, 
 			IFNULL(c.nab_day4, '-') AS date8,
@@ -45,17 +48,25 @@
 			SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
 			ELSE '' END AS po,
 			
-			CASE WHEN SUBSTRING(a.Rpt_No,1,5) IN ('40084', '42836', '44648', '44013', '44804') THEN '신한관세법인' ELSE '타관세법인' END AS reporter, 
+			IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
 			CONCAT(a.Mrn,a.Msn,a.Hsn) AS cargMtNo, A.Tg_Pln_Mark AS tgPlnMark, A.Tg_Pln_Cot AS tgPlnCot 
 			FROM cusdec929a1 a 
 			LEFT OUTER JOIN ( SELECT SNA1, Rpt_No, COUNT(*) FTACNT FROM cusdec929b1 bb WHERE bb.ori_st_mark1 IN (SELECT cmmn_cd FROM cmmn_cd WHERE GRP_CD = 'FTANATION') AND bb.gs_rate != 0 AND bb.gs_divi NOT LIKE 'F%' GROUP BY SNA1, Rpt_No ) b ON a.SN = b.SNA1 AND a.Rpt_No = b.Rpt_No 
 			LEFT OUTER JOIN import_pay c ON a.rpt_no = c.rpt_no
+			
+			LEFT JOIN
+			(select cmmn_cd, cmmn_nm from cmmn_cd where grp_cd = 'IMPSHRPTCD') I
+			on I.cmmn_cd = SUBSTRING(a.rpt_no, 1, 5)
+			
 		WHERE
 			1 = 1
 			AND a.rpt_seq = '00'
-		 	AND a.nab_sdno = #{srch40}
-			<!--  AND a.nab_sdno = '1018672913' -->
-			<!-- AND LEFT(a.Rpt_No, 5) IN ('40084', '42836', '44648', '44013', '44804') -->
+			<if test="list != null and list.size() > 0">
+	            AND a.nab_sdno IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
 		    <if test="srch4 != null and srch4 != ''">
               AND a.rpt_no LIKE CONCAT('%', UPPER(REPLACE(REPLACE(#{srch4}, '.', ''), '-', '')), '%')
            </if>
@@ -89,14 +100,13 @@
 				        SUBSTRING(A.rpt_no, 8)
 				    ) AS rptNo, -- '신고번호'                   
                   B.mg_code, -- 송품장번호
+                  A.exp_firm,
                   CONCAT('[', ta_st_iso, ']', ta_st_isonm) AS nation,  -- 목적국
                   IFNULL(DATE_FORMAT(a.rpt_day, '%Y-%m-%d'), '-') AS rptDay, -- '신고일자' 
                   IFNULL(DATE_FORMAT(exp_lis_day, '%Y-%m-%d'), '-') AS explisDay, -- '수리일자' 
                   IFNULL(DATE_FORMAT(ship_day, '%Y-%m-%d'), '-') AS shipDay, -- '선적일자' 
                   IFNULL(DATE_FORMAT(Juk_Day, '%Y-%m-%d'), '-') AS jukDay, -- '선적일자기한' 
-                  CASE 
-				  WHEN SUBSTRING(a.Rpt_No,1,5) IN ('40084', '42836', '44648', '44013', '44804') THEN '신한관세법인'
-				  ELSE '타관세법인' END AS reporter
+                  IFNULL(I.cmmn_nm,'타관세법인') AS reporter
              FROM cusdec830a1 A 
 				 LEFT OUTER JOIN 
 				  (SELECT
@@ -106,11 +116,21 @@
 					GROUP BY B.BRANCH, B.CUS_PRG, B.RPT_NO
 				   ) B
 				   ON A.sn = B.sna1 AND a.rpt_no = B.rpt_no AND a.branch = b.branch AND a.cus_prg = b.cus_prg
+				   
+				   LEFT JOIN
+					(select cmmn_cd, cmmn_nm from cmmn_cd where grp_cd = 'EXPSHRPTCD') I
+					on I.cmmn_cd = SUBSTRING(a.rpt_no, 1, 5)
+			
               WHERE A.rpt_seq = '00'
-              AND a.Exp_sdno = #{srch40} 
+              <if test="list != null and list.size() > 0">
+	            AND a.Exp_sdno IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	  </if>
               <if test="srch6 != null and srch6 != ''">
               AND  f.mg_code LIKE CONCAT('%', UPPER(#{srch6}), '%')
-             </if>
+              </if>
               <!-- AND a.Exp_sdno = '1018672913' -->
               <!-- AND LEFT(a.Rpt_No, 5) in ('40084','42836','44648','44013','44804') -->
               and LENGTH(a.Exp_Lis_Day) = 8

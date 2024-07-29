@@ -21,13 +21,12 @@
 
 	<!-- 회사목록 조회 -->
 	<select id="selectUsrCmpnyList" parameterType="searchVO" resultType="egovMap">
-		SELECT A.TAX_NO, A.CMPNY_NM FROM cmpny_info A
-		LEFT JOIN user_cmpny_info B
-		ON A.TAX_NO = B.TAX_NO
-		AND A.CMPNY_NM = B.CMPNY_NM
+		SELECT A.TAX_NO, A.CMPNY_NM FROM user_cmpny_info A
 		WHERE 1=1 
-		AND B.USR_ID = #{id}
-		AND B.MANER_YN ='Y'
+		AND A.USR_ID = #{id}
+		AND A.MANER_YN ='Y'
+		AND (A.tax_no LIKE CONCAT('%',UPPER(#{srch1}),'%') OR A.cmpny_nm LIKE CONCAT('%',UPPER(#{srch1}),'%'))
+		ORDER BY A.CMPNY_NM, A.TAX_NO
 <!-- 		 SELECT tax_no, cmpny_nm
 		    	  from cmpny_info
 				  WHERE 1=1
@@ -37,9 +36,10 @@
 	</select>
 	
 	<select id="selectAllCmpnyList" parameterType="searchVO" resultType="egovMap">
-		SELECT TAX_NO, CMPNY_NM FROM cmpny_info
+		  SELECT DISTINCT tax_no, cmpny_nm FROM user_cmpny_info
 		  WHERE 1=1
 		  AND (tax_no LIKE CONCAT('%',UPPER(#{srch1}),'%') OR cmpny_nm LIKE CONCAT('%',UPPER(#{srch1}),'%'))
+		  ORDER BY CMPNY_NM, TAX_NO
 	</select>
 
 	<!-- 대메뉴 조회 -->

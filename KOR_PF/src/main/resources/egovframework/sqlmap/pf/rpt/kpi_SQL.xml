@@ -61,9 +61,15 @@
 					Lis_Day
 				FROM CUSDEC929A1
 				WHERE 1=1
-				<if test="corpNo != null and corpNo != ''"><!-- 사업자번호 -->
+				<!-- <if test="corpNo != null and corpNo != ''">사업자번호
 					AND Nab_SdNo = #{corpNo}
-				</if>
+				</if> -->
+				<if test="list != null and list.size() > 0">
+		            AND Nab_SdNo IN 
+		            <foreach item="id" collection="list" open="(" separator="," close=")">
+		                #{id}
+		            </foreach>
+	        	</if>
 			) A
 			INNER JOIN CUSDMR5FEA1 B
 				ON A.SN = B.CUSDEC929SN 
@@ -86,7 +92,7 @@
 					AND B.rpt_day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
 		        </when>
 		        <when test="srch2 == 'lisDay'"><!-- 수리일자 -->
-					AND B.imp_rpt_day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
+					AND B.impRptDay BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
 		        </when>
 			</choose>
 		</if>
@@ -108,10 +114,10 @@
 					ORDER BY B.pet_day DESC
 			    </when>
 			    <when test="srch2 == 'rptDay'"><!-- 신청일자 -->
-					ORDER BY B.rpt_day_day DESC
+					ORDER BY B.rpt_day DESC
 			    </when>
 			    <when test="srch2 == 'lisDay'"><!-- 수리일자 -->
-					ORDER BY B.imp_rpt_day DESC
+					ORDER BY B.impRptDay DESC
 			    </when>
 			</choose>
 		</if>
@@ -177,9 +183,12 @@
 			LEFT OUTER JOIN (SELECT code, Cont FROM CDSTD WHERE divi = '세관및출장소') E
 				ON A.Rpt_Cus = E.code
 		WHERE 1=1
-			<if test="corpNo != null and corpNo != ''"><!-- 사업자번호 -->
-				AND A.Exp_Sdno = #{corpNo}
-			</if>
+			<if test="list != null and list.size() > 0">
+	            AND A.Exp_Sdno IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
 			<if test="srch3 != null and srch3 != '' and srch4 != null and srch4 != ''">
 				<choose>
 			        <when test="srch2 == 'petDay'"><!-- 승일일자 -->
@@ -281,17 +290,20 @@
 			 FROM CUSDEC929A1
 			) A
 		WHERE 1=1
-			<if test="corpNo != null and corpNo != ''"><!-- 사업자번호 -->
-			AND A.Nab_SdNo = #{corpNo}
-			</if>
+			<if test="list != null and list.size() > 0">
+	            AND A.Nab_SdNo IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
 			<if test="srch3 != null and srch3 != '' and srch4 != null and srch4 != ''">
 				<choose>
-					<when test="srch2 == 'rptDay'"><!-- 신청일자 -->
-					AND A.Rpt_Day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
-			        </when>
 			        <when test="srch2 == 'lisDay'"><!-- 수리일자 -->
 					AND A.Lis_Day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
 			        </when>
+					<otherwise>
+					AND A.Rpt_Day BETWEEN REPLACE(#{srch3}, '-','') AND REPLACE(#{srch4}, '-','')
+					</otherwise>
 		    	</choose>
 			</if>
 			<if test="srch5 != null and srch5 != ''"><!-- 신고번호 -->
@@ -308,12 +320,12 @@
 			</if>
 		<if test="srch3 != null and srch3 != '' and srch4 != null and srch4 != ''">
 			<choose>
-		        <when test="srch2 == 'rptDay'"><!-- 신청일자 -->
-				ORDER BY A.Rpt_Day DESC
-			    </when>
 			    <when test="srch2 == 'lisDay'"><!-- 수리일자 -->
 				ORDER BY A.Lis_Day DESC
 			    </when>
+		        <otherwise>
+				ORDER BY A.Rpt_Day DESC
+			    </otherwise>
 			</choose>
 		</if>
 		LIMIT #{recordCountPerPage} OFFSET #{startPage} 

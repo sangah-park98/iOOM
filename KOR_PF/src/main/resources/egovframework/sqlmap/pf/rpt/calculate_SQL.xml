@@ -34,15 +34,51 @@
 		#{calAmt5},
 		#{vat},
 		'N',
-		'',
+		DATE_FORMAT(NOW(), '%Y%m%d'),
 		'',
 		'',
 		''
-		);
+		) ON DUPLICATE KEY UPDATE
+		CMPNY_NM = #{cmpnyNm},
+		description = #{description},
+		CAL_DATA1 = #{calData1},
+		CAL_DATA_DETAIL1 = #{calDataDetail1},
+		CAL_DATA2 = #{calData2},
+		CAL_DATA_DETAIL2 = #{calDataDetail2},
+		CAL_DATA3 = #{calData3},
+		CAL_DATA_DETAIL3 = #{calDataDetail3},
+		CAL_DATA4 = #{calData4},
+		CAL_DATA_DETAIL4 = #{calDataDetail4},
+		CAL_DATA5 = #{calData5},
+		CAL_DATA_DETAIL5 = #{calDataDetail5},
+		CAL_CODE1 = #{calCode1},
+		CAL_AMT1 = #{calAmt1},
+		CAL_CODE2 = #{calCode2},
+		CAL_AMT2 = #{calAmt2},
+		CAL_CODE3 = #{calCode3},
+		CAL_AMT3 = #{calAmt3},
+		CAL_CODE4 = #{calCode4},
+		CAL_AMT4 = #{calAmt4},
+		CAL_CODE5 = #{calCode5},
+		CAL_AMT5 = #{calAmt5},
+		VAT = #{vat},
+		EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d');
 	</insert>
 
 	<select id="selectCalculInfo" parameterType="searchVO" resultType="egovMap">
-	SELECT * FROM (
+	SELECT 
+	COUNT(*) OVER() AS CNT,
+	AREA_NM,
+	TYPE,
+	po,
+	singo_dt,
+	suri_dt,
+	hawb,
+	rpt_no,
+	SALE_SUP_EK,
+	SALE_TAX_EK,
+	SALE_SUM_EK
+	FROM (
 	SELECT
 	A.AREA_NM,
 	'세관' AS TYPE,
@@ -137,7 +173,19 @@ AND po LIKE CONCAT('%',UPPER(#{srch9}),'%')
 	
 
 	<select id="selectCalculInfoExp" parameterType="searchVO" resultType="egovMap">
-	SELECT * FROM (
+	SELECT 
+	COUNT(*) OVER() AS CNT,
+	AREA_NM,
+	TYPE,
+	so,
+	singo_dt,
+	suri_dt,
+	hawb,
+	rpt_no,
+	sale_sup_ex,
+	sale_tax_ex,
+	sale_sum_ex
+	FROM (
 	SELECT
 	A.AREA_NM,
 	'세관' AS TYPE,
@@ -611,7 +659,8 @@ AND so LIKE CONCAT('%',UPPER(#{srch9}),'%')
 	ON DUPLICATE KEY UPDATE
 	CAL_CODE_NM = VALUES(CAL_CODE_NM),
 	DEL_YN = VALUES(DEL_YN),
-	REG_DT = VALUES(REG_DT) ;
+	REG_DT = VALUES(REG_DT),
+	EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d');
 	</insert>
 	
 	

@@ -45,6 +45,7 @@
 		 	COUNT(*) OVER() AS cnt,
 		    plnt_cd,
 		    pr_ordr,
+		    nab_firm,
 		    blno,
 		    CONCAT_WS('-', 
 		        SUBSTRING(rpt_No, 1, 5),
@@ -68,6 +69,7 @@
 		    CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
 			SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
 			ELSE '' END AS pr_ordr,
+			A.nab_firm,
 	        A.blno,
 	        A.rpt_No,
 	        rpt_Day,
@@ -84,13 +86,16 @@
 		    CASE WHEN SUM(CASE WHEN B.docu_type = 'AC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'AC'	  			      
 		    FROM cusdec929a1 A
 		   	LEFT JOIN file_info B
-		   	ON A.rpt_No = B.rpt_No
+		   	ON A.blno = B.blno
 		   	AND B.FILE_TYPE = 'imp'
 		    WHERE 1=1
 			AND A.Rpt_Seq = '00'
-			<if test="corpNo != null and corpNo !=''">
-			AND A.nab_sdno = #{corpNo}
-			</if>
+			<if test="list != null and list.size() > 0">
+	            AND A.nab_sdno IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
 			<if test="srch6 != '' and srch6 != null">
 		    AND a.rpt_No LIKE CONCAT('%', UPPER(REPLACE(#{srch6}, '-', '')), '%')
 		    </if>
@@ -121,6 +126,7 @@
 			COUNT(*) OVER() AS cnt,
 		    plnt_cd,
 		    pr_ordr,
+		    exp_firm,
 		    Mg_Code ,
 		    CONCAT_WS('-', 
 		        SUBSTRING(A.rpt_No, 1, 5),
@@ -144,6 +150,7 @@
 		    	CASE WHEN STR_CNT(a.user_memo, '\n') >= 1 THEN
 				SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
 				ELSE '' END AS pr_ordr,
+				A.exp_firm,
 		        b.mg_code,
 		        A.rpt_No,
 		        rpt_Day,
@@ -170,9 +177,12 @@
 		    AND C.FILE_TYPE = 'exp'
 		    WHERE 1=1
 		    AND A.Rpt_Seq = '00'
-		    <if test="corpNo != null and corpNo !=''">
-		    AND A.Exp_sdno = #{corpNo}
-		    </if>
+		    <if test="list != null and list.size() > 0">
+	            AND A.Exp_sdno IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
 		    <if test="srch6 != '' and srch6 != null">
 		    AND  A.rpt_No LIKE CONCAT('%', UPPER(REPLACE(#{srch6}, '-', '')), '%')
 		    </if>
@@ -288,37 +298,29 @@
 	
 	<select id="selectDocuImpModalUpdateList" parameterType="searchVO" resultType="egovMap">
 		SELECT 
-		RPT_NO,
-		BLNO,
-		docu_type,
-		DATE_FORMAT(upload_dt, '%Y-%m-%d') AS upload_dt,
-		docu_file
-		FROM file_info
-		WHERE rpt_no = REPLACE(#{srch1},'-','')
-		AND BLNO = #{srch2}
-		AND DOCU_TYPE != 'DC'
-		
+			RPT_NO,
+			BLNO,
+			docu_type,
+			DATE_FORMAT(upload_dt, '%Y-%m-%d') AS upload_dt,
+			docu_file,
+			docu_org_file,
+			docu_path
+			FROM file_info
+			WHERE BLNO = #{srch2}
+			AND DOCU_TYPE != 'DC'
 		UNION
-
 		SELECT 
-		RPT_NO,
-		BLNO,
-		docu_type,
-		DATE_FORMAT(upload_dt, '%Y-%m-%d') AS upload_dt,
-		docu_file
+			RPT_NO,
+			BLNO,
+			docu_type,
+			DATE_FORMAT(upload_dt, '%Y-%m-%d') AS upload_dt,
+			docu_file,
+			docu_org_file,
+			docu_path
 		FROM file_info
 		WHERE rpt_no = REPLACE(#{srch1},'-','')
 		AND DOCU_TYPE = 'DC'
 	</select>
-
-	<delete id="dropDocuImpModalFile" parameterType="searchVO">
-		DELETE FROM FILE_INFO
-		WHERE 1=1
-		AND FILE_TYPE = 'imp'
-		AND RPT_NO = REPLACE(#{srch1},'-','')
-		AND BLNO = #{srch2}
-		AND DOCU_FILE = #{srch3}	
-	</delete>
 	
 	<select id="selectDocuExpModalUpdateList" parameterType="searchVO" resultType="egovMap">
 		SELECT 
@@ -326,10 +328,11 @@
 		INVOICE_NO,
 		docu_type,
 		DATE_FORMAT(upload_dt, '%Y-%m-%d') AS upload_dt,
-		docu_file
+		docu_file,
+		docu_org_file,
+		docu_path
 		FROM file_info
-		WHERE rpt_no = REPLACE(#{srch1},'-','')
-		AND INVOICE_NO = #{srch4}
+		WHERE INVOICE_NO = #{srch4}
 		AND DOCU_TYPE != 'DC'
 		
 		UNION
@@ -339,43 +342,21 @@
 		INVOICE_NO,
 		docu_type,
 		DATE_FORMAT(upload_dt, '%Y-%m-%d') AS upload_dt,
-		docu_file
+		docu_file,
+		docu_org_file,
+		docu_path
 		FROM file_info
 		WHERE rpt_no = REPLACE(#{srch1},'-','')
 		AND DOCU_TYPE = 'DC'
 	</select>
 
-	<delete id="dropDocuExpModalFile" parameterType="searchVO">
-		DELETE FROM FILE_INFO
-		WHERE 1=1
-		AND FILE_TYPE = 'exp'
-		AND RPT_NO = REPLACE(#{srch1},'-','')
-		AND INVOICE_NO = #{srch2}
-		AND DOCU_FILE = #{srch3}	
-	</delete> 
-
  	<delete id="deleteDocuFile" parameterType="searchVO">
 		DELETE FROM FILE_INFO
 		WHERE 1=1
-		AND FILE_TYPE = #{srch1}
-		<if test="srch2 != null and srch2 != ''">
-		AND BLNO = #{srch2}
-		</if>
-		AND DOCU_FILE = #{srch3}
+		AND DOCU_FILE = #{srch1}
+		AND DOCU_ORG_FILE = #{srch2}
+		AND DOCU_PATH = #{srch3}
 		AND UPLOAD_DT = REPLACE(#{srch4},'-','')
-		<if test="srch5 != null and srch5 != ''">
-		AND INVOICE_NO = #{srch5}
-		</if>
-		<if test="srch6 != null and srch6 != ''">
-		AND RPT_NO = #{srch6}
-		</if>
-	</delete>
-	  
-	<delete id="docuPopupDeleteList" parameterType="searchVO">
-		DELETE FROM file_info
-		WHERE 1=1
-		AND FILE_TYPE = #{srch1}
-	  	AND RPT_NO = #{srch6};
 	</delete>
 
 
