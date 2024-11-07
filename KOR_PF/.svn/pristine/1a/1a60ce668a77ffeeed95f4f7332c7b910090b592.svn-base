@@ -574,18 +574,19 @@ function fn_impViewTableCol(){
 	    if (contCnt === 0 && tempCnt === 0 && shipCnt === 0) {
 	    	statue = "의뢰";
 	    } else if (shipCnt === 0 && tempCnt !== 0) {
-	    	statue = "임시저장"; 
+	    	statue = "임시저장"; // shipCnt가 0이고 tempCnt가 0이 아닐 때
 	    } else if (contCnt === 0 && shipCnt !== 0) {
-	    	statue = "완료"; 
+	    	statue = "완료"; // contCnt가 0이고 shipCnt가 0이 아닐 때
 	    } else if (contCnt !== 0) {
+	        // contCnt가 0이 아닐 때
 	        if (contCnt === shipCnt) {
-	        	statue = "완료"; 
+	        	statue = "완료"; // contCnt가 shipCnt와 같을 때
 	        } else if(contCnt > shipCnt && shipCnt != 0){
 	        	statue = "완료";
 	        } else if (contCnt > shipCnt){
 	        	statue = "의뢰";
 	        } else{
-	        	statue = "기타";
+	        	statue = "기타 상황"; // 그 외의 경우 처리 (선택적)
 	        }
 	    }
 	    var $transRequestButton;
@@ -624,7 +625,7 @@ function fn_impViewTableCol(){
 		  td.classList.add('text-center');
 		  td.classList.add('text-center');
 		  td.innerHTML = `${value}<button type="button" class="save-button p-0.5 text-sm rounded text-white hover:opacity-50 duration-150 bg-rose-700 ml-1 hover:bg-rose-500">저장</button>`
-	}
+		}
 	
 	
 	this.impViewCol = [
@@ -2395,18 +2396,11 @@ function fn_addrReq(rptNo, blNo, orderSeq) {
     var reqMemo = document.getElementById('fromReq').value;
     var fromTime = document.getElementById('fromTime').value;
     var fileName = filesList.map(file => file.name).join('/');
-    var fileSize = true;
-
+    
     filesList.forEach((file, index) => {
-        let fileSizeMB = file.size / (1024 * 1024);
-        //console.log(`파일 ${index + 1} 용량 (MB):`, fileSizeMB.toFixed(2));
-        if (fileSizeMB > 30) {
-            alert(`30MB를 초과하는 파일이 포함되어 있어 운송 요청할 수 없습니다.`);
-            fileSize = false;
-            filesList = [];
-        }
+        let fileSizeMB = file.size / (1024 * 1024); // 바이트 -> MB
+        console.log(`파일 ${index + 1} 용량 (MB):`, fileSizeMB.toFixed(2)); // 소수점 2자리까지 표시
     });
-    if (!fileSize) return;
     
     if (document.getElementById('fromTime').disabled) {
         fromTime = '즉시';
@@ -2479,7 +2473,7 @@ function fn_addrReq(rptNo, blNo, orderSeq) {
         console.log(`${index + 1}:`, data);
     });
     
-    if(!confirm("운송 요청하시겠습니까?")){return;}
+    /*if(!confirm("운송 요청하시겠습니까?")){return;}
     
     $.ajax({
  	   type: "POST",
@@ -2494,7 +2488,6 @@ function fn_addrReq(rptNo, blNo, orderSeq) {
  		   console.log(data);
  	       if(data === "success") {
  	           alert("운송 요청이 완료되었습니다.");
- 	           filesList = []
  	           fn_searchImportView();
  	       }
  	       $("#shipReqViewListPopUp").modal("hide");
@@ -2508,7 +2501,7 @@ function fn_addrReq(rptNo, blNo, orderSeq) {
  	           alert(msgSaveError);
  	       }
  	    }
- 	});
+ 	});*/
 }
 
 
