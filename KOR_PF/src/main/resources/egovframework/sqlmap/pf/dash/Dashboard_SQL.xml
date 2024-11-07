@@ -116,7 +116,7 @@
 	
 	<select id="selectDashboardNewsList" parameterType="searchVO" resultType="egovMap">
 	SELECT TITLE_KR, SEQ, DATE_FORMAT(STR_TO_DATE(REG_DT, '%Y%m%d'), '%Y.%m.%d') as REG_DT FROM news_info
-	ORDER BY REG_DT DESC
+	ORDER BY REG_DT DESC, SEQ DESC
 	LIMIT 5;
 	</select>
 	

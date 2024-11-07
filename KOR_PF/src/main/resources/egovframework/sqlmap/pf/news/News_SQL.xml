@@ -5,7 +5,7 @@
 	<select id="selectNewsViewList" parameterType="searchVO" resultType="egovMap">
 		WITH SortedNews AS (
 	    SELECT  
-	        ROW_NUMBER() OVER (ORDER BY reg_Dt ASC) AS newsSeq,
+	        ROW_NUMBER() OVER (ORDER BY reg_Dt ASC, SEQ) AS newsSeq,
 	        SEQ,
 	        title_kr,
 	        source,
@@ -33,6 +33,7 @@
 			SEQ,
 		    title_Kr,
 		    cn_kr,
+		    file_name,
 		    reg_dt,
 		    edt_dt,
 		    reg_id,

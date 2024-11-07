@@ -64,6 +64,38 @@
 		VAT = #{vat},
 		EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d');
 	</insert>
+	
+	
+	<insert id= "insertCalExcel2" parameterType="egovframework.pf.rpt.service.SaveCalculateVO">
+		INSERT INTO CALCUL_INFO
+		VALUES (
+		#{taxNo},
+		#{cmpnyNm},
+		#{partnCmpnyNm},
+		#{blNo},
+		#{description},
+		REPLACE(#{supAmt},',',''),
+		REPLACE(#{vat},',',''),
+		REPLACE(#{totalAmt},',',''),
+		#{remarks},
+		'N',
+		'N',
+		DATE_FORMAT(NOW(), '%Y%m%d'),
+		#{id},
+		'',
+		''
+		) ON DUPLICATE KEY UPDATE
+		CMPNY_NM = #{cmpnyNm},
+		description = #{description},
+		SUP_AMT = REPLACE(#{supAmt},',',''),
+		TAX_AMT = REPLACE(#{vat},',',''),
+		TOT_AMT =REPLACE(#{totalAmt},',',''),
+		REMARKS = #{remarks},
+		DEL_YN = 'N',
+		EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d'),
+		EDT_ID = #{id};
+	
+	</insert>
 
 	<select id="selectCalculInfo" parameterType="searchVO" resultType="egovMap">
 	SELECT 
@@ -167,10 +199,151 @@
 <if test="srch9 != null and srch9 != ''">
 AND po LIKE CONCAT('%',UPPER(#{srch9}),'%')
 </if>
- ORDER BY singo_dt DESC, hawb
+ ORDER BY singo_dt DESC;
+	</select>
+
+<select id="selectBankinoutlView" parameterType="searchVO" resultType="egovMap">
+		<!-- SELECT 
+		    C.PARTN_CMPNY_NM AS cmpnyNm,
+		    A.MO_BANK_NM AS bankNm,
+		    A.MO_ACC_NO AS accNo,
+		    FORMAT(A.INOUT_EK, 0) AS inoutEk
+		FROM BANK_INOUT A
+		LEFT JOIN cusdec929a1 B ON A.HAWB = B.BlNo AND B.Rpt_Seq = '00' AND A.IMPO_SINGO_NO = B.Rpt_No
+		LEFT JOIN calcul_info C ON A.HAWB = C.BL_NO 
+		WHERE C.TAX_NO = #{corpNo}
+		
+		UNION ALL
+		
+		SELECT
+		    D.PARTN_CMPNY_NM AS cmpnyNm,
+		    D.BANK_NAME AS bankNm,
+		    D.BANK_NUM AS accNo,
+		    FORMAT(D.BANK_EXPENSE, 0) AS inoutEk
+		FROM BANK_INSERT D
+		WHERE D.TAX_NO = #{corpNo}
+		
+		ORDER BY cmpnyNm; -->
+		
+		<!-- SELECT
+		 C.PARTN_CMPNY_NM AS cmpnyNm, 
+		 A.MO_BANK_NM AS bankNm, 
+		 A.MO_ACC_NO AS accNo, 
+		 FORMAT(SUM(A.INOUT_EK), 0) AS inoutEk 
+		 FROM BANK_INOUT A 
+		 LEFT JOIN cusdec929a1 B 
+		 ON A.HAWB = B.BlNo AND B.Rpt_Seq = '00' AND A.IMPO_SINGO_NO = B.Rpt_No 
+		 LEFT JOIN calcul_info C ON A.HAWB = C.BL_NO 
+		 WHERE C.TAX_NO = #{corpNo}
+			<choose>
+			<when test="srch33 =='01'">
+			AND B.rpt_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+			</when>
+			<otherwise>
+			AND B.Lis_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+			</otherwise>
+			</choose>		
+		GROUP BY 
+		  C.PARTN_CMPNY_NM, 
+		  A.MO_BANK_NM, 
+		  A.MO_ACC_NO
+		 ORDER BY PARTN_CMPNY_NM -->
+		 
+		 SELECT
+			A.IMPO_SINGO_NO,
+			C.PARTN_CMPNY_NM AS cmpnyNm, 
+			A.MO_BANK_NM AS bankNm, 
+			A.MO_ACC_NO AS accNo, 
+			CASE 
+			        WHEN E.ADJ_CD IN ('C058','C059','C065','C066','C068','C074','C078','C079','C067','C048','C049','C001','C015','C002','C003','C004','C016','C005','C006','C007','C008','C060','C020','C046','C077',
+			                        'C009','C039','C011','C010','C047','C023','C013','C064','C042','C052','C014','C040','C041','C075','C012','C028','C030','C022','C017','C044','C086',
+			                        'C087','C092','C083','C084','C088','C090','C093','C095','C098','C071','C073','C070','C072','C080') 
+			        THEN '지급'
+			        WHEN E.ADJ_CD IN ('C057','C061','C062','C063','C069','C076','C081','C018','C032','C054','C038','C050','C056','C097','C091','C094','C099','C100','C082',
+			                        'C089','C096','C901','C902','C903','C904','C905','C906','C019','C021','C085','C031','C034','C035','C036','C037','C045','C051','C053','C055','C043')
+			        THEN '영수' 
+			 END AS adjType,  
+			FORMAT(SUM(A.INOUT_EK), 0) AS inoutEk 
+			FROM BANK_INOUT A 
+			LEFT JOIN cusdec929a1 B 
+			ON A.HAWB = B.BlNo 
+			AND B.Rpt_Seq = '00' 
+			AND A.IMPO_SINGO_NO = B.Rpt_No 
+			AND A.ADJ_BIZ_NO = B.Nab_sdNo
+			LEFT JOIN calcul_info C 
+			ON A.HAWB = C.BL_NO 
+			AND A.ADJ_BIZ_NO = C.TAX_NO
+			LEFT JOIN fr_main D
+			    ON A.HAWB = D.HAWB
+			    AND A.IMPO_SINGO_NO = D.RPT_NO
+			LEFT JOIN ADJ_LIST E
+			    ON D.FR_KEY = E.FR_KEY
+			WHERE C.TAX_NO = #{corpNo}
+			<choose>
+			<when test="srch33 =='01'">
+			AND B.rpt_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+			</when>
+			<otherwise>
+			AND B.Lis_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+			</otherwise>
+			</choose>		
+		GROUP BY 
+		  C.PARTN_CMPNY_NM, 
+		  A.MO_BANK_NM, 
+		  A.MO_ACC_NO,
+		  adjType
+		 ORDER BY PARTN_CMPNY_NM
+</select>
+
+<select id="selectBankEditView" parameterType="searchVO" resultType="egovMap">
+		SELECT
+		    SEQ AS seq,
+		    PARTN_CMPNY_NM AS cmpnyNm,
+		    BANK_NAME AS bankNm,
+		    BANK_NUM AS accNo,
+		    FORMAT(BANK_EXPENSE, 0) AS inoutEk
+		FROM BANK_INSERT 
+		WHERE TAX_NO = #{corpNo}
+		
+		ORDER BY PARTN_CMPNY_NM;
+</select>
+
+	<select id="selectCalculInfo2" parameterType="searchVO" resultType="egovMap">
+	SELECT 
+	A.BL_NO ,
+	CONCAT(SUBSTRING(B.rpt_no, 1, 5), '-', SUBSTRING(B.rpt_no, 6, 2), '-', SUBSTRING(B.rpt_no, 8, 7)) as rptNo,
+	CASE WHEN B.rpt_Day != '' THEN DATE_FORMAT(B.rpt_Day, '%Y-%m-%d') ELSE '' END AS rptDay, -- 신고일자
+	CASE WHEN B.Lis_Day != '' THEN DATE_FORMAT(B.Lis_Day, '%Y-%m-%d') ELSE '' END AS lisDay, -- 수리일자
+	A.PARTN_CMPNY_NM as partnCmpny, -- 구분
+	A.description as description,
+	A.SUP_AMT as supAmt,
+	A.TAX_AMT as taxAmt,
+	A.TOT_AMT as totAmt,
+	A.REMARKS as remarks,
+	A.PAYMENT_YN as paymentYn
+	FROM calcul_info A
+	LEFT JOIN cusdec929a1 B
+	ON A.BL_NO = B.BlNo
+	AND B.Rpt_Seq = '00'
+	WHERE 1=1
+	AND A.TAX_NO = #{corpNo}
+	<if test="srch7 != null and srch7 != ''">
+	AND A.BL_NO LIKE CONCAT('%',UPPER(#{srch7}),'%')
+	</if>
+	<choose>
+	<when test="srch33 =='01'">
+	AND B.rpt_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+	</when>
+	<otherwise>
+	AND B.Lis_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+	</otherwise>
+	</choose>			
+ ORDER BY A.PARTN_CMPNY_NM,B.rpt_Day desc,B.Lis_Day desc
  ;
 	</select>
 	
+	
+		
 
 	<select id="selectCalculInfoExp" parameterType="searchVO" resultType="egovMap">
 	SELECT 
@@ -347,6 +520,37 @@ AND so LIKE CONCAT('%',UPPER(#{srch9}),'%')
 	AND A.RPT_SEQ = '00'
 	WHERE 1=1
 	AND A.rpt_no = REPLACE(#{srch1},'-','')
+	</select>
+	
+	<select id="selectCalculDetailViewInfo3" parameterType="searchVO" resultType="egovMap">
+	SELECT 
+	A.BL_NO ,
+	CONCAT(SUBSTRING(B.rpt_no, 1, 5), '-', SUBSTRING(B.rpt_no, 6, 2), '-', SUBSTRING(B.rpt_no, 8, 7)) as rptNo,
+	A.PARTN_CMPNY_NM as partnCmpny, -- 구분
+	A.description as description,
+	A.SUP_AMT as supAmt,
+	A.TAX_AMT as taxAmt,
+	A.TOT_AMT as totAmt,
+	A.REMARKS as remarks,
+	A.PAYMENT_YN as paymentYn
+	FROM calcul_info A
+	LEFT JOIN cusdec929a1 B
+	ON A.BL_NO = B.BlNo
+	AND B.Rpt_Seq = '00'
+	WHERE 1=1
+	AND A.TAX_NO = #{corpNo}
+	AND A.PARTN_CMPNY_NM = #{srch1}	
+	<choose>
+	<when test="srch33 =='01'">
+	AND B.rpt_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+	</when>
+	<otherwise>
+	AND B.Lis_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+	</otherwise>
+	</choose>	
+ ORDER BY A.PARTN_CMPNY_NM
+ ;
+	
 	</select>
 	
 	<select id="selectCalculDetailViewInfoExp" parameterType="searchVO" resultType="egovMap">
@@ -663,5 +867,68 @@ AND so LIKE CONCAT('%',UPPER(#{srch9}),'%')
 	EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d');
 	</insert>
 	
+	<insert id="insertBankInOut" parameterType="egovframework.pf.rpt.service.SaveBankInfoVO">
+	 INSERT INTO BANK_INSERT(
+	  TAX_NO
+	  ,PARTN_CMPNY_NM
+	  ,BANK_NAME
+	  ,BANK_NUM
+	  ,BANK_EXPENSE
+	  ,DEL_YN
+	  ,REG_DT
+	  ,REG_ID
+	 ) VALUES (
+	  #{taxNo}
+	 ,#{cmpnyNm}
+	 ,#{bankNm}
+	 ,#{accNo}
+	 ,REPLACE(#{inoutEk}, ',', '')
+	 ,'N'
+	 ,DATE_FORMAT(NOW(), '%Y%m%d')
+	 ,#{id}
+	 )
+	</insert>
 	
+	<update id = "updatetBankInOut" parameterType="egovframework.pf.rpt.service.SaveBankInfoVO">
+	 UPDATE BANK_INSERT SET
+	   PARTN_CMPNY_NM = #{cmpnyNm}
+	  ,BANK_NAME = #{bankNm}
+	  ,BANK_NUM = #{accNo}
+	  ,BANK_EXPENSE = REPLACE(#{inoutEk}, ',', '')
+	  ,EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d')
+	  ,EDT_ID = #{id}
+	 WHERE SEQ = #{seq}
+	 AND TAX_NO = #{taxNo}
+	 AND DEL_YN = 'N'
+	</update>
+	
+	<update id="savePaymentYn" parameterType="searchVO">
+	UPDATE CALCUL_INFO SET 
+	PAYMENT_YN = #{srch8}
+	,EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d')
+	,EDT_ID = #{id}
+	 WHERE TAX_NO = #{corpNo}
+	 AND DEL_YN = 'N'
+	 AND PARTN_CMPNY_NM = #{srch2}
+	 AND BL_NO = #{srch1}
+	 AND description = #{srch3}
+	 AND SUP_AMT = #{srch4}
+	 AND TAX_AMT = #{srch5}
+	 AND TOT_AMT = #{srch7}
+	 AND REMARKS = #{srch6}
+	</update>
+	
+	<update id="savePaymentYn2" parameterType="searchVO">
+	UPDATE CALCUL_INFO SET 
+	PAYMENT_YN = #{srch6}
+	,EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d')
+	,EDT_ID = #{id}
+	 WHERE TAX_NO = #{corpNo}
+	 AND DEL_YN = 'N'
+	 AND PARTN_CMPNY_NM = #{srch2}
+	 AND BL_NO = #{srch1}
+	 AND SUP_AMT = #{srch3}
+	 AND TAX_AMT = #{srch4}
+	 AND TOT_AMT = #{srch5}
+	</update>
 </mapper>

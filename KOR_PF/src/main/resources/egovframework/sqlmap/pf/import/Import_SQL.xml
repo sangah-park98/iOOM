@@ -199,6 +199,7 @@
 		    rpt_no,
 		    blno, 
 		    nab_firm, 
+		    nab_sdno, 
 		    sup_firm,
 		    reporter,
 		    step01_date, 
@@ -210,7 +211,7 @@
 		    Con_Ki_Cot,
 		    Con_Cod, 
 		    Fre_Krw,
-		    Insu_Krw, 
+		    Insu_Krw,
 		    tot_pack_cnt, 
 		    tot_wt,         
 		    con_cur,
@@ -223,7 +224,14 @@
 		    rmv,
 		    rpt_yn,
 		    user_memo, 
-		    cus_memo 
+		    cus_memo,
+		    addr,
+		    manager_nm,
+		    bill_email,
+		    contCnt,
+		    tempCnt,
+		    shipCnt,
+		    orderSeq
 		FROM (
 			SELECT 
 		    SUBSTRING_INDEX(a.user_memo, '\n', 1) AS plnt_cd,
@@ -237,6 +245,7 @@
 		    CONCAT(SUBSTRING(a.rpt_no, 1, 5), '-', SUBSTRING(a.rpt_no, 6, 2), '-', SUBSTRING(a.rpt_no, 8, 7)) AS rpt_no,
 		    a.blno, 
 		    a.nab_firm, 
+		    a.nab_sdno, 
 		    a.sup_firm,
 		    IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
 		    '' AS step01_date, 
@@ -266,8 +275,15 @@
 		    CASE WHEN c.rmv = 1 THEN 'Y' ELSE 'N' END AS rmv, 
 		    '' AS rpt_yn,
 		    IFNULL(e.user_memo, '') as user_memo,
-		    '' AS cus_memo  
-			FROM cusdec929a1 a
+		    '' AS cus_memo,
+		    f.addr,
+		    t.manager_nm,
+		    t.bill_email,
+		    ifnull(s.cont_no,0) AS contCnt,
+		    IFNULL(v.ct_no,0) AS tempCnt,
+		    ifnull(w.ct_no,0) AS shipCnt,
+		    ifnull(x.orderseq,0) AS orderSeq
+		FROM cusdec929a1 a
 			LEFT JOIN 
 		    (SELECT sna1, rpt_no, MAX(CASE cs_chk_cot WHEN '청CS기준검사' THEN 1 ELSE 0 END) AS cs FROM cusdec929b1 GROUP BY sna1, rpt_no) b ON a.sn = b.sna1 AND a.Rpt_No = b.Rpt_No
 			LEFT JOIN 
@@ -277,11 +293,41 @@
 			LEFT JOIN
 			(select cmmn_cd, cmmn_nm from cmmn_cd where grp_cd = 'IMPSHRPTCD') I
 			on I.cmmn_cd = SUBSTRING(a.rpt_no, 1, 5)
+			LEFT JOIN MEMO_INFO e ON a.Rpt_No = e.RPT_NO AND e.MEMO_TYPE = 'imp'
+			LEFT JOIN CDPLACE f ON a.Chk_Pa_Mark = f.Pa_code
+			LEFT JOIN (
+		    SELECT 
+		    corp_no,
+			 manager_nm,
+		    bill_email
+		    FROM shipping_order
+		    GROUP BY corp_no	   
+			) t ON a.nab_sdno = t.corp_no
 			LEFT JOIN 
-			MEMO_INFO e
-			ON a.Rpt_No = e.RPT_NO AND e.MEMO_TYPE = 'imp'
+		        (SELECT SNA1, RPT_NO, RPT_SEQ, COUNT(cont_no) AS cont_no
+		         FROM cusdec929b3
+		         GROUP BY SNA1, RPT_NO, RPT_SEQ) s
+       	 	ON a.SN = s.SNA1 AND a.Rpt_No = s.RPT_NO AND a.Rpt_Seq = s.Rpt_Seq
+		    LEFT JOIN 
+		        (SELECT corp_no, rpt_no, bl_no, COUNT(ct_no) AS ct_no
+		         FROM shipping_order_temp
+		         GROUP BY corp_no, rpt_no, bl_no) v
+		    ON a.Rpt_No = v.rpt_no AND a.BlNo = v.bl_no
+		    LEFT JOIN 
+		        (SELECT corp_no, rpt_no, bl_no, COUNT(ct_no) AS ct_no
+		         FROM shipping_order
+		         WHERE 1=1
+		         AND order_state NOT IN ("배차 취소", "운송 취소")
+		         GROUP BY corp_no, rpt_no, bl_no) w 
+		    ON a.Rpt_No = w.rpt_no AND a.BlNo = w.bl_no
+		    LEFT JOIN 
+		        (SELECT corp_no, rpt_no, bl_no, MAX(order_seq) AS orderSeq
+		         FROM shipping_order
+		         WHERE 1=1
+		         GROUP BY corp_no, rpt_no, bl_no) x 
+		    ON a.Rpt_No = x.rpt_no AND a.BlNo = x.bl_no
 			WHERE 
-			    rpt_seq = '00'
+			    a.rpt_seq = '00'
 			<choose>
 			<when test="srch1 =='02'">
 			AND a.rece In ('수리', '자수')			
@@ -296,10 +342,10 @@
 			AND a.rece = '미결'			
 			</when>
 			<when test="srch1 =='06'">
-			AND a.rece = '승인'			
+			AND a.rece = ''			
 			</when>
 			<when test="srch1 =='07'">
-			AND a.rece = '정정'			
+			AND a.rece != ''			
 			</when>
 			</choose>
 			<choose>
@@ -313,8 +359,12 @@
 			<if test="srch4 != null and srch4 != ''">
 			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
 			</if>
-			<if test="srch5 != null and srch5 != ''">
-			AND a.blno LIKE CONCAT('%',UPPER(#{srch5}),'%')
+			<if test="list2 != null and list2.size() > 0">
+			    AND (
+			        <foreach item="blNo" collection="list2" open="(" separator="OR" close=")">
+			            a.blno LIKE CONCAT('%',UPPER(#{blNo}),'%')
+			        </foreach>
+			    )
 			</if>
 			<if test="list != null and list.size() > 0">
 	            AND a.nab_sdno IN 
@@ -344,7 +394,7 @@
 			GS_RATE,
 			STD_GNAME1,
 			EXC_GNAME1,
-			TAX_USD,
+			TAX_KRW,
 			cs_chk_cot,
 			gs,
 			vat
@@ -356,21 +406,21 @@
 	
 	<select id="selectImportViewLanListExcel" parameterType="searchVO" resultType="egovMap">
 		SELECT 
-		RPT_NO,
-		RAN_NO,
-		CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
-		GS_DIVI AS na,
-		GS_RATE,
-		STD_GNAME1,
-		EXC_GNAME1,
-		TAX_USD,
-		cs_chk_cot,
-		gs,
-		vat
+			RPT_NO,
+			RAN_NO,
+			CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
+			GS_DIVI AS na,
+			GS_RATE,
+			STD_GNAME1,
+			EXC_GNAME1,
+			TAX_KRW,
+			cs_chk_cot,
+			gs,
+			vat
 		FROM cusdec929b1
 		WHERE rpt_no IN (
-		SELECT RPT_NO FROM
-		CUSDEC929A1 a
+		SELECT RPT_NO 
+		FROM CUSDEC929A1 a
 			WHERE 
 			    a.rpt_seq = '00'
 			    <choose>
@@ -623,11 +673,11 @@
 		    e.Rpt_Seq ASC
 			) as IMPORT 
 			WHERE 1=1
-			<if test="srch6 != null and srch6 != ''">
-			AND plnt_cd LIKE CONCAT('%',UPPER(#{srch6}),'%')
+			<if test="srchType1 != null and srchType1 != '' and srchText1 != null and srchText1 != ''">
+			AND ${srchType1} LIKE CONCAT('%',UPPER(#{srchText1}),'%')
 			</if>
-			<if test="srch7 != null and srch7 != ''">
-			AND pr_ordr LIKE CONCAT('%',UPPER(#{srch7}),'%')
+			<if test="srchType2 != null and srchType2 != '' and srchText2 != null and srchText2 != ''">
+			AND ${srchType2} LIKE CONCAT('%',UPPER(#{srchText2}),'%')
 			</if>
 			ORDER BY rpt_day desc, rpt_no desc
 			LIMIT #{recordCountPerPage} OFFSET #{startPage};

@@ -74,7 +74,7 @@
 	        A.rpt_No,
 	        rpt_Day,
 	        lis_day,
-		    CASE WHEN SUM(CASE WHEN B.docu_type = 'DC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'DC',
+		    CASE WHEN SUM(CASE WHEN C.docu_type = 'DC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'DC',
 		    CASE WHEN SUM(CASE WHEN B.docu_type = 'UC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'UC',
 		    CASE WHEN SUM(CASE WHEN B.docu_type = 'CI' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CI',
 		    CASE WHEN SUM(CASE WHEN B.docu_type = 'PL' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'PL',
@@ -88,8 +88,13 @@
 		   	LEFT JOIN file_info B
 		   	ON A.blno = B.blno
 		   	AND B.FILE_TYPE = 'imp'
+		   	LEFT JOIN file_info C
+		    ON A.rpt_no = C.rpt_no
+		    AND C.FILE_TYPE = 'imp'
+		    AND C.docu_type = 'DC'
 		    WHERE 1=1
 			AND A.Rpt_Seq = '00'
+			AND A.rece In ('수리', '자수', '승인')			
 			<if test="list != null and list.size() > 0">
 	            AND A.nab_sdno IN 
 	            <foreach item="id" collection="list" open="(" separator="," close=")">
@@ -99,9 +104,13 @@
 			<if test="srch6 != '' and srch6 != null">
 		    AND a.rpt_No LIKE CONCAT('%', UPPER(REPLACE(#{srch6}, '-', '')), '%')
 		    </if>
-		    <if test="srch5 != null and srch5 != ''">
-        	AND A.blno LIKE CONCAT(UPPER(#{srch5}),'%')
-        	</if>
+        	<if test="list2 != null and list2.size() > 0">
+			    AND (
+			        <foreach item="blNo" collection="list2" open="(" separator="OR" close=")">
+			            A.blno LIKE CONCAT('%',UPPER(#{blNo}),'%')
+			        </foreach>
+			    )
+			</if>
 		    <if test="srch33 == '01'">
 			AND rpt_day BETWEEN REPLACE(#{srch7}, '-', '') AND REPLACE(#{srch8}, '-', '')
 		    </if>
@@ -155,7 +164,7 @@
 		        A.rpt_No,
 		        rpt_Day,
 		        exp_lis_day,
-		        CASE WHEN SUM(CASE WHEN C.docu_type = 'DC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'DC',
+		        CASE WHEN SUM(CASE WHEN D.docu_type = 'DC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'DC',
 		        CASE WHEN SUM(CASE WHEN C.docu_type = 'UC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'UC',
 		        CASE WHEN SUM(CASE WHEN C.docu_type = 'CI' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CI',
 		        CASE WHEN SUM(CASE WHEN C.docu_type = 'PL' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'PL',
@@ -169,14 +178,19 @@
 		        cusdec830a1 A
 		    INNER JOIN (
 				 SELECT sna1, rpt_no, mg_code FROM cusdec830b1
-				 GROUP BY sna1, rpt_no)  B
+				 GROUP BY sna1, rpt_no, mg_code)  B
 				 ON A.sn = B.sna1
 				 AND A.rpt_no = B.rpt_no
 		    LEFT JOIN file_info C
 		    ON b.mg_code = C.invoice_no
 		    AND C.FILE_TYPE = 'exp'
+		    LEFT JOIN file_info D
+		    ON A.rpt_no = D.rpt_no
+		    AND D.FILE_TYPE = 'exp'
+		    AND D.docu_type = 'DC'
 		    WHERE 1=1
 		    AND A.Rpt_Seq = '00'
+		    AND A.rece In ('수리', '승인')			
 		    <if test="list != null and list.size() > 0">
 	            AND A.Exp_sdno IN 
 	            <foreach item="id" collection="list" open="(" separator="," close=")">
@@ -186,9 +200,13 @@
 		    <if test="srch6 != '' and srch6 != null">
 		    AND  A.rpt_No LIKE CONCAT('%', UPPER(REPLACE(#{srch6}, '-', '')), '%')
 		    </if>
-		    <if test="srch5 != '' and srch5 != null">
-		    AND  B.MG_CODE LIKE CONCAT('%', UPPER(#{srch5}), '%')
-		    </if>
+		    <if test="list2 != null and list2.size() > 0">
+			    AND (
+			        <foreach item="mgCode" collection="list2" open="(" separator="OR" close=")">
+			            B.MG_CODE LIKE CONCAT('%',UPPER(#{mgCode}),'%')
+			        </foreach>
+			    )
+			</if>
 		    <if test="srch33 == '01'">
 			AND rpt_day BETWEEN REPLACE(#{srch7}, '-', '') AND REPLACE(#{srch8}, '-', '')
 		    </if>
@@ -273,7 +291,7 @@
 	</insert>
 	
 	<select id="selectDownloadFileList" parameterType="java.lang.Object" resultType="egovMap">
-		SELECT *
+		SELECT distinct rpt_no, file_type, docu_type, docu_path, docu_file, docu_org_file, upload_dt, cmpny_cd, invoice_no
 		  FROM file_info
 	     WHERE 1=1
 	      	AND RPT_NO IN

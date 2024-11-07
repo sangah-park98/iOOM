@@ -104,7 +104,7 @@
 		    UNION ALL 
 		
 			SELECT 
-			    INVOICE_NO, 
+			    ci_no, 
 			    '임시저장' AS rece, 
 			    '' AS rpt_no, 
 			    '' AS rpt_day, 
@@ -112,7 +112,7 @@
 			    '' AS pdf, 
 			    CMPNY_CD AS TYPE, 
 			    '' AS request_yn
-			FROM export_main_temp
+			FROM invoice_info_temp
 			WHERE 1=1
 			<!-- <if test="cmpnyCd != null and cmpnyCd != ''">
 				AND cmpny_cd = #{cmpnyCd}
@@ -153,8 +153,7 @@
 	</select>
 	
 	<select id="selectTempInvoiceMainList" parameterType="searchVO" resultType="egovMap">
-		SELECT * FROM
-		export_main_temp
+		SELECT * FROM export_main_temp
 		WHERE invoice_no = #{srch1};
 	</select>
 	
@@ -165,16 +164,12 @@
 	</select>
 	
 	<delete id="deleteTempExpMakeInList" parameterType="searchVO">
-		DELETE 
-		FROM 
-		export_main_temp 
+		DELETE FROM export_main_temp 
 		WHERE main_seq = #{srch1};
 	</delete>
 	
 	<delete id="deleteTempExpMakeInSubList" parameterType="searchVO">
-		DELETE 
-		FROM 
-		export_item_temp 
+		DELETE FROM export_item_temp 
 		WHERE main_seq = #{srch1};
 	</delete>
 	
@@ -262,10 +257,8 @@
 		   DOCU_ORG_FILE,
 		   DOCU_PATH,
 		   CONCAT(SUBSTRING(UPLOAD_DT, 1, 4), '-', SUBSTRING(UPLOAD_DT, 5, 2), '-', SUBSTRING(UPLOAD_DT, 7, 2)) AS UPLOAD_DT
-		FROM
-		   file_info
-		WHERE
-		   invoice_No = #{srch1};
+		FROM file_info
+		WHERE invoice_No = #{srch1};
 	</select>
 	
 	<select id="selectExpViewFilesList" parameterType="searchVO" resultType="egovMap">
@@ -278,10 +271,8 @@
 		   BLNO,
 		   INVOICE_NO,
 		   CONCAT(SUBSTRING(UPLOAD_DT, 1, 4), '-', SUBSTRING(UPLOAD_DT, 5, 2), '-', SUBSTRING(UPLOAD_DT, 7, 2)) AS UPLOAD_DT
-		FROM
-		   file_info
-		WHERE
-		   rpt_no = #{srch1};
+		FROM file_info
+		WHERE rpt_no = #{srch1};
 	</select>
 	
 	<!-- 편집 버튼의 PDF 파일 저장 -->
@@ -303,11 +294,11 @@
 		</if>
 	</select>
 	
-	<!-- Invoice 생성 페이지의 terms of trade 드롭다운 데이터 가져오기 -->	
-	<select id="selectExportMkInTradeList" parameterType="searchVO" resultType="egovMap">
+	<select id="selectExportMkInIncotermsList" parameterType="searchVO" resultType="egovMap">
 		SELECT cmmn_cd, cmmn_nm
 		FROM cmmn_cd
 		WHERE grp_cd = 'INCOTERMS'
+		AND cmmn_cd IN ('EXW', 'FCA', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF')
 		<if test="srch1 != '' and srch1 != null">
 		AND (cmmn_cd like CONCAT('%',UPPER(#{srch1}),'%') OR cmmn_nm like CONCAT('%',UPPER(#{srch1}),'%'))
 		</if>
@@ -331,6 +322,21 @@
 		<if test="srch1 != '' and srch1 != null">
 		 AND cmmn_cd LIKE CONCAT('%',UPPER(#{srch1}),'%')
 		</if>
+		ORDER BY 
+		    CASE cmmn_cd
+		        WHEN 'US' THEN 1
+		        WHEN 'CN' THEN 2
+		        WHEN 'JP' THEN 3
+		        WHEN 'EU' THEN 4
+		        WHEN 'KR' THEN 5
+		        WHEN 'TW' THEN 6
+		        WHEN 'VN' THEN 7
+		        WHEN 'IN' THEN 8
+		        WHEN 'SG' THEN 9
+		        WHEN 'KH' THEN 10
+		        ELSE 11
+		    END,
+		    cmmn_cd;
 	</select>
 	
 	<select id="selectExportMkInUOMList" parameterType="searchVO" resultType="egovMap">
@@ -338,8 +344,15 @@
 		FROM cmmn_cd
 		WHERE grp_cd = 'QUANTITY2'
 		<if test="srch1 != '' and srch1 != null">
-		 AND cmmn_cd LIKE CONCAT('%',UPPER(#{srch1}),'%')
+		    AND cmmn_cd LIKE CONCAT('%', UPPER(#{srch1}), '%')
 		</if>
+		ORDER BY 
+		    CASE cmmn_cd
+		        WHEN 'KG' THEN 1
+		        WHEN 'MGM' THEN 2
+		        ELSE 3
+		    END,
+		    cmmn_cd;
 	</select>
 	
 	<select id="selectExportMkInCurrencyList" parameterType="searchVO" resultType="egovMap">
@@ -347,8 +360,23 @@
 		FROM cmmn_cd
 		WHERE grp_cd = 'EXCHANGERT'
 		<if test="srch1 != '' and srch1 != null">
-		 AND cmmn_cd LIKE CONCAT('%',UPPER(#{srch1}),'%')
+		    AND cmmn_cd LIKE CONCAT('%', UPPER(#{srch1}), '%')
 		</if>
+		ORDER BY 
+		    CASE cmmn_cd
+		        WHEN 'USD' THEN 1
+		        WHEN 'CNY' THEN 2
+		        WHEN 'JPY' THEN 3
+		        WHEN 'EUR' THEN 4
+		        WHEN 'KRW' THEN 5
+		        WHEN 'TWD' THEN 6
+		        WHEN 'VND' THEN 7
+		        WHEN 'INR' THEN 8
+		        WHEN 'SGD' THEN 9
+		        WHEN 'HKD' THEN 10
+		        ELSE 11
+		    END,
+		    cmmn_cd;
 	</select>
 	
 	<select id="selectExportMkPLtotCntList" parameterType="searchVO" resultType="egovMap">
@@ -362,6 +390,7 @@
 	
 	<insert id="insertInvoiceMainList" parameterType="egovframework.pf.exp.service.SaveExpMainVO">
 		INSERT INTO EXPORT_MAIN(
+		 CORP_NO,
 		 SHIPPER,
 		 ADDRESS,
 		 CONSIGNEE,
@@ -388,6 +417,7 @@
 		 REG_DT,
 		 REG_ID
 		)VALUES(
+			#{corpNo},
 			#{shipper},
 			#{address},
 			#{consignee},
@@ -451,6 +481,7 @@
 	<insert id="saveTempExpMakeInList" parameterType="egovframework.pf.exp.service.SaveExpMainVO">
 		INSERT INTO EXPORT_MAIN_TEMP(
 		 CMPNY_CD,
+		 CORP_NO,
 		 SHIPPER,
 		 ADDRESS,
 		 CONSIGNEE,
@@ -478,6 +509,7 @@
 		 REG_ID
 		)VALUES(
 			#{cmpnyCd},
+			#{corpNo},
 			#{shipper},
 			#{address},
 			#{consignee},
@@ -503,7 +535,7 @@
 			'N',
 			DATE_FORMAT(NOW(), '%Y%m%d'),
 	  		#{regId}
-	  		) 
+	  	) 
 	</insert>
 	
 	<insert id="saveTempExpMakeInSubList" parameterType="egovframework.pf.exp.service.SaveExpMainVO">
@@ -537,7 +569,7 @@
 			'N',
 			DATE_FORMAT(NOW(), '%Y%m%d'),
 	  		#{regId}
-	  		) 
+	  	) 
 	</insert>
 	
 	<select id="selectTempInvoiceMainIdex" parameterType="egovframework.pf.exp.service.SaveExpMainVO" resultType="String">
@@ -889,9 +921,12 @@
 		    <when test="srch1 =='03'">
 		    AND A.rece NOT IN ('수리', '승인')
 		    </when>
-		    <when test="srch1 =='04'">
-		    AND A.rece = '승인'
-		    </when>
+		    <when test="srch1 == '04'">
+			AND A.rece = ''
+			</when>
+			<when test="srch1 == '05'">
+			AND A.rece != ''
+			</when>
 		    </choose>
 			<choose>
 		    <when test="srch8 =='01'">
@@ -904,11 +939,15 @@
 			<if test="srch4 != null and srch4 != ''">
 			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
 			</if>
-			<if test="srch5 != null and srch5 != ''">
-			AND b.mg_code LIKE CONCAT('%',UPPER(#{srch5}),'%')
+			<if test="list2 != null and list2.size() > 0">
+			    AND (
+			        <foreach item="blNo" collection="list2" open="(" separator="OR" close=")">
+			            b.mg_code LIKE CONCAT('%',UPPER(#{blNo}),'%')
+			        </foreach>
+			    )
 			</if>
 			<if test="list != null and list.size() > 0">
-	            AND a.exp_sdno IN 
+	            AND a.exp_sdno IN
 	            <foreach item="id" collection="list" open="(" separator="," close=")">
 	                #{id}
 	            </foreach>
@@ -944,7 +983,7 @@
 			ORDER BY RPT_NO, RAN_NO;
 	</select>
 	
-	 <select id="selectExportViewLanListExcel" parameterType="searchVO" resultType="egovMap">
+	<select id="selectExportViewLanListExcel" parameterType="searchVO" resultType="egovMap">
 		SELECT 
 			RPT_NO,
 			RAN_NO,
@@ -1111,7 +1150,7 @@
 		    a.modi_seq,
 		    IFNULL(b.rece_result, '') AS RECE_RESULT,
 		    a.Modi_Cot1,
-		    b.rpt_no,
+		    CONCAT(SUBSTRING(b.rpt_no, 1, 5), '-', SUBSTRING(b.rpt_no, 6, 2), '-', SUBSTRING(b.rpt_no, 8, 7)) AS rpt_no,
 		    c.Mg_Code AS invoice,
 		    b.exp_firm,
 		    b.buy_firm,
@@ -1174,11 +1213,11 @@
 	        	</if>
 			) AS PagingQuery
 			WHERE 1=1
-			<if test="srch6 != null and srch6 != ''">
-			AND factory_code LIKE CONCAT('%',UPPER(#{srch6}),'%')
+			<if test="srchType1 != null and srchType1 != '' and srchText1 != null and srchText1 != ''">
+			AND ${srchType1} LIKE CONCAT('%',UPPER(#{srchText1}),'%')
 			</if>
-			<if test="srch7 != null and srch7 != ''">
-			AND sr_ordr LIKE CONCAT('%',UPPER(#{srch7}),'%')
+			<if test="srchType2 != null and srchType2 != '' and srchText2 != null and srchText2 != ''">
+			AND ${srchType2} LIKE CONCAT('%',UPPER(#{srchText2}),'%')
 			</if>
 			ORDER BY rpt_day desc, rpt_no desc
 			LIMIT #{recordCountPerPage} OFFSET #{startPage};
@@ -1218,4 +1257,399 @@
 		WHERE 1=1
 		AND INVOICE_NO = #{srch1}
 	</update>
+	
+	<select id="selectLoadDataList" parameterType="searchVO" resultType="egovMap">
+		SELECT * FROM export_main
+		WHERE corp_no = #{srch1};
+	</select>
+	
+	<select id="selectLoadDataMainView" parameterType="searchVO" resultType="egovMap">
+		SELECT * FROM export_main
+		WHERE invoice_no = #{invoiceNo};
+	</select>
+	
+	<select id="selectLoadDataSubView" parameterType="searchVO" resultType="egovMap">
+		SELECT * FROM export_item
+		WHERE main_seq = 
+		(SELECT main_seq FROM export_main WHERE invoice_no = #{invoiceNo});
+	</select>
+	
+	<delete id="deleteLoadDataMainView" parameterType="searchVO">
+		DELETE FROM export_main
+		WHERE invoice_no = #{srch1};
+	</delete>
+	
+	<delete id="deleteLoadDataSubView" parameterType="searchVO">
+		DELETE FROM export_item
+		WHERE main_seq = (SELECT main_seq FROM export_main_temp WHERE invoice_no = #{srch1});
+	</delete>
+	
+	<select id="selectExportItemCntList" parameterType="searchVO" resultType="int">
+		SELECT 
+			COUNT(*)
+		 	from export_item
+		 	WHERE main_seq = (SELECT main_seq FROM export_main WHERE invoice_no = #{invoiceNo})
+	</select>
+	
+	<select id="selectExportItemCntList2" parameterType="searchVO" resultType="int">
+		SELECT 
+			COUNT(*)
+		 	from invoice_sub
+		 	WHERE main_seq = (SELECT main_seq FROM invoice_info WHERE main_cd = #{ciNo})
+	</select>
+	
+	<!-- ///////////////////////////////////////////////////////////////////// -->
+	<select id="checkInvoiceNumber2" parameterType="searchVO" resultType="String">
+		SELECT MAIN_CD
+		FROM invoice_info
+		WHERE MAIN_CD = #{srch1}
+	</select>
+	
+	<select id="selectInvoiceMainIdex2" parameterType="egovframework.pf.exp.service.SaveExpInvoiceVO" resultType="String">
+		SELECT MAIN_SEQ
+		FROM invoice_info
+		WHERE MAIN_CD = #{ciNo}
+	</select>
+	
+	<insert id="saveInvoiceInfoList2" parameterType="egovframework.pf.exp.service.SaveExpInvoiceVO">
+		INSERT INTO invoice_info(
+			MAIN_CD,
+			STS_CD,
+		    CORP_NO,
+		    IMPORTER,
+		    CI_NO,
+		    CONSIGNEE,
+		    INVOICE_DATE,
+		    EXPORTER,
+		    OTHER_REFERENCES,
+		    LC_NO,
+		    LC_DATE,
+		    ORIGIN,
+		    TRANSPORT,
+		    INCOTERMS,
+		    LOADING_PORT,
+		    LOCATION,
+		    VESSEL,
+		    VOYAGE_NO,
+		    CONDITIONS,
+		    DISCHARGE,
+		    DELIVERY,
+		    TRANSHIPMENT,
+		    FREIGHT_METHOD,
+		    FINAL_DESTINATION,
+		    DEPARTURE_DATE,
+		    GROSS_WEIGHT,
+		    NET_WEIGHT,
+		    CURRENCY,
+		    TOTAL_AMOUNT,
+		    FREIGH, 
+		    INSURANCE,
+		    PACKAGE_CODE,
+		    PACKAGE_NAME,
+		    TOTAL_PACKAGES,
+		    COMMENTS,
+		    DEL_YN,
+		    REG_DT,
+		    REG_ID
+		) VALUES (
+			#{mainCd},
+			#{stsCd},
+		    #{corpNo},
+		    #{importer},
+		    #{ciNo},
+		    #{consignee},
+		    #{invoiceDate},
+		    #{exporter},
+		    #{otherReferences},
+		    #{lcNo},
+		    #{lcDate},
+		    #{origin},
+		    #{transport},
+		    #{incoterms},
+		    #{loadingPort},
+		    #{location},
+		    #{vessel},
+		    #{voyageNo},
+		    #{conditions},
+		    #{discharge},
+		    #{delivery},
+		    #{transhipment},
+		    #{freightMethod},
+		    #{finalDestination},
+		    #{departureDate},
+		    #{grossWeight},
+		    #{netWeight},
+		    #{currency},
+		    #{totalAmount},
+		    #{freigh}, 
+		    #{insurance},
+		    #{packageCode},
+		    #{packageName},
+		    #{totalPackages},
+		    #{comments},
+		    'N',
+		    DATE_FORMAT(NOW(), '%Y%m%d'),
+		    #{regId}
+		) ON DUPLICATE KEY UPDATE
+		    EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d'),
+		    EDT_ID = #{edtId},
+		    IMPORTER = #{importer},
+		    CI_NO = #{ciNo},
+		    CONSIGNEE = #{consignee},
+		    INVOICE_DATE = #{invoiceDate},
+		    EXPORTER = #{exporter},
+		    OTHER_REFERENCES = #{otherReferences},
+		    LC_NO = #{lcNo},
+		    LC_DATE = #{lcDate},
+		    ORIGIN = #{origin},
+		    TRANSPORT = #{transport},
+		    INCOTERMS = #{incoterms},
+		    LOADING_PORT = #{loadingPort},
+		    LOCATION = #{location},
+		    VESSEL = #{vessel},
+		    VOYAGE_NO = #{voyageNo},
+		    CONDITIONS = #{conditions},
+		    DISCHARGE = #{discharge},
+		    DELIVERY = #{delivery},
+		    TRANSHIPMENT = #{transhipment},
+		    FREIGHT_METHOD = #{freightMethod},
+		    FINAL_DESTINATION = #{finalDestination},
+		    DEPARTURE_DATE = #{departureDate},
+		    GROSS_WEIGHT = #{grossWeight},
+		    NET_WEIGHT = #{netWeight},
+		    CURRENCY = #{currency},
+		    TOTAL_AMOUNT = #{totalAmount},
+		    FREIGH = #{freigh}, 
+		    INSURANCE = #{insurance},
+		    PACKAGE_CODE = #{packageCode},
+		    PACKAGE_NAME = #{packageName},
+		    TOTAL_PACKAGES = #{totalPackages},
+		    COMMENTS = #{comments},
+		    DEL_YN = 'N';
+	</insert>
+	
+	<insert id="saveInvoiceSubList2" parameterType="egovframework.pf.exp.service.SaveExpInvoiceVO">
+		INSERT INTO invoice_sub (
+			 MAIN_SEQ,
+			 LINE_NO,
+			 ITEM_CODE,
+			 HS_CODE,
+			 SPECIFICATION,
+			 PACKING_NO,
+			 QUANTITY,
+			 UNIT_OF_QTY,
+			 UNIT_PRICE,
+			 AMOUNT_OF_PRICE,
+			 DEL_YN,
+			 REG_DT,
+			 REG_ID
+		)VALUES(
+			 #{mainIndex},
+			 #{lineNo},
+			 #{itemCode},
+			 #{hsCode},
+			 #{specification},
+			 #{packingNo},
+			 #{quantity},
+			 #{unitOfQty},
+			 #{unitPrice},
+			 #{amountOfPrice},
+			 'N',
+			 DATE_FORMAT(NOW(), '%Y%m%d'),
+	  		 #{regId}
+	  	) ON DUPLICATE KEY
+			 UPDATE EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d')
+			 , EDT_ID = #{edtId}
+			 , LINE_NO = #{lineNo}
+			 , ITEM_CODE = #{itemCode}
+			 , HS_CODE = #{hsCode}
+			 , SPECIFICATION = #{specification}
+			 , PACKING_NO = #{packingNo}
+			 , QUANTITY = #{quantity}
+			 , UNIT_OF_QTY = #{unitOfQty}
+		     , UNIT_PRICE = #{unitPrice}
+		     , AMOUNT_OF_PRICE = #{amountOfPrice}
+			 , DEL_YN = 'N'
+	</insert>
+	
+	<select id="checkTempInvoiceNumber2" parameterType="searchVO" resultType="String">
+		SELECT MAIN_SEQ
+		FROM invoice_info_temp
+		WHERE ci_no = #{srch10}
+	</select>
+	
+	<insert id="saveTempExpMakeInList2" parameterType="egovframework.pf.exp.service.SaveExpMainVO">
+		INSERT INTO invoice_info_temp(
+		    CORP_NO,
+		    CMPNY_CD,
+		    IMPORTER,
+		    CI_NO,
+		    CONSIGNEE,
+		    INVOICE_DATE,
+		    EXPORTER,
+		    OTHER_REFERENCES,
+		    LC_NO,
+		    LC_DATE,
+		    ORIGIN,
+		    TRANSPORT,
+		    INCOTERMS,
+		    LOADING_PORT,
+		    LOCATION,
+		    VESSEL,
+		    VOYAGE_NO,
+		    CONDITIONS,
+		    DISCHARGE,
+		    DELIVERY,
+		    TRANSHIPMENT,
+		    FREIGHT_METHOD,
+		    FINAL_DESTINATION,
+		    DEPARTURE_DATE,
+		    GROSS_WEIGHT,
+		    NET_WEIGHT,
+		    CURRENCY,
+		    TOTAL_AMOUNT,
+		    FREIGH, 
+		    INSURANCE,
+		    PACKAGE_CODE,
+		    PACKAGE_NAME,
+		    TOTAL_PACKAGES,
+		    COMMENTS,
+		    DEL_YN,
+		    REG_DT,
+		    REG_ID
+		) VALUES (
+		    #{corpNo},
+		    #{cmpnyCd},
+		    #{importer},
+		    #{ciNo},
+		    #{consignee},
+		    #{invoiceDate},
+		    #{exporter},
+		    #{otherReferences},
+		    #{lcNo},
+		    #{lcDate},
+		    #{origin},
+		    #{transport},
+		    #{incoterms},
+		    #{loadingPort},
+		    #{location},
+		    #{vessel},
+		    #{voyageNo},
+		    #{conditions},
+		    #{discharge},
+		    #{delivery},
+		    #{transhipment},
+		    #{freightMethod},
+		    #{finalDestination},
+		    #{departureDate},
+		    #{grossWeight},
+		    #{netWeight},
+		    #{currency},
+		    #{totalAmount},
+		    #{freigh}, 
+		    #{insurance},
+		    #{packageCode},
+		    #{packageName},
+		    #{totalPackages},
+		    #{comments},
+		    'N',
+		    DATE_FORMAT(NOW(), '%Y%m%d'),
+		    #{regId}
+		 )
+	</insert>
+	
+	<select id="selectTempInvoiceMainIdex2" parameterType="egovframework.pf.exp.service.SaveExpMainVO" resultType="String">
+		SELECT MAIN_SEQ
+		FROM invoice_info_temp
+		WHERE ci_no = #{ciNo}
+	</select>
+	
+	<insert id="saveTempExpMakeInSubList2" parameterType="egovframework.pf.exp.service.SaveExpMainVO">
+		INSERT INTO invoice_sub_temp(
+			 MAIN_SEQ,
+			 ITEM_CODE,
+			 LINE_NO,
+			 HS_CODE,
+			 SPECIFICATION,
+			 PACKING_NO,
+			 QUANTITY,
+			 UNIT_OF_QTY,
+			 UNIT_PRICE,
+			 AMOUNT_OF_PRICE,
+			 DEL_YN,
+			 REG_DT,
+			 REG_ID
+		)VALUES(
+			#{mainIndex},
+			#{itemCode},
+			#{lineNo},
+			#{hsCode},
+			#{specification},
+			#{packingNo},
+			#{quantity},
+			#{unitOfQty},
+			#{unitPrice},
+			#{amountOfPrice},
+			'N',
+			DATE_FORMAT(NOW(), '%Y%m%d'),
+	  		#{regId}
+	  	) 
+	</insert>
+	
+	<select id="selectLoadDataList2" parameterType="searchVO" resultType="egovMap">
+		SELECT * FROM invoice_info
+		WHERE corp_no = #{srch1}
+		AND STS_CD = '10';  
+	</select>
+	
+	<select id="selectLoadDataMainView2" parameterType="searchVO" resultType="egovMap">
+		SELECT * FROM invoice_info
+		WHERE main_cd = #{ciNo};
+	</select>
+	
+	<select id="selectLoadDataSubView2" parameterType="searchVO" resultType="egovMap">
+		SELECT * FROM invoice_sub
+		WHERE main_seq = 
+		(SELECT main_seq FROM invoice_info WHERE main_cd = #{ciNo});
+	</select>
+	
+	<delete id="deleteLoadDataSubView2" parameterType="searchVO">
+		DELETE FROM invoice_sub
+		WHERE main_seq = (SELECT main_seq FROM invoice_info_temp WHERE ci_no = #{srch1});
+	</delete>
+	
+	<delete id="deleteLoadDataMainView2" parameterType="searchVO">
+		DELETE FROM invoice_info
+		WHERE main_cd = #{ciNo};
+	</delete>
+		
+	<delete id="deleteTempExpMakeInList2" parameterType="searchVO">
+		DELETE FROM invoice_info_temp
+		WHERE main_seq = #{srch1};
+	</delete>
+	
+	<delete id="deleteTempExpMakeInSubList2" parameterType="searchVO">
+		DELETE FROM invoice_sub_temp
+		WHERE main_seq = #{srch1};
+	</delete>
+	
+	<select id="selectTempInvoiceMainList2" parameterType="searchVO" resultType="egovMap">
+		SELECT * FROM invoice_info_temp
+		WHERE ci_no = #{srch1};
+	</select>
+		
+	<select id="selectTempInvoiceSubList2" parameterType="searchVO" resultType="egovMap">
+		SELECT * FROM invoice_sub_temp
+		WHERE main_seq = 
+		(SELECT main_seq FROM invoice_info_temp WHERE ci_no = #{srch1});
+	</select>
+	
+	<select id="selectExportMkInConditionList" parameterType="searchVO" resultType="egovMap">
+		SELECT cmmn_cd, cmmn_nm
+		FROM cmmn_cd
+		WHERE grp_cd = 'CONDITIONS'
+		<if test="srch1 != '' and srch1 != null">
+		    AND cmmn_cd LIKE CONCAT('%', UPPER(#{srch1}), '%')
+		</if>
+	</select>
 </mapper>

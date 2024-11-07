@@ -54,10 +54,10 @@
 				                #{id}
 				            </foreach>
 						 </if>
-						 <if test="srch2 != null and srch2 != '' and srch3 != null and srch3 != ''">
+						 <!-- <if test="srch2 != null and srch2 != '' and srch3 != null and srch3 != ''">
 							AND C.Lis_day BETWEEN CONCAT(SUBSTRING(REPLACE(#{srch3}, '-',''), 1, 4) - 4, '0101')
 							AND REPLACE(#{srch3}, '-','')
-						 </if>
+						 </if> -->
 						 GROUP BY C.excDiviMark
 						) B
 		ON A.mark = B.excDiviMark
@@ -177,10 +177,10 @@
 				                #{id}
 				            </foreach>
 						 </if>
-						 <if test="srch2 != null and srch2 != '' and srch3 != null and srch3 != ''">
+						 <!-- <if test="srch2 != null and srch2 != '' and srch3 != null and srch3 != ''">
 							AND C.Exp_Lis_Day BETWEEN CONCAT(SUBSTRING(REPLACE(#{srch3}, '-',''), 1, 4) - 4, '0101')
 							AND REPLACE(#{srch3}, '-','')
-						 </if>
+						 </if> -->
 						 GROUP BY C.excDivi				 
 						) B
 		ON A.mark = B.excDivi
@@ -313,6 +313,7 @@
 	<select id="selectAnalysis5List" parameterType="searchVO" resultType="egovMap">
 		SELECT A.fodMark, <!-- 적출국 -->
 		       A.title, <!-- 해외거래처 -->
+		       A.nabFirm,
 		       A.traMet, <!-- 운송형태 -->
 		       CONCAT(B.Cont, '(', A.traMet, ')') AS traMetCont, <!-- 운송형태 내용 -->
 		       A.conCod, <!-- 인도조건 -->
@@ -325,6 +326,7 @@
 		FROM
 			(SELECT Fod_Mark AS fodMark,
 				    Sup_Firm AS title,
+				    nab_firm AS nabFirm,
 		    		Tra_Met AS traMet,
 				    Con_Cod AS conCod,
 				    COUNT(Rpt_No) AS cnt,
@@ -358,6 +360,7 @@
 		       CONCAT(B.Cont, '(', A.traMet, ')') AS traMetCont, <!-- 운송형태 내용 -->
 		       A.conCod, <!-- 인도조건 -->
 		       '' AS cnt,
+		       A.nabFirm,
 		       FORMAT(A.freKrw, 0) AS freKrw, <!-- 운임 -->
 		       FORMAT(A.totWt, 0) AS totWt, <!-- 중량 -->
 		       FORMAT(A.totTaxKrw, 0) AS totTaxKrw, <!-- 과세가격 -->
@@ -368,6 +371,7 @@
 				    Rpt_No AS title,
 		    		Tra_Met AS traMet,
 				    Con_Cod AS conCod,
+				    nab_firm AS nabFirm,
 				    Fre_Krw AS freKrw,
 				    Tot_Wt AS totWt,
 				    Tot_Tax_Krw AS totTaxKrw,
@@ -398,6 +402,7 @@
 		SELECT A.fodMark, <!-- 적출국 -->
 		       A.title, <!-- 해외거래처 -->
 		       A.traMet, <!-- 운송형태 -->
+		       A.nabFirm,
 		       CONCAT(B.Cont, '(', A.traMet, ')') AS traMetCont, <!-- 운송형태 내용 -->
 		       A.conCod, <!-- 인도조건 -->
 		       FORMAT(A.cnt, 0) AS cnt, <!-- 갯수 -->
@@ -412,6 +417,7 @@
 		    		Tra_Met AS traMet,
 				    Con_Cod AS conCod,
 				    COUNT(Rpt_No) AS cnt,
+				    nab_firm AS nabFirm,
 				    SUM(Insu_Krw) AS insuKrw,
 				    SUM(Tot_Wt) AS totWt,
 				    SUM(Tot_Tax_Krw) AS totTaxKrw,
@@ -443,13 +449,15 @@
 		       CONCAT(B.Cont, '(', A.traMet, ')') AS traMetCont, <!-- 운송형태 내용 -->
 		       A.conCod, <!-- 인도조건 -->
 		       '' AS cnt,
+		       A.nabFirm,
 		       FORMAT(A.insuKrw, 0) AS insuKrw, <!-- 보험료 -->
 		       FORMAT(A.totWt, 0) AS  totWt, <!-- 총중량 -->
 		       FORMAT(A.totTaxKrw, 0) AS  totTaxKrw, <!-- 과세가격 -->
 		       FORMAT(ROUND(A.cal1, 2), 2) AS cal1, <!-- 보험료 / 줄량 -->
 		       CONCAT(ROUND(A.cal2, 2), '%') AS cal2 <!-- 보험료/ 과세가격 비율 -->
 		FROM
-			(SELECT Fod_Mark AS fodMark,
+			(SELECT nab_firm AS nabFirm,
+					Fod_Mark AS fodMark,
 				    Rpt_No AS title,
 		    		Tra_Met AS traMet,
 				    Con_Cod AS conCod,
@@ -517,6 +525,7 @@
 		SELECT E.plant, <!-- 구분 -->
 			   E.po, <!-- PO -->
 			   E.blNo, <!-- BL -->
+			   E.nabFirm,
 			   CONCAT(SUBSTRING(E.rptNo, 1, 5), '-' , SUBSTRING(E.rptNo, 6, 2), '-' , SUBSTRING(E.rptNo, 8)) AS rptNo, <!-- 신고번호-->
 			   E.ranNo, <!-- 란 -->
 			   E.sil, <!-- 규격 -->
@@ -548,6 +557,7 @@
 			        D.po AS po,
 			        D.BlNo AS blNo,
 			        D.Rpt_No AS rptNo,
+			        D.nab_firm as nabFirm,
 			        D.Ran_No AS ranNo,
 			        D.Sil AS sil,
 			        D.Lis_Day AS lisDay,
@@ -577,6 +587,7 @@
 				        A.po,
 				        A.BlNo,
 				        A.Rpt_No,
+				        A.nab_firm,
 				        B.Ran_No,
 				        C.Sil,
 				        A.Lis_Day,
@@ -596,6 +607,7 @@
 				 			Rpt_No,
 				 			BRANCH,
 				 			Nab_SdNo,
+				 			Nab_Firm,
 				 			CUS_PRG,
 				 			SUBSTRING_INDEX(USER_MEMO, '\n', 1) AS plant,
 				 			CASE 
@@ -707,6 +719,7 @@
 		SELECT E.plant, <!-- 구분 -->
 			   E.po, <!-- PO -->
 			   E.blNo, <!-- BL -->
+			   E.nabFirm,
 			   CONCAT(SUBSTRING(E.rptNo, 1, 5), '-' , SUBSTRING(E.rptNo, 6, 2), '-' , SUBSTRING(E.rptNo, 8)) AS rptNo, <!-- 신고번호-->
 			   E.ranNo, <!-- 란 -->
 			   E.sil, <!-- 규격 -->
@@ -739,6 +752,7 @@
 			        D.po AS po,
 			        D.BlNo AS blNo,
 			        D.Rpt_No AS rptNo,
+			        D.Nab_Firm as nabFirm,
 			        D.Ran_No AS ranNo,
 			        D.Sil AS sil,
 			        D.Lis_Day AS lisDay,
@@ -770,6 +784,7 @@
 				        A.po,
 				        A.BlNo,
 				        A.Rpt_No,
+				        A.Nab_Firm,
 				        B.Ran_No,
 				        C.Sil,
 				        A.Lis_Day,
@@ -789,6 +804,7 @@
 				 			Rpt_No,
 				 			BRANCH,
 				 			Nab_SdNo,
+				 			Nab_Firm,
 				 			CUS_PRG,
 				 			SUBSTRING_INDEX(USER_MEMO, '\n', 1) AS plant,
 				 			CASE 
@@ -1269,8 +1285,8 @@
 			CONCAT(SUBSTRING(A.Rpt_No, 1, 5), '-' , SUBSTRING(A.Rpt_No, 6, 2), '-' , SUBSTRING(A.Rpt_No, 8)) AS rptNo, <!-- 수입신고번호 --> 
 			B.Ran_No AS ranNo, <!-- 란 -->
 			C.Sil AS sil, <!-- 규격 -->
-			B.Hs AS hs, <!-- HS CODE -->
-			B.Tax_Ki_Divi AS taxKiDivi, <!-- 세종 -->
+			CONCAT(SUBSTRING(B.HS, 1, 4), '.', SUBSTRING(B.HS, 5, 2), '-', SUBSTRING(B.HS, 7, 4)) AS hs, <!-- HS CODE -->
+			B.Gs_Divi AS taxKiDivi, <!-- 세종 -->
 			CONCAT(B.Gs_Rate, '%') AS gxRate, <!-- 세율 -->
 			B.Ori_St_Mark1 AS oriStMark1, <!-- 원산지 -->
 			A.Fod_Mark AS fodMark, <!-- 적출국 -->
@@ -1306,7 +1322,8 @@
 			<if test="srch2 != null and srch2 != '' and srch3 != null and srch3 != ''">
 				AND Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 			</if>
-			AND B.Gs_Divi LIKE 'F%'			
+			AND B.Gs_Divi LIKE 'F%'
+			AND B.Gs_Divi != 'F'
 			AND NOT (D.REMARK = 'EU' AND E.REMARK = 'EU')
 			AND B.Ori_St_Mark1 &lt;&gt; A.Fod_Mark
 		ORDER BY C.Rg_Code, A.Rpt_No, B.Ran_No, C.Sil
