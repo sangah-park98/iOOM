@@ -114,7 +114,10 @@
 	<delete id="deleteAddr" parameterType="egovframework.pf.shipping.service.ShippingAddressVO">
 		DELETE FROM shipping_address
 		WHERE 1=1
-		AND seq = #{seq}
+		AND addr_nm = #{addrNm}
+		AND phn_no = #{phnNo}
+		AND base_addr = #{baseAddr}
+		AND dtls_addr = #{dtlsAddr}
 	</delete>
 	
 	<insert id="insertShippingTempList" parameterType="egovframework.pf.shipping.service.ShippingAddressVO">
@@ -136,13 +139,9 @@
 		 	to_staff,
 		 	to_phn_no,
 		 	to_addr,
-		 	shipper_manager,
-		 	shipper_mail,
 		 	cmpny_nm,
 		 	manager_nm,
 		 	bill_email,
-		 	trans_details,
-		 	tax_invoice,
 		 	reg_dt,
 		 	reg_id
 		)VALUES(
@@ -163,13 +162,9 @@
 			#{toStaff},
 			#{toPhnNo},
 			#{toAddr},
-			#{shipperManager},
-			#{shipperMail},
 			#{cmpnyNm},
 			#{managerNm},
 			#{billEmail},
-			#{transDetails},
-			#{taxInvoice},
 			DATE_FORMAT(NOW(), '%Y%m%d'),
 	  		#{regId}
 	  	) ON DUPLICATE KEY UPDATE
@@ -186,14 +181,10 @@
 		    to_staff = #{toStaff},
 		    to_phn_no = #{toPhnNo},
 		    to_addr = #{toAddr},
-		    shipper_manager = #{shipperManager},
-		    shipper_mail = #{shipperMail},
 		    cmpny_nm = #{cmpnyNm},
 		    corp_no = #{corpNo},
 		    manager_nm = #{managerNm},
 		    bill_email = #{billEmail},
-		    trans_details = #{transDetails},
-		    tax_invoice = #{taxInvoice},
 		    edt_dt = DATE_FORMAT(NOW(), '%Y%m%d'),
 		    edt_id = #{regId}
 	</insert>

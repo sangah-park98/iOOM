@@ -55,6 +55,7 @@ public class ShippingController {
 	//private String apiUrl = "https://app.logis-link.co.kr";
 	//로지스링크 개발서버
 	private String apiUrl = "http://211.252.86.30:806";
+
 	
 	@RequestMapping(value = "/shipping/shippingView.do")
 	public String shippingView(HttpServletRequest request, Model model) throws Exception {
@@ -101,19 +102,6 @@ public class ShippingController {
 	    shippingService.insertAddr(svo);
 	    ModelAndView mav = new ModelAndView("jsonView", model);
 	    return mav;
-	}
-	
-	@RequestMapping(value = "/shipping/updateAddr.do", method = RequestMethod.POST)
-	public ModelAndView updateAddr(
-			@ModelAttribute ShippingAddressVO svo, HttpServletRequest request, ModelMap model) throws Exception {
-		HttpSession httpSession = request.getSession(true);
-		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
-		svo.setCorpNo(userVO.getCorpNo());
-		svo.setId(userVO.getId());
-		
-		shippingService.updateAddr(svo);
-		ModelAndView mav = new ModelAndView("jsonView", model);
-		return mav;
 	}
 
 	@RequestMapping(value = "/shipping/deleteAddr.do", method = RequestMethod.POST)

@@ -231,6 +231,7 @@
 		    contCnt,
 		    tempCnt,
 		    shipCnt,
+		    arriveCnt,
 		    orderSeq
 		FROM (
 			SELECT 
@@ -277,11 +278,11 @@
 		    IFNULL(e.user_memo, '') as user_memo,
 		    '' AS cus_memo,
 		    f.addr,
-		    t.manager_nm,
-		    t.bill_email,
+		    t.manager_nm, t.bill_email,
 		    ifnull(s.cont_no,0) AS contCnt,
 		    IFNULL(v.ct_no,0) AS tempCnt,
 		    ifnull(w.ct_no,0) AS shipCnt,
+		    ifnull(y.ct_no,0) AS arriveCnt,
 		    ifnull(x.orderseq,0) AS orderSeq
 		FROM cusdec929a1 a
 			LEFT JOIN 
@@ -297,9 +298,9 @@
 			LEFT JOIN CDPLACE f ON a.Chk_Pa_Mark = f.Pa_code
 			LEFT JOIN (
 		    SELECT 
-		    corp_no,
-			 manager_nm,
-		    bill_email
+		    	corp_no,
+			 	manager_nm,
+		    	bill_email
 		    FROM shipping_order
 		    GROUP BY corp_no	   
 			) t ON a.nab_sdno = t.corp_no
@@ -320,6 +321,13 @@
 		         AND order_state NOT IN ("배차 취소", "운송 취소")
 		         GROUP BY corp_no, rpt_no, bl_no) w 
 		    ON a.Rpt_No = w.rpt_no AND a.BlNo = w.bl_no
+		    LEFT JOIN 
+		        (SELECT corp_no, rpt_no, bl_no, COUNT(ct_no) AS ct_no
+		         FROM shipping_order
+		         WHERE 1=1
+		         AND order_state = "도착"
+		         GROUP BY corp_no, rpt_no, bl_no) y 
+		    ON a.Rpt_No = y.rpt_no AND a.BlNo = y.bl_no
 		    LEFT JOIN 
 		        (SELECT corp_no, rpt_no, bl_no, MAX(order_seq) AS orderSeq
 		         FROM shipping_order

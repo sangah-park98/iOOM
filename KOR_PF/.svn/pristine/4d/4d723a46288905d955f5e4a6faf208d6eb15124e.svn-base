@@ -28,7 +28,7 @@
 			car_phn_no = #{carPhnNo},
 			shipping_nm = #{shippingNm},
 			shipping_phn_no = #{shippingPhnNo},
-			dispatch_dt = #{dispatchDt}
+			dispatch_dt = NOW()
 		WHERE order_id = #{orderId}
 	</update>
 	
@@ -42,7 +42,7 @@
 	<update id="orderCancel" parameterType="egovframework.pf.shipping.service.ShippingOrderVO">
 		UPDATE shipping_order SET
 			order_state = '요청 취소',
-			edt_id = #{regId}
+			reg_id = #{regId}
 		WHERE order_id = #{orderId}
 	</update>
 	
@@ -80,7 +80,7 @@
 			#{arriveAddr},
 			#{recvNm},
 			#{toPhnNo},
-			NOW()
+			DATE_FORMAT(NOW(), '%Y%m%d')
 		)
 	</insert>
 	
@@ -120,18 +120,4 @@
 		AND bl_no = #{blNo}
 		AND order_id = #{orderId}
 	</update>
-	
-	
-	<select id="selectShipList" parameterType="searchVO" resultType="egovMap">
-	SELECT 
-	RPT_NO,
-	BL_NO,
-	CMPNY_NM,
-	REG_ID
-	FROM SHIPPING_ORDER
-	WHERE ORDER_ID = #{srch1}
-	AND DISPATCH_DT = ''
-	</select>
-	
-	
 </mapper>

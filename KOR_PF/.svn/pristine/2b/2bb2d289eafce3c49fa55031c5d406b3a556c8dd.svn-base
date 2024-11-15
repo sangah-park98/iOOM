@@ -55,6 +55,7 @@ public class ShippingController {
 	//private String apiUrl = "https://app.logis-link.co.kr";
 	//로지스링크 개발서버
 	private String apiUrl = "http://211.252.86.30:806";
+
 	
 	@RequestMapping(value = "/shipping/shippingView.do")
 	public String shippingView(HttpServletRequest request, Model model) throws Exception {

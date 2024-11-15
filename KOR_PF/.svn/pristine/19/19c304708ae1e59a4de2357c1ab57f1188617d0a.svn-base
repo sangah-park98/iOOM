@@ -52,9 +52,10 @@ public class ShippingController {
 	private ApiShippingService apiShippingService;
 	
 	//로지스링크 운영서버
-	//private String apiUrl = "https://app.logis-link.co.kr";
+	private String apiUrl = "https://app.logis-link.co.kr";
 	//로지스링크 개발서버
-	private String apiUrl = "http://211.252.86.30:806";
+	//private String apiUrl = "http://211.252.86.30:806";
+
 	
 	@RequestMapping(value = "/shipping/shippingView.do")
 	public String shippingView(HttpServletRequest request, Model model) throws Exception {
@@ -101,19 +102,6 @@ public class ShippingController {
 	    shippingService.insertAddr(svo);
 	    ModelAndView mav = new ModelAndView("jsonView", model);
 	    return mav;
-	}
-	
-	@RequestMapping(value = "/shipping/updateAddr.do", method = RequestMethod.POST)
-	public ModelAndView updateAddr(
-			@ModelAttribute ShippingAddressVO svo, HttpServletRequest request, ModelMap model) throws Exception {
-		HttpSession httpSession = request.getSession(true);
-		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
-		svo.setCorpNo(userVO.getCorpNo());
-		svo.setId(userVO.getId());
-		
-		shippingService.updateAddr(svo);
-		ModelAndView mav = new ModelAndView("jsonView", model);
-		return mav;
 	}
 
 	@RequestMapping(value = "/shipping/deleteAddr.do", method = RequestMethod.POST)
@@ -258,7 +246,7 @@ public class ShippingController {
 	        svo.setBlNo((String) reqMap.get("externalInfomation"));
 	        svo.setRptNo((String) reqMap.get("externalNumber"));
 	        svo.setEstCharge((Integer) reqMap.get("sellCharge"));
-	        svo.setToStaff((String) reqMap.get("eStaff"));
+	        svo.setToStaff((String) reqMap.get("eComName"));
 	        svo.setToPhnNo(((String) reqMap.get("eTel")).replaceAll("-", ""));
 	        svo.setToAddr((String) reqMap.get("eAddr"));
 	        svo.setToDt((String) reqMap.get("eDate"));
@@ -326,7 +314,7 @@ public class ShippingController {
 				String combinedDateTime2 = formattedEdate + " " + toTimeStr + ":00";
 				evo.seteDate(combinedDateTime2);
 				
-				evo.seteStaff((String) reqMap2.get("eStaff"));
+				evo.seteStaff("");
 				evo.seteTel(((String) reqMap2.get("eTel")).replaceAll("-", ""));
 				evo.seteMemo("");
 				String ctNo = (String) reqMap2.get("ctNo");
@@ -501,7 +489,6 @@ public class ShippingController {
 	        fileIn.transferTo(file);
 	    }
 	    
-    try {
 	    for (Map<String, Object> reqMap : param) {
 	        System.out.println("param List: " + reqMap);
 	        
@@ -520,7 +507,7 @@ public class ShippingController {
 			svo.setGoodsWeights((String) reqMap.get("goodsWeights"));
 			svo.setMixYn((String) reqMap.get("mixYn"));
 			svo.setFromReq((String) reqMap.get("reqMemo"));
-			svo.setToStaff((String) reqMap.get("eStaff"));
+			svo.setToStaff((String) reqMap.get("eComName"));
 			svo.setToPhnNo(((String) reqMap.get("eTel")).replaceAll("-", ""));
 			svo.setToAddr((String) reqMap.get("eAddr"));
 			svo.setToDt((String) reqMap.get("eDate"));
@@ -576,7 +563,7 @@ public class ShippingController {
 				String combinedDateTime2 = formattedEdate + " " + toTimeStr + ":00";
 				mvo.seteDate(combinedDateTime2);
 				
-				mvo.seteStaff((String) reqMap2.get("eStaff"));
+				mvo.seteStaff("");
 				mvo.seteTel(((String) reqMap2.get("eTel")).replaceAll("-", ""));
 				mvo.seteMemo("");
 				String ctNo = (String) reqMap2.get("ctNo");
@@ -612,12 +599,6 @@ public class ShippingController {
 			}
 	     
 	    sendShippingUtill(svo, true);
-	    
-	    } catch (Exception e) {
-	    	e.printStackTrace();
-	    	System.out.println(e.getMessage());
-	    }
-	    
 		return "success";
 	}
 	
@@ -654,8 +635,31 @@ public class ShippingController {
 	        ObjectMapper responseMapper = new ObjectMapper();
 	        Map<String, Object> responseMap = responseMapper.readValue(response.toString(), Map.class);
 	        if (responseMap.get("result").equals(true)) {
-	        	System.err.println("성공: " + responseMap.get("msg"));
-	        	//apiShippingService.updateOrderState(svo);
+	        	svo.setOrderId((String) responseMap.get("orderId"));
+	        	svo.setOrderSeq((Integer) responseMap.get("orderSeq"));
+	        	svo.setCtNo((String) mvo.getGoodsName());
+	        	svo.setRptNo(rptNo);
+	        	svo.setBlNo(blNo);
+	        	svo.setEdtDt((String) responseMap.get("regDt"));
+	        	svo.setFromReq((String) responseMap.get("reqMemo"));
+	        	svo.setCmpnyNm((String) responseMap.get("cmpnyNm"));
+	        	svo.setCorpNo((String) responseMap.get("corpNo"));
+	        	svo.setFromSpecifics((String) responseMap.get("sMemo"));
+				svo.setFromDt((String) responseMap.get("sDate"));
+				svo.setFromTime((String) responseMap.get("fromTime"));
+				svo.setFromAddr((String) responseMap.get("sAddr"));
+				svo.setEstCharge((Integer) responseMap.get("sellCharge"));
+				svo.setGoodsWeights((String) responseMap.get("goodsWeights"));
+				svo.setMixYn((String) responseMap.get("mixYn"));
+				svo.setToStaff((String) responseMap.get("eStaff"));
+				svo.setToPhnNo((String) responseMap.get("eTel"));
+				svo.setToAddr((String) responseMap.get("eAddr"));
+				svo.setToDt((String) responseMap.get("eDate"));
+				svo.setToTime((String) responseMap.get("toTime"));
+				svo.setManagerNm((String) responseMap.get("managerNm"));
+				svo.setBillEmail((String) responseMap.get("billEmail"));
+	        	
+	        	apiShippingService.updateOrderState(svo);
 	        } else {
 	            System.err.println("실패: " + responseMap.get("msg"));
 	        }
@@ -667,8 +671,7 @@ public class ShippingController {
   	private String sendShippingUtill(ShippingOrderVO svo, boolean isModified) throws Exception {
   		String fileName = svo.getFileName();
   		System.out.println("파일명: " + fileName);
-  		//String sendEmail = "import@ilyang.com";
-  		String sendEmail = "isseo@kordsystems.com";
+  		String sendEmail = "import@ilyang.com";
   		String result = ShippingEmailUtill.sendEmailWithFile(svo, sendEmail, isModified);
   		return result;
   	}

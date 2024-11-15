@@ -98,31 +98,36 @@ public class ApiShippingServiceImpl extends EgovAbstractServiceImpl implements A
 	        if (svo.getOrderId() == null || svo.getOrderId().isEmpty()) {
 	            throw new IllegalArgumentException("OrderId가 누락되었습니다.");
 	        }
-	        
-	        SearchVO vo = new SearchVO();
-	        vo.setSrch1(svo.getOrderId());
-	        List<?> mail = apiShippingMapper.selectShipList(vo);
-	        System.out.println(mail);
-	        String rptNo = "";
-	        String blNo = "";
-	        String cmpnyNm = "";
-	        String sendEmail = "";
-	        if (!mail.isEmpty() && mail.get(0) instanceof Map) {
-	        	Map<?, ?> map = (Map<?, ?>) mail.get(0);
-	        	rptNo =  (String) map.get("rptNo");
-	        	blNo =  (String) map.get("blNo");
-	        	cmpnyNm =  (String) map.get("cmpnyNm");
-	        	sendEmail =  (String) map.get("regId");
-	        }
-	        
 	        successCnt = apiShippingMapper.arrangeAlloc(svo);
 	        
 	        if (successCnt > 0) {
 	            result.put("result", true);
 	            result.put("msg", "성공");
+	            
+	            SearchVO vo = new SearchVO();
+	            vo.setSrch1(svo.getOrderId());
+	            List<?> mail = apiShippingMapper.selectShipList(vo);
+	            System.out.println(mail);
+	            String rptNo = "";
+	            String blNo = "";
+	            String cmpnyNm = "";
+	            String sendEmail = "";
+	            
+	            if (!mail.isEmpty() && mail.get(0) instanceof Map) {
+	                Map<?, ?> map = (Map<?, ?>) mail.get(0);
+
+	                rptNo =  (String) map.get("rptNo");
+	                blNo =  (String) map.get("blNo");
+	                cmpnyNm =  (String) map.get("cmpnyNm");
+	                sendEmail =  (String) map.get("regId");
+	                
+	            }
+	            
 	            if(sendEmail != "") {
 	            	sendShippStatus(rptNo, blNo, cmpnyNm, sendEmail, "배차");
 	            }
+	            
+	            
 	        } else {
 	            throw new RuntimeException("업데이트된 행이 없습니다.");
 	        }

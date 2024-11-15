@@ -140,6 +140,7 @@ public class ShippingEmailUtill {
 	
 	
 	public static String sendEmailStatus(String rptNo, String blNo, String cmpnyNm, String email, String Status) throws Exception {
+	    
 	    // 이메일 발송 정보 설정
 	    String host = "smtp.worksmobile.com"; // 이메일 발송에 사용할 SMTP 서버 호스트
 	    int port = 587; // 이메일 발송에 사용할 SMTP 서버 포트

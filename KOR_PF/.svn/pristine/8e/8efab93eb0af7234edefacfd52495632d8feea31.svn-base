@@ -110,29 +110,32 @@ public class NewsController {
 		return mav ;
 	}
 	
-	@RequestMapping(value = "/cmmn/newssFileDown.do")
-  	public void newssFileDown(
-  			HttpServletRequest request, HttpServletResponse response) throws Exception {
-		String fileOrgNm = request.getParameter("newssFileDown");
-  		String saveDir = "/home/files";
-  		File file = new File(saveDir + "/" + fileOrgNm);
-  		fileOrgNm = new String(fileOrgNm.getBytes("UTF-8"), "ISO-8859-1");
-  		response.setHeader("Content-Disposition","attachment;filename=\"" + fileOrgNm + "\";");
+	//파일 다운로드
+		@RequestMapping(value = "/cmmn/newsFileDown.do")
+	  	public void newsFileDown(
+	  			HttpServletRequest request, HttpServletResponse response) throws Exception {
+			String fileOrgNm = request.getParameter("newsFileDown");
+			
+			System.out.println(fileOrgNm);
+	  		String saveDir = "/home/files";
+	  		File file = new File(saveDir + "/" + fileOrgNm);
+	  		fileOrgNm = new String(fileOrgNm.getBytes("UTF-8"), "ISO-8859-1");
+	  		response.setHeader("Content-Disposition","attachment;filename=\"" + fileOrgNm + "\";");
 
-  		FileInputStream fileInputStream = new FileInputStream(file);
-  		ServletOutputStream servletOutputStream = response.getOutputStream();
+	  		FileInputStream fileInputStream = new FileInputStream(file);
+	  		ServletOutputStream servletOutputStream = response.getOutputStream();
 
-  		byte b [] = new byte[1024];
-  		int data = 0;
+	  		byte b [] = new byte[1024];
+	  		int data = 0;
 
-  		while((data=(fileInputStream.read(b, 0, b.length))) != -1)
-  		{
-  			servletOutputStream.write(b, 0, data);
-  		}
-  		servletOutputStream.flush();
-  		servletOutputStream.close();
-  		fileInputStream.close();
-  	}
+	  		while((data=(fileInputStream.read(b, 0, b.length))) != -1)
+	  		{
+	  			servletOutputStream.write(b, 0, data);
+	  		}
+	  		servletOutputStream.flush();
+	  		servletOutputStream.close();
+	  		fileInputStream.close();
+	  	}
 	
 }
 

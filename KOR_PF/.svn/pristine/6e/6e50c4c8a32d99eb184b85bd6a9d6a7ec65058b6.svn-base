@@ -426,13 +426,13 @@ function fillNewsModalContent(resultList) {
 
 // 첨부파일
 $(document).on('click', '.file-name', function(event) {
-	if ($(event.target).hasClass('file-name') || $(event.target).closest('.file-name').length) {
-        const htmlContent = event.target.innerHTML.trim();
-        const fileName = htmlContent.replace(/&nbsp;/g, '').trim();
-        $("#newssFileDown").val(fileName);
-        document.newssFileDownForm.action = "/cmmn/newssFileDown.do";
-        document.newssFileDownForm.submit();
-    }
+	console.log('11');
+    const htmlContent = event.target.innerHTML.trim();
+    const fileName = htmlContent.replace(/&nbsp;/g, '').trim();
+    console.log(fileName);
+    $("#newsFileDown").val(fileName);
+    document.newsFileDownForm.action = "/cmmn/newsFileDown.do";
+    document.newsFileDownForm.submit();
 });
 
 

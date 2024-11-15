@@ -278,7 +278,8 @@
 		    IFNULL(e.user_memo, '') as user_memo,
 		    '' AS cus_memo,
 		    f.addr,
-		    t.manager_nm, t.bill_email,
+		    t.manager_nm,
+		    t.bill_email,
 		    ifnull(s.cont_no,0) AS contCnt,
 		    IFNULL(v.ct_no,0) AS tempCnt,
 		    ifnull(w.ct_no,0) AS shipCnt,
@@ -298,9 +299,9 @@
 			LEFT JOIN CDPLACE f ON a.Chk_Pa_Mark = f.Pa_code
 			LEFT JOIN (
 		    SELECT 
-		    	corp_no,
-			 	manager_nm,
-		    	bill_email
+		    corp_no,
+			 manager_nm,
+		    bill_email
 		    FROM shipping_order
 		    GROUP BY corp_no	   
 			) t ON a.nab_sdno = t.corp_no

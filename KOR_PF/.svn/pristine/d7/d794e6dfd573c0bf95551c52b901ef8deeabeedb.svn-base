@@ -123,9 +123,9 @@
 	    </div>
 	</div>
   </div>
-	<form name="newssFileDownForm" method="post"
-		  action="/cmmn/newssFileDown.do">
-		<input type="hidden" name="newssFileDown" id="newssFileDown"/>
+	<form name="newsFileDownForm" method="post"
+		  action="/cmmn/newsFileDown.do">
+		<input type="hidden" name="newsFileDown" id="newsFileDown"/>
     </form>
 </div>
 <!-- Modal -->

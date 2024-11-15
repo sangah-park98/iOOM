@@ -61,15 +61,14 @@
 			addr_nm,
 			phn_no,
 			base_addr,
-			dtls_addr,
-			zip_code,
-			seq
+			dtls_addr
 		FROM shipping_address
 		WHERE corp_no = #{corpNo};
 	</select>
 	
 	<insert id="insertAddr" parameterType="egovframework.pf.shipping.service.ShippingAddressVO">
-		INSERT INTO shipping_address(
+		INSERT INTO
+		shipping_address(
 			id,
 			corp_no,
 			addr_nm,
@@ -78,7 +77,8 @@
 			base_addr,
 			dtls_addr,
 			reg_dt
-		) VALUES(
+		)
+		VALUES(
 			#{id},
 			#{corpNo},
 			#{addrNm},
@@ -87,34 +87,14 @@
 			#{baseAddr},
 			#{dtlsAddr},
 			DATE_FORMAT(NOW(), '%Y%m%d')
-		) ON DUPLICATE KEY UPDATE
-		    corp_no = #{corpNo},
-		    addr_nm = #{addrNm},
-		    phn_no = #{phnNo},
-		    zip_code = #{zipCode},
-		    base_addr = #{baseAddr},
-		    dtls_addr = #{dtlsAddr},
-		    edt_dt = DATE_FORMAT(NOW(), '%Y%m%d'),
-		    edt_id = #{id};
+		)
 	</insert>
-	
-	<update id="updateAddr" parameterType="egovframework.pf.shipping.service.ShippingOrderVO">
-		UPDATE shipping_address SET
-			edt_id = #{id},
-			corp_no = #{corpNo},
-		    addr_nm = #{addrNm},
-		    phn_no = #{phnNo},
-		    zip_code = #{zipCode},
-		    base_addr = #{baseAddr},
-		    dtls_addr = #{dtlsAddr},
-		    edt_dt = DATE_FORMAT(NOW(), '%Y%m%d')
-		WHERE seq = #{seq}
-	</update>
 	
 	<delete id="deleteAddr" parameterType="egovframework.pf.shipping.service.ShippingAddressVO">
 		DELETE FROM shipping_address
 		WHERE 1=1
-		AND seq = #{seq}
+		AND addr_nm = #{addrNm}
+		AND phn_no = #{phnNo}
 	</delete>
 	
 	<insert id="insertShippingTempList" parameterType="egovframework.pf.shipping.service.ShippingAddressVO">
@@ -136,13 +116,9 @@
 		 	to_staff,
 		 	to_phn_no,
 		 	to_addr,
-		 	shipper_manager,
-		 	shipper_mail,
 		 	cmpny_nm,
 		 	manager_nm,
 		 	bill_email,
-		 	trans_details,
-		 	tax_invoice,
 		 	reg_dt,
 		 	reg_id
 		)VALUES(
@@ -163,13 +139,9 @@
 			#{toStaff},
 			#{toPhnNo},
 			#{toAddr},
-			#{shipperManager},
-			#{shipperMail},
 			#{cmpnyNm},
 			#{managerNm},
 			#{billEmail},
-			#{transDetails},
-			#{taxInvoice},
 			DATE_FORMAT(NOW(), '%Y%m%d'),
 	  		#{regId}
 	  	) ON DUPLICATE KEY UPDATE
@@ -186,14 +158,10 @@
 		    to_staff = #{toStaff},
 		    to_phn_no = #{toPhnNo},
 		    to_addr = #{toAddr},
-		    shipper_manager = #{shipperManager},
-		    shipper_mail = #{shipperMail},
 		    cmpny_nm = #{cmpnyNm},
 		    corp_no = #{corpNo},
 		    manager_nm = #{managerNm},
 		    bill_email = #{billEmail},
-		    trans_details = #{transDetails},
-		    tax_invoice = #{taxInvoice},
 		    edt_dt = DATE_FORMAT(NOW(), '%Y%m%d'),
 		    edt_id = #{regId}
 	</insert>
@@ -204,6 +172,8 @@
 	</select>
 	
 	<select id="selectShippingReqList" parameterType="searchVO" resultType="egovMap">
+		<!-- SELECT * FROM shipping_order
+		WHERE rpt_no = #{srch1} AND bl_no = #{srch2}; -->
 		SELECT 
 		    c.contCnt,
 		    COUNT(b.ct_no) OVER() AS ctNoCnt,
@@ -231,7 +201,6 @@
 		    b.corp_no,
 		    b.manager_nm,
 		    b.bill_email,
-		    b.trans_details,
 		    b.file_name,
 		    b.reg_dt
 		FROM shipping_order b
@@ -274,12 +243,12 @@
             CASE WHEN B.ct_no IS NOT NULL AND B.order_state NOT IN ('배차 취소', '운송 취소', '요청 취소') then 'Y' ELSE 'N' END AS shipReqYn
          FROM cusdec929b3 A
          LEFT JOIN shipping_order B
-	     ON A.rpt_no = B.rpt_no
-	     AND A.cont_No = B.ct_no 
-	     WHERE 1=1
-	     AND A.rpt_no = #{srch1}
-	     AND A.rpt_seq = '00'
-	     ORDER BY cont_seq;
+       ON A.rpt_no = B.rpt_no
+       AND A.cont_No = B.ct_no 
+       WHERE 1=1
+       AND A.rpt_no = #{srch1}
+       AND A.rpt_seq = '00'
+       ORDER BY cont_seq;
 	</select>
 	
 	<insert id="insertShippingReqList" parameterType="egovframework.pf.shipping.service.ShippingOrderVO">
@@ -389,7 +358,6 @@
 		    cmpny_nm = #{cmpnyNm},
 		    corp_no = #{corpNo},
 		    manager_nm = #{managerNm},
-		    trans_details = #{transDetails},
 		    from_dt = #{fromDt},
 		    from_addr = #{fromAddr},
 		    bill_email = #{billEmail},

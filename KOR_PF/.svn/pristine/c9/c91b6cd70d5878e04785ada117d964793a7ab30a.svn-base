@@ -571,15 +571,14 @@ function fn_impViewTableCol(){
 	    var contCnt = instance.getDataAtCell(row, 33);
 	    var tempCnt = instance.getDataAtCell(row, 34);
 	    var shipCnt = instance.getDataAtCell(row, 35);
-	    var arriveCnt = instance.getDataAtCell(row, 36);
-	    if (contCnt === 0 && tempCnt === 0 && shipCnt === 0 && arriveCnt === 0) {
+	    if (contCnt === 0 && tempCnt === 0 && shipCnt === 0) {
 	    	statue = "의뢰";
-	    } else if (shipCnt === 0 && arriveCnt === 0 && tempCnt !== 0) {
+	    } else if (shipCnt === 0 && tempCnt !== 0) {
 	    	statue = "임시저장"; 
 	    } else if (contCnt === 0 && shipCnt !== 0) {
 	    	statue = "완료"; 
 	    } else if (contCnt !== 0) {
-	        if (contCnt === shipCnt ) {
+	        if (contCnt === shipCnt) {
 	        	statue = "완료"; 
 	        } else if(contCnt > shipCnt && shipCnt != 0){
 	        	statue = "완료";
@@ -591,7 +590,7 @@ function fn_impViewTableCol(){
 	    }
 	    var $transRequestButton;
 	    
-	    if (receValue === "자수" || receValue === "수리" || receValue === "승인" || receValue === "대기" || receValue === "접수" || receValue === "결재") {
+	    if (receValue === "자수" || receValue === "수리" || receValue === "승인" || receValue === "대기" || receValue === "접수") {
 	    	
 	        var $transRequestButton;
 	        
@@ -602,21 +601,14 @@ function fn_impViewTableCol(){
 	        		'font-family': '맑은 고딕',
 	        		'font-size': '13px'
 	        	});
-	        } else if(statue === "완료" && contCnt !== 0 && contCnt !== arriveCnt){
+	        } else if(statue === "완료" && contCnt !== 0 && contCnt !== shipCnt){
 	        	$transRequestButton = $('<button type="button" onclick="fn_shipReqBtn(' + row + ',' + col + ')" class="save-button p-0.5 text-sm rounded text-white hover:opacity-50 duration-150 bg-primary-700 ml-1 hover:bg-primary-500">' + statue + '</button>');
 	        	$(td).empty().append($transRequestButton);
 	        	$transRequestButton.css({
 	        		'font-family': '맑은 고딕',
 	        		'font-size': '13px'
 	        	});
-	        } else if(statue === "완료" && contCnt === 0 && contCnt === arriveCnt){
-	        	$transRequestButton = $('<button type="button" onclick="fn_shipReqBtn(' + row + ',' + col + ')" class="save-button p-0.5 text-sm rounded text-white hover:opacity-50 duration-150 bg-primary-700 ml-1 hover:bg-primary-500">' + statue + '</button>');
-	        	$(td).empty().append($transRequestButton);
-	        	$transRequestButton.css({
-	        		'font-family': '맑은 고딕',
-	        		'font-size': '13px'
-	        	});
-	        }else {
+	        } else {
 	        	$(td).empty().text('완료');
 	        }
 	        	
@@ -672,7 +664,6 @@ function fn_impViewTableCol(){
 		{data : 'contCnt', className : "htCenter", className : "htCenter", readOnly:true},
 		{data : 'tempCnt', className : "htCenter", className : "htCenter", readOnly:true},
 		{data : 'shipCnt', className : "htCenter", className : "htCenter", readOnly:true},
-		{data : 'arriveCnt', className : "htCenter", className : "htCenter", readOnly:true},
 		{data : 'orderSeq', className : "htCenter", className : "htCenter", readOnly:true},
 	] ;
 
@@ -689,7 +680,7 @@ function fn_impViewTableHeader(){
 	this.impViewHeader = [
 		"주소", "운송", "상태", "C/S검사", "신고번호", "B/L번호", "납세의무자", "무역거래처",  "반입일자", "신고일자", "수리일자", "거래구분",
 		"결제방법", "인코텀즈", "운임", "보험료", "총중량", "총포장개수", "통화단위", "신고금액",  "요건승인", "해외공급자국가부호", "적출국(부호)", "FTA적용여부", "감면여부", "확정신고대상여부",
-		"부서코드", "PO", "사용자메모", "신고인", "납세자번호", "" ,"","컨테이너수", "임시저장수", "오더수","", ""
+		"부서코드", "PO", "사용자메모", "신고인", "납세자번호", "" ,"","컨테이너수", "임시저장수", "오더수",""
 	 ] ;
 }
 
@@ -740,7 +731,7 @@ function fn_impViewSpecTableHeader(){
 
 //테이블 히든컬럼
 function fn_impViewTableHidden(){
-	this.impViewHidden = [0,30,31,32,33,34,35,36,37];
+	this.impViewHidden = [0,30,31,32,33,34,35,36];
 	if (!grpCd.includes("KORD")) {
         this.impViewHidden.push(1);
     }
@@ -1165,7 +1156,7 @@ function impViewFileListClose(){
 
 function fn_importViewExcelDownload(){
 	fn_loading(true);
-	const hiddenIndices = [0,1,30,31,32,33,34,35,36,37];
+	const hiddenIndices = [0,1,30,31,32,33,34,35,36];
 	//엑셀옵션
 	var exTitArr = [];
 	var exTit = "";
@@ -1400,9 +1391,6 @@ function fn_shipReqBtn(row, col) {
 			        $("#corpNo").val(data.resultList1[0].corpNo);
 			        $("#managerNm").val(data.resultList1[0].managerNm);
 			        $("#billEmail").val(data.resultList1[0].billEmail);
-			        if (data.resultList1[0].transDetails === 'Y') {
-			            $("#transDetails").prop("checked", true);
-			        }
 			        
 			        for (var i = 0; i < data.resultList1.length; i++) {
 			            if (i >= 1) {
@@ -1431,7 +1419,7 @@ function fn_shipReqBtn(row, col) {
 			                onclick='fn_orderMod(${JSON.stringify(data.resultList1)})'
 			                class="text-primary-500 bg-primary-100 border border-primary-500 hover:bg-secondary-100
 			                focus:ring-4 focus:ring-secondary-300 font-medium rounded px-4 py-1.5 focus:outline-none duration-300 text-sm mt-5" style="white-space: nowrap; height: 30px;">
-			                <i class="fa-regular fa-feather"></i>
+			                <i class="fa-regular fa-floppy-disk"></i>
 			                	수정요청
 			            </button>
 			            <button
@@ -1440,7 +1428,7 @@ function fn_shipReqBtn(row, col) {
 			                onclick="fn_orderCancel()"
 			                class="text-primary-500 bg-primary-100 border border-primary-500 hover:bg-secondary-100
 			                focus:ring-4 focus:ring-secondary-300 font-medium rounded px-4 py-1.5 focus:outline-none duration-300 text-sm mt-5" style="white-space: nowrap; height: 30px;">
-			                <i class="fa-regular fa-xmark"></i>
+			                <i class="fa-regular fa-floppy-disk"></i>
 			        			취소요청
 			            </button>
 			            <button
@@ -1448,18 +1436,17 @@ function fn_shipReqBtn(row, col) {
 			                onclick="fn_addShipReqBtn(${row}, ${orderSeq})"
 			                class="text-primary-500 bg-primary-100 border border-primary-500 hover:bg-secondary-100
 			                focus:ring-4 focus:ring-secondary-300 font-medium rounded px-4 py-0.5 focus:outline-none duration-300 text-sm mt-5" style="white-space: nowrap; height: 30px;">
-			                <i class="fa-solid fa-plus"></i>
+			                <i class="fa-duotone fa-cart-flatbed-boxes"></i>
 			                	추가요청
 			            </button>
 			            <form name="shipFileDownForm" method="post" action="/shipping/insertShippingReqList.do">
 			                <input type="hidden" name="shipFileDown" id="shipFileDown"/>
 			            </form>`;
-			        if (data.resultList1[0].orderState == '배차' || data.resultList1[0].orderState == '입차' || data.resultList1[0].orderState == '출발'){
-			        	$(".custom-file-upload").css('visibility', 'hidden');
-			        	$("#fileList").css('visibility', 'hidden');
-			        	$("#cancelReqBtn").css('visibility', 'hidden');
-			        	$("#updateReqBtn").css('visibility', 'hidden');
-			        }
+
+			        /*if (data.resultList1[0].contCnt < data.resultList1[0].ctNoCnt) {
+			            $('#updateReqBtn').css('display', 'none');
+			            $('#cancelReqBtn').css('display', 'none');
+			        }*/
 			        $('.removeBtn').css('visibility', 'hidden');
 			        setUpFileInputListener();
 			        
@@ -1476,18 +1463,10 @@ function fn_shipReqBtn(row, col) {
 			    	$("#toStaff").val(data.resultList2[0].toStaff);
 			    	$("#toPhnNo").val(data.resultList2[0].toPhnNo.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3'));
 			    	$("#toAddr").val(data.resultList2[0].toAddr);
-			    	$("#shipperManager").val(data.resultList2[0].shipperManager);
-			    	$("#shipperMail").val(data.resultList2[0].shipperMail);
 			    	$("#cmpnyNm").val(data.resultList2[0].cmpnyNm);
 			    	$("#corpNo").val(data.resultList2[0].corpNo);
 			    	$("#managerNm").val(data.resultList2[0].managerNm);
 			    	$("#billEmail").val(data.resultList2[0].billEmail);
-			    	if (data.resultList2[0].transDetails === 'Y') {
-			            $("#transDetails").prop("checked", true);
-			        }
-			    	if (data.resultList2[0].taxInvoice === 'Y') {
-			            $("#taxInvoice").prop("checked", true);
-			        }
 					
 					for (var i = 0; i < data.resultList2.length; i++) {
 			              if(i >= 1){
@@ -1611,36 +1590,24 @@ function setUpInputEnterListener(){
   });
 }
 
-
-function setUpFileInputListener() {
-    const fileInput = document.getElementById('fileName'); // 클릭 시
+function setUpFileInputListener(){
+	const fileInput = document.getElementById('fileName');
     const fileListDiv = document.getElementById('fileList');
     filesList = [];
 
     fileInput.addEventListener('change', function() {
         const newFiles = Array.from(this.files);
+
+        // 선택한 파일들을 filesList에 추가
         filesList = filesList.concat(newFiles);
+
+        // 파일 목록을 업데이트하여 표시
         updateFileList();
     });
 
-    fileListDiv.addEventListener('dragover', function(event) {
-        event.preventDefault();
-        fileListDiv.classList.add('drag-over');
-    });
-    fileListDiv.addEventListener('dragleave', function() {
-        fileListDiv.classList.remove('drag-over');
-    });
-    fileListDiv.addEventListener('drop', function(event) {
-        event.preventDefault(); 
-        fileListDiv.classList.remove('drag-over');
-        const newFiles = Array.from(event.dataTransfer.files);
-        filesList = filesList.concat(newFiles);
-        updateFileList();
-    });
-
-    // 파일 목록 업데이트 및 어펜드
+    // 파일 목록을 업데이트하여 표시하는 함수
     function updateFileList() {
-        fileListDiv.innerHTML = ''; 
+        fileListDiv.innerHTML = '';
 
         filesList.forEach((file, index) => {
             const fileDiv = document.createElement('div');
@@ -1661,17 +1628,14 @@ function setUpFileInputListener() {
 
             fileListDiv.appendChild(fileDiv);
         });
-         
-        const fileName = filesList.map(file => file.name).join('/');
     }
 
-    // X 클릭
+    // 파일을 filesList에서 제거하는 함수
     function removeFile(index) {
         filesList.splice(index, 1);
         updateFileList();
     }
-}
-
+};
 
 function shipReqModalClose(){
 	$("#shipReqViewListPopUp").modal("hide");
@@ -1887,8 +1851,6 @@ function fn_handsonGridLoadDstnListPopupOption() {
             },
             { data: 'baseAddr', type: 'text', className: "htCenter", readOnly: true },
             { data: 'dtlsAddr', type: 'text', className: "htCenter", readOnly: true },
-            { data: 'zipCode', type: 'text', className: "htCenter", readOnly: true },
-            { data: 'seq', type: 'text', className: "htCenter", readOnly: true }
         ],
         stretchH: 'all',
         width: '100%',
@@ -1897,7 +1859,7 @@ function fn_handsonGridLoadDstnListPopupOption() {
         rowHeights: 25,
         rowHeaders: true,
         columnHeaderHeight: 25,
-        colHeaders: ["", "수령자", "연락처", "주소", "상세주소", "", ""],
+        colHeaders: ["", "수령자", "연락처", "주소", "상세주소"],
         colWidths: [30, 60, 90, 150, 150],
         manualRowResize: true,
         manualColumnResize: true,
@@ -1909,7 +1871,6 @@ function fn_handsonGridLoadDstnListPopupOption() {
         readOnly: false,
         columnSorting: { indicator: true },
         autoColumnSize: { samplingRatio: 23 },
-        hiddenColumns: { copyPasteEnabled: false, indicators: false, columns: [5,6]},
         mergeCells: false,
         allowInsertRow: false,
     };
@@ -1934,7 +1895,6 @@ document.getElementById('toPhnNo').addEventListener('input', function (event) {
 function loadAddrListClose(){
 	$("#loadAddrListPopUp").modal("hide");
 }
-
 document.addEventListener('keydown', function(event) {
     if (event.key === "Escape") {
         loadAddrListClose();
@@ -1942,27 +1902,6 @@ document.addEventListener('keydown', function(event) {
 });
 
 function fn_regist() {
-	const addrBtnDiv = document.getElementById('addrBtnDiv');
-	addrBtnDiv.innerHTML = `
-	<div>
-		<button
-			type="button"
-			onclick="fn_addrRegist()"
-			class="text-primary-500 bg-primary-100 border border-primary-500 hover:bg-secondary-100
-			focus:ring-4 focus:ring-secondary-300 font-medium rounded px-4 py-1.5 focus:outline-none duration-300 text-sm">
-			<i class="fa-solid fa-check"></i>
-			확인
-		</button>
-		<button
-			type="button"
-			onclick="addrRegistPopupClose()"
-			class="text-primary-500 bg-primary-100 border border-primary-500 hover:bg-secondary-100
-			focus:ring-4 focus:ring-secondary-300 font-medium rounded px-4 py-1.5 focus:outline-none duration-300 text-sm">
-			<i class="fa-regular fa-floppy-disk"></i>
-			취소
-		</button>
-	</div> `;
-	
 	$("#addrRegistPopUp").modal("show");
 }
 
@@ -1977,7 +1916,7 @@ function fn_addrDel() {
         }
     }
     if (cnt == 0){
-    	alert("삭제할 도착지를 선택해주세요.");
+    	alert("도착지를 선택해주세요.");
     	return;
     }
     if (confirm("선택하신 도착지를 삭제하시겠습니까?")) {
@@ -2017,9 +1956,9 @@ function addrRegistPopupClose(){
     const contactInputs = document.querySelectorAll('input[type="text"].w-24');
     contactInputs.forEach(input => input.value = '');
 
+    document.getElementById('addrNm').value = '';
     document.getElementById('zipCode').value = '';
-    document.getElementById('baseAddr').value = '';
-    document.getElementById('dtlsAddr').value = '';
+    document.getElementById('toAddr').value = '';
 }
 
 function fn_addrRegist() {
@@ -2053,7 +1992,7 @@ function fn_addrRegist() {
         return;
     }
     if (!zipCode) {
-        alert("우편번호를 입력하세요.");
+        alert("주소를 입력하세요.");
         document.getElementById('zipCode').focus();
         return;
     }
@@ -2181,13 +2120,7 @@ function fn_addrTempSave(rptNo, blNo) {
 	var goodsWeights = document.getElementById('goodsWeights').value;
 	var mixYn = document.getElementById('mixYn').value;
 	var fromReq = document.getElementById('fromReq').value;
-	var shipperManager = document.getElementById('shipperManager').value;
-	var shipperMail = document.getElementById('shipperMail').value;
-	var taxInvoice = document.getElementById('taxInvoice').checked ? "Y" : "N";
-	var transDetails = document.getElementById('transDetails').checked ? "Y" : "N";
 	var fromTime = document.getElementById('fromTime').value;
-	
-	
 	if (fromTime.disabled) {
 		fromTime = '즉시';
 	} else {
@@ -2206,8 +2139,7 @@ function fn_addrTempSave(rptNo, blNo) {
         basicData.push({
         	orderSeq, blNo, rptNo, ctNo, fromSpecifics, fromDt, fromTime, fromAddr, 
 	    	toDt, toTime, goodsWeights, mixYn, fromReq,
-	    	toStaff, toPhnNo, toAddr, cmpnyNm, corpNo, managerNm, billEmail,
-	    	shipperManager, shipperMail, taxInvoice, transDetails
+	    	toStaff, toPhnNo, toAddr, cmpnyNm, corpNo, managerNm, billEmail
         })
         orderSeq++;
     }
@@ -2434,17 +2366,17 @@ function fn_addrReq(rptNo, blNo, orderSeq) {
     var inOutSctn = '01'; // 수출입구분
     var truckTypeCode = 'TR'; // 운송유형
     var sComName = 'a'; // 상차지명
-    var eComName = 'a'; // 하차지명
     //var goodsName = ''; // 화물정보
     var chargeType = '01'; // 01:인수증, 02:선착불
     var sellCharge = 0; // 운송료
     var externalFlag = 'SH'; // 외부연계
     var carTonCode = '5'; 
     var carTypeCode = '06';
+    var eStaff = '';
     
     var externalInfomation = blNo;
     var externalNumber = rptNo;
-    var eStaff = document.getElementById('toStaff').value;
+    var eComName = document.getElementById('toStaff').value;
     var eTel = document.getElementById('toPhnNo').value;
     var eAddr = document.getElementById('toAddr').value;
     var shipperManager = document.getElementById('shipperManager').value;
@@ -2727,11 +2659,11 @@ function fn_orderMod(data) {
     var inOutSctn = '01'; // 수출입구분
     var truckTypeCode = 'TR'; // 운송유형
     var sComName = 'a'; // 상차지명
-    var eComName = 'a'; // 하차지명
     var chargeType = '01'; // 01:인수증, 02:선착불
     var sellCharge = 0; // 운송료
     var carTonCode = '5'; 
     var carTypeCode = '06';
+    var eStaff = '';
     var fileName = filesList.map(file => file.name).join('/');
     var orderSeq = data[0].orderSeq;
 
@@ -2776,7 +2708,7 @@ function fn_orderMod(data) {
         var cmpnyNm = document.getElementById('cmpnyNm').value;
         var corpNo = document.getElementById('corpNo').value;
         var billEmail = document.getElementById('billEmail').value;
-        var eStaff = document.getElementById('toStaff').value;
+        var eComName = document.getElementById('toStaff').value;
         var mixYn = document.getElementById('mixYn').value;
         var eTel = document.getElementById('toPhnNo').value;
         var eAddr = document.getElementById('toAddr').value;
@@ -2837,162 +2769,4 @@ function fn_orderMod(data) {
             }
         }
     });
-}
-
-
-function fn_addrMod() {
-	var cnt = 0;
-	var data = loadDstnListHot.getSourceData();
-	checkData = [];
-	
-	for (var i = 0; i < data.length; i++) {
-		if (data[i]["checkBox"] == "yes") {
-			cnt++;
-			checkData.push(data[i]);
-			document.getElementById('addrNm').value = checkData[0]["addrNm"];
-			document.getElementById('phnNo1').value = checkData[0]["phnNo"].substring(0, 3);
-			document.getElementById('phnNo2').value = checkData[0]["phnNo"].substring(3, 7);
-			document.getElementById('phnNo3').value = checkData[0]["phnNo"].substring(7);
-			document.getElementById('baseAddr').value = checkData[0]["baseAddr"];
-			document.getElementById('dtlsAddr').value = checkData[0]["dtlsAddr"];
-			document.getElementById('zipCode').value = checkData[0]["zipCode"];
-			document.getElementById('addrSeq').value = checkData[0]["seq"];
-	       
-			data[i]["checkBox"] = "no";
-		}
-	}
-	if (cnt == 0) {
-		alert("수정할 도착지를 선택해 주세요.");
-		return;
-	}
-	
-	const addrBtnDiv = document.getElementById('addrBtnDiv');
-	addrBtnDiv.innerHTML ="";
-	addrBtnDiv.innerHTML = `
-		<div>
-			<button
-				type="button"
-				id="addrUpdate"
-				onclick="fn_addrUpdate()"
-				class="text-primary-500 bg-primary-100 border border-primary-500 hover:bg-secondary-100
-				focus:ring-4 focus:ring-secondary-300 font-medium rounded px-4 py-1.5 focus:outline-none duration-300 text-sm">
-				<i class="fa-solid fa-check"></i>
-				확인
-			</button>
-			<button
-				type="button"
-				id="addrRegistPopupClose"
-				onclick="addrRegistPopupClose()"
-				class="text-primary-500 bg-primary-100 border border-primary-500 hover:bg-secondary-100
-				focus:ring-4 focus:ring-secondary-300 font-medium rounded px-4 py-1.5 focus:outline-none duration-300 text-sm">
-				<i class="fa-regular fa-floppy-disk"></i>
-				취소
-			</button>
-		</div> `;
-	
-	$("#addrRegistPopUp").modal("show");
-	
-	loadDstnListHot.loadData(data);
-    loadDstnListHot.updateSettings({
-        cells: function(row, col) {
-            var cellProperties = {};
-            if (col === 0) {
-                cellProperties.checked = false;
-            }
-            return cellProperties;
-        }
-    });
-    loadDstnListHot.render();
-    console.log(checkData);
-    
-}
-
-
-function fn_addrUpdate() {
-	var addrNm = document.getElementById('addrNm').value;
-	var phnNo1 = document.getElementById('phnNo1').value;
-	var phnNo2 = document.getElementById('phnNo2').value;
-	var phnNo3 = document.getElementById('phnNo3').value;
-    var phnNo = phnNo1 + phnNo2 + phnNo3;
-    var zipCode = document.getElementById('zipCode').value;
-    var baseAddr = document.getElementById('baseAddr').value;
-    var dtlsAddr = document.getElementById('dtlsAddr').value;
-    var addrSeq = document.getElementById('addrSeq').value;
-    
-    if (!addrNm) {
-        alert("수령자를 입력하세요.");
-        document.getElementById('addrNm').focus();
-        return;
-    }
-    if (!phnNo1 || !phnNo2 || !phnNo3) {
-        alert("연락처를 입력하세요.");
-        const phnNoElement = !phnNo1 ? 'phnNo1' : (!phnNo2 ? 'phnNo2' : 'phnNo3');
-        document.getElementById(phnNoElement).focus();
-        return;
-    }
-    if (phnNo2.length !== 4 || phnNo3.length !== 4) {
-        alert("연락처 뒷자리는 4자리 이상이어야 합니다.");
-        if (phnNo2.length !== 4) {
-            document.getElementById('phnNo2').focus();
-        } else {
-            document.getElementById('phnNo3').focus();
-        }
-        return;
-    }
-    if (!zipCode) {
-        alert("우편번호를 입력하세요.");
-        document.getElementById('zipCode').focus();
-        return;
-    }
-    if (!baseAddr) {
-        alert("주소를 입력하세요.");
-        document.getElementById('baseAddr').focus();
-        return;
-    }
-    if (!dtlsAddr) {
-    	if(!confirm("상세주소를 입력하지 않았습니다. 그대로 저장하시겠습니까?")) {
-            document.getElementById('dtlsAddr').focus();
-            return;
-        }
-    }
-    var uData = {};
-    uData["addrNm"] = addrNm;
-    uData["phnNo"] = phnNo;
-    uData["zipCode"] = zipCode;
-    uData["baseAddr"] = baseAddr;
-    uData["dtlsAddr"] = dtlsAddr;
-    uData["seq"] = addrSeq;
-    
-	$.ajax({
-		type : "POST",
-		url : "/shipping/updateAddr.do",
-		data : uData,
-		beforeSend : function(xmlHttpRequest){
-			xmlHttpRequest.setRequestHeader("AJAX", "true");
-		},
-		dataType : 'json',
-		async: false,
-	    success : function(data) {
-	    	$("#addrRegistPopUp").modal("hide");
-	    	fn_loadAddrList(data);
-	    	document.getElementById('addrNm').value = '';
-
-	        const contactInputs = document.querySelectorAll('input[type="text"].w-24');
-	        contactInputs.forEach(input => input.value = '');
-
-	        document.getElementById('addrNm').value = '';
-	        document.getElementById('zipCode').value = '';
-	        document.getElementById('baseAddr').value = '';
-	        document.getElementById('dtlsAddr').value = '';
-	    },
-	    error : function(e, textStatus, errorThrown) {
-	    	if(e.status == 400){
-	    		alert("에러 발생");
-		    	location.href = document.referrer;
-	    	} else {
-	        	console.log(errorThrown);
-	        	alert(msgSearchError);
-	    	}
-	    }
-	});
 }

@@ -1476,18 +1476,10 @@ function fn_shipReqBtn(row, col) {
 			    	$("#toStaff").val(data.resultList2[0].toStaff);
 			    	$("#toPhnNo").val(data.resultList2[0].toPhnNo.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3'));
 			    	$("#toAddr").val(data.resultList2[0].toAddr);
-			    	$("#shipperManager").val(data.resultList2[0].shipperManager);
-			    	$("#shipperMail").val(data.resultList2[0].shipperMail);
 			    	$("#cmpnyNm").val(data.resultList2[0].cmpnyNm);
 			    	$("#corpNo").val(data.resultList2[0].corpNo);
 			    	$("#managerNm").val(data.resultList2[0].managerNm);
 			    	$("#billEmail").val(data.resultList2[0].billEmail);
-			    	if (data.resultList2[0].transDetails === 'Y') {
-			            $("#transDetails").prop("checked", true);
-			        }
-			    	if (data.resultList2[0].taxInvoice === 'Y') {
-			            $("#taxInvoice").prop("checked", true);
-			        }
 					
 					for (var i = 0; i < data.resultList2.length; i++) {
 			              if(i >= 1){
@@ -2181,13 +2173,7 @@ function fn_addrTempSave(rptNo, blNo) {
 	var goodsWeights = document.getElementById('goodsWeights').value;
 	var mixYn = document.getElementById('mixYn').value;
 	var fromReq = document.getElementById('fromReq').value;
-	var shipperManager = document.getElementById('shipperManager').value;
-	var shipperMail = document.getElementById('shipperMail').value;
-	var taxInvoice = document.getElementById('taxInvoice').checked ? "Y" : "N";
-	var transDetails = document.getElementById('transDetails').checked ? "Y" : "N";
 	var fromTime = document.getElementById('fromTime').value;
-	
-	
 	if (fromTime.disabled) {
 		fromTime = '즉시';
 	} else {
@@ -2206,8 +2192,7 @@ function fn_addrTempSave(rptNo, blNo) {
         basicData.push({
         	orderSeq, blNo, rptNo, ctNo, fromSpecifics, fromDt, fromTime, fromAddr, 
 	    	toDt, toTime, goodsWeights, mixYn, fromReq,
-	    	toStaff, toPhnNo, toAddr, cmpnyNm, corpNo, managerNm, billEmail,
-	    	shipperManager, shipperMail, taxInvoice, transDetails
+	    	toStaff, toPhnNo, toAddr, cmpnyNm, corpNo, managerNm, billEmail
         })
         orderSeq++;
     }

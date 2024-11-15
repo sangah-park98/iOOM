@@ -114,7 +114,10 @@
 	<delete id="deleteAddr" parameterType="egovframework.pf.shipping.service.ShippingAddressVO">
 		DELETE FROM shipping_address
 		WHERE 1=1
-		AND seq = #{seq}
+		AND addr_nm = #{addrNm}
+		AND phn_no = #{phnNo}
+		AND base_addr = #{baseAddr}
+		AND dtls_addr = #{dtlsAddr}
 	</delete>
 	
 	<insert id="insertShippingTempList" parameterType="egovframework.pf.shipping.service.ShippingAddressVO">
