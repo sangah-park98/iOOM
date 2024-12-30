@@ -3,10 +3,12 @@ var exportViewSettings;
 var exportViewPopupSettings;
 var exportViewIndex = 9999;
 var exportViewScrollTp = true;
-var exportViewLanHot;
-var exportViewLanSettings;
-var exportViewSpecHot;
-var exportViewSpecSettings;
+var expTodayViewIndex = 9999;
+var expTodayViewScrollTp = true;
+var expTodayViewHot;
+var expTodayViewSettings;
+var expProcessViewHot;
+var expProcessViewSettings;
 
 $( document ).ready(function() {
 	
@@ -24,18 +26,11 @@ $( document ).ready(function() {
 	  
 	  var exportViewElement = document.querySelector('#exportViewTable');
 	  var exportViewElementContainer = exportViewElement.parentNode;
-
 	  exportViewHot = new Handsontable(exportViewElement, exportViewSettings);
-
-	  var exportViewLanElement = document.querySelector('#exportViewLanTable');
-	  var exportViewLanElementContainer = exportViewLanElement.parentNode;
 	  
-	  exportViewLanHot = new Handsontable(exportViewLanElement, exportViewLanSettings);
-	  
-	  var exportViewSpecElement = document.querySelector('#exportViewSpecTable');
-	  var exportViewSpecElementContainer = exportViewSpecElement.parentNode;
-	  
-	  exportViewSpecHot = new Handsontable(exportViewSpecElement, exportViewSpecSettings);
+	  var expTodayViewElement = document.querySelector('#expTodayViewTable');
+	  var expTodayViewElementContainer = expTodayViewElement.parentNode;
+	  expTodayViewHot = new Handsontable(expTodayViewElement, expTodayViewSettings);
 
 	  fn_changeExportView('read');
 	 
@@ -51,7 +46,7 @@ $( document ).ready(function() {
 	  
 });
 
-$(document).mousedown(function(e){	
+$(document).mousedown(function(e){
 	if(e.target.name == "exportView1_date" || e.target.name == "exportView2_date"){
 		if($(".calendar-popup-container").hasClass("calendar-popup-container_active")){
 			return;
@@ -127,7 +122,7 @@ function fn_expViewchgDate4() {
 
 //row 수
 $("select[name=exportViewPageCnt]").change(function(){
-	  fn_searchExportView();
+	  fn_searchExportView('');
 });
 
 
@@ -194,8 +189,8 @@ function fn_exportViewScroll(){
 }
 
 // 검색
-function fn_searchExportView(){
-	
+function fn_searchExportView(type){
+	fn_searchExpTodayView();
 	var selectedValue = $("input[name=exportView_srch1]:checked").val();
     if(selectedValue === "01") {
         $("#expViewTextView").text("전체");
@@ -230,6 +225,13 @@ function fn_searchExportView(){
 		alert("날짜를 입력해 주세요.");
 		return;
 	}
+	if (type != "") {
+		const currentDate = new Date();
+		const formattedDate = currentDate.toISOString().split('T')[0];
+		data["srch2"] = formattedDate;
+		data["srch3"] = formattedDate;
+		data["srch6"] = type;
+	} 
 	
 	fn_loading(true);
 
@@ -244,12 +246,10 @@ function fn_searchExportView(){
 		dataType: "json",
         success : function(data) {
         	exportViewHot.loadData([]);
-    		exportViewSpecHot.loadData([]);
-    		exportViewLanHot.loadData([]);
         	exportViewHot.loadData(data.resultList);
         	var totCnt = (data.resultList.length > 0) ? data.resultList[0].cnt : 0;
         	$("#exportViewCnt").text(totCnt); 
-    	fn_loading(false);
+        	fn_loading(false);
 	    },
 	    error : function(e, textStatus, errorThrown) {
 	    	if(e.status == 400){
@@ -264,86 +264,11 @@ function fn_searchExportView(){
 };
 
 
-function fn_searchExportViewLan(rptNo) {
-
-	rptNo = rptNo.replace(/-/g, '');
-	
-	var lData = {};
-	lData["srch4"] = rptNo;
-	lData["recordCountPerPage"] = $("#exportViewPageCnt option:selected").val();
-	lData["pageIndex"] = exportViewIndex;
-	
-	
-	$.ajax({
-		type : "POST",
-		url : "/export/selectExportViewLanList.do",
-		data : lData,
-		beforeSend : function(xmlHttpRequest){
-			xmlHttpRequest.setRequestHeader("AJAX", "true");
-		},
-		dataType: "json",
-        success : function(data) {
-    		exportViewSpecHot.loadData([]);
-    		exportViewLanHot.loadData([]);
-        	exportViewLanHot.loadData(data.resultList);
-        	fn_loading(false);
-        },
-        error : function(e, textStatus, errorThrown) {
-        	if(e.status == 400){
-        		alert("Your request is up. Please log back in if you wish continue");
-        		location.href = document.referrer;
-        	} else {
-	        	console.log(errorThrown);
-	        	alert(msgSearchError);
-        	}
-        }
-	});
-};
-
-
-function fn_searchExportViewSpec(rptNo, ranNo) {
-	
-	rptNo = rptNo.replace(/-/g, '');
-	
-	var pData = {};
-	pData["srch4"] = rptNo;
-	pData["srch6"] = ranNo; 
-	pData["recordCountPerPage"] = $("#exportViewPageCnt option:selected").val();
-	pData["pageIndex"] = exportViewIndex;
-	
-	
-	$.ajax({
-		type : "POST",
-		url : "/export/selectExportViewSpecList.do",
-		data : pData,
-		beforeSend : function(xmlHttpRequest){
-			xmlHttpRequest.setRequestHeader("AJAX", "true");
-		},
-		dataType: "json",
-		success : function(data) {
-				exportViewSpecHot.loadData([]);
-				exportViewSpecHot.loadData(data.resultList);
-			fn_loading(false);
-		},
-		error : function(e, textStatus, errorThrown) {
-			if(e.status == 400){
-				alert("Your request is up. Please log back in if you wish continue");
-				location.href = document.referrer;
-			} else {
-				console.log(errorThrown);
-				alert(msgSearchError);
-			}
-		}
-	});
-};
-
-
 function enterkey() {
 	if (window.event.keyCode == 13) {
-		fn_searchExportView();
+		fn_searchExportView('');
     }
 }
-
 
 // 검색조건 생성
 function fn_setExportViewForm(){
@@ -358,6 +283,8 @@ function fn_setExportViewForm(){
     }).filter(function(item) {
         return item.length > 0; 
     });
+	
+	sData["srch6"] = "";
     sData["list2"] = list2;
 	sData["srch8"] = $("#exportViewDateType option:selected").val();
 	sData["recordCountPerPage"] = $("#exportViewPageCnt option:selected").val();
@@ -371,7 +298,7 @@ function fn_setExportViewForm(){
 	return sData;
 };
 
-//검색조건 초기화
+// 검색조건 초기화
 function fn_clearExportView(){
 	var date = new Date();
 	var month = date.getMonth();
@@ -398,7 +325,6 @@ function fn_clearExportView(){
 // 테이블 컬럼
 function fn_expViewTableCol(){
 	var tableType = $("input:radio[name=exportViewType]:checked").val();
-	// 사용여부
 	var exportView_srch20 = $("input:radio[name=exportView_srch20]:checked").val(); 
 	
 	var expViewFileLoadRenderer = function(instance, td, row, col, prop, value, cellProperties) {
@@ -408,6 +334,7 @@ function fn_expViewTableCol(){
         } else {}
         $(td).empty().append($fileButton).append("  " + value);
 	};
+
 
 	/*var cusMemoRenderer = function (instance, td, row, col, prop, value, cellProperties) {
 		var $cusMemo = $('<input type="text" id="cusMemo" /><div class="btn btn-primary new-button">SAVE</div>');
@@ -426,6 +353,44 @@ function fn_expViewTableCol(){
 	        'font-family': '맑은 고딕',
 	        'font-size': '13px'
 	    });
+	};
+	
+	//의뢰 
+	var transRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+		Handsontable.renderers.BaseRenderer.apply(this, arguments);
+		td.classList.add('chip-cell');
+		td.classList.add('text-center');
+		
+		var receColumnIndex = 1;
+		var statue;
+	    // var receValue = instance.getDataAtCell(row, receColumnIndex);
+	    var state = instance.getDataAtCell(row, 1);
+	    var rptnoValue = instance.getDataAtCell(row, 5);
+	    if (state === "0") {
+	    	statue = "의뢰";
+	    } else if (state === "1") {
+	    	statue = "임시저장"; 
+	    } else if (state === "2") {
+	    	statue = "완료"; 
+	    } 
+	    var $transRequestButton;
+	    
+	    if (rptnoValue !== "" || rptnoValue !== "-") {
+	    //신고번호가 없을땐 - 로 작업 (co신청을 할수없는 상태이기 떄문)
+	        var $transRequestButton;
+	        
+	        if(statue !== ""){
+	        	$transRequestButton = $('<button type="button" onclick="fn_coReqBtn(' + row + ',' + col + ')" class="save-button p-0.5 text-sm rounded text-white hover:opacity-50 duration-150 bg-primary-700 ml-1 hover:bg-primary-500">' + statue + '</button>');
+	        	$(td).empty().append($transRequestButton);
+	        	$transRequestButton.css({
+	        		'font-family': '맑은 고딕',
+	        		'font-size': '13px'
+	        	});
+	        }
+	        	
+	    } else {
+	        $(td).empty().text('-');
+	    }
 	};
 
 	
@@ -473,28 +438,28 @@ function fn_expViewTableCol(){
 	};
 	
 	this.expViewCol = [
+		{data : 'sn', className : "htCenter", width: 50, wordWrap: false, className : "htCenter", readOnly:true, renderer : chipRenderer2},
 		{data : 'rece', className : "htCenter", width: 50, wordWrap: false, className : "htCenter", readOnly:true, renderer : chipRenderer2},
-		//{data : 'fail', className : "htCenter", wordWrap: false, className : "htCenter", readOnly:true, renderer : unreMemoRenderer},
 		{data : 'receResult', className : "htCenter", width: 80, wordWrap: false, className : "htCenter", readOnly:true, renderer : chipRenderer},
 		{data : 'rptNo', className : "htCenter", width: 160, wordWrap: false, className : "htCenter", readOnly:true, renderer : expViewFileLoadRenderer},
-		{data : 'invoice', className : "htCenter", width: 130, wordWrap: false, className : "htCenter", readOnly:true},
+		//{data : 'invoice', className : "htCenter", width: 130, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'expFirm', className : "htCenter", width: 180, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'buyFirm', className : "htCenter", width: 200, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'taStIso', className : "htCenter", width: 60, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'rptDay', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'expLisDay', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
+		{data : 'shipDay', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'jukDay', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'excCot', className : "htCenter", width: 160, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'conMetnm', className : "htCenter", width: 80, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'incoterms', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
+		{data : 'conMetnm', className : "htCenter", width: 120, wordWrap: false, className : "htCenter", readOnly:true},
+		//{data : 'incoterms', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'totPackCnt', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'totWt', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'approval', className : "htCenter", width: 120, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'shipDay', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'expDetails', className : "htCenter", width: 100, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'factoryCode', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'srOrdr', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'userMemo', className : "htCenter", width: 250, wordWrap: false, className : "htCenter", readOnly:true, renderer : userMemoRenderer},
+		{data : 'totWt', className : "htCenter", width: 120, wordWrap: false, className : "htCenter", readOnly:true},
+		//{data : 'approval', className : "htCenter", width: 120, wordWrap: false, className : "htCenter", readOnly:true},
+		//{data : 'expDetails', className : "htCenter", width: 100, wordWrap: false, className : "htCenter", readOnly:true},
+		//{data : 'factoryCode', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
+		//{data : 'srOrdr', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
+		//{data : 'userMemo', className : "htCenter", width: 250, wordWrap: false, className : "htCenter", readOnly:true, renderer : userMemoRenderer},
 		{data : 'reporter', className : "htCenter", width: 120, wordWrap: false, className : "htCenter", readOnly:true},
 		//{data : 'cusMemo', className : "htCenter", wordWrap: false, className : "htCenter"},
 	] ;
@@ -507,69 +472,22 @@ function fn_expViewTableHeader(){
 	//var exportView_srch20 = $("input:radio[name=exportView_srch20]:checked").val(); 
 	
 	this.expViewHeader = [
-		 "상태", "C/S검사", "신고번호", "Invoice번호", "수출자", "해외거래처", "목적국", "신고일자", "수리일자", "적재의무기한", "거래구분",
-		 "결제방법", "인코텀즈", "총포장수", "총중량", "요건승인", "선적여부", "수출이행내역", "부서코드", "SO", "사용자메모",  "신고인"
+		"", "상태", "C/S검사", "신고번호", /*"Invoice번호",*/ "수출자", "해외거래처", "목적국", "신고일자", "수리일자", "출항일자", "적재의무기한", "거래구분",
+		 "결제방법", /*"인코텀즈",*/ "총포장수", "총중량", /*"요건승인", "수출이행내역", "부서코드", "SO", "사용자메모",*/  "신고인"
 	 ] ;
 }
 	
 
-function fn_expViewLanTableCol(){
-	this.expViewLanCol = [
-		{data : 'rptNo', className : "htCenter", width: 160, wordWrap: false, className : "htCenter"},
-		{data : 'ranNo', className : "htCenter", width: 100, wordWrap: false, className : "htCenter"},
-		{data : 'hs', className : "htCenter", width: 100, wordWrap: false, className : "htCenter"},
-		{data : 'excGnm', className : "htCenter", width: 200, wordWrap: false, className : "htCenter"},
-		{data : 'conAmt', className : "htCenter", width: 100, wordWrap: false, type : 'numeric', className: 'htRight', numericFormat : {pattern : '0,0'}, readOnly:true},
-		{data : 'sunWt', className : "htCenter", width: 100, wordWrap: false, type : 'numeric', className: 'htRight', numericFormat : {pattern : '0,0'}, readOnly:true},
-		{data : 'packCnt', className : "htCenter", width: 100, wordWrap: false, className : "htCenter"},
-		{data : 'oriStMark1', className : "htCenter", width: 100, wordWrap: false, className : "htCenter"},
-		{data : 'invoice', className : "htCenter", width: 100, wordWrap: false, className : "htCenter"},
-		{data : 'attYn', className : "htCenter", width: 100, wordWrap: false, className : "htCenter"},
-	];
-}
-
-function fn_expViewLanTableHeader(){
-	this.expViewLanHeader = [
-		"신고번호","란번호","세번부호","거래품명","결제금액","순중량","포장갯수","원산지","Invoice번호","첨부"
-	];
-}
-
-function fn_expViewSpecTableCol(){
-	this.expViewSpecCol = [
-		{data : 'rptNo', className : "htCenter", width: 160, wordWrap: false, className : "htCenter"},
-		{data : 'ranNo', className : "htCenter", width: 100, wordWrap: false, className : "htCenter"},
-		{data : 'sil', className : "htCenter", width: 100, wordWrap: false, className : "htCenter"},
-		{data : 'gnm1', className : "htCenter", width: 200, wordWrap: false, className : "htCenter"},
-		{data : 'qty', className : "htCenter", width: 100, wordWrap: false, className : "htCenter"},
-		{data : 'price', className : "htCenter", width: 100, wordWrap: false, type : 'numeric', className: 'htRight', numericFormat : {pattern : '0,0'}, readOnly:true},
-		{data : 'amt', className : "htCenter", width: 100, wordWrap: false, type : 'numeric', className: 'htRight', numericFormat : {pattern : '0,0'}, readOnly:true},
-		{data : 'gnm2', className : "htCenter", width: 200, wordWrap: false, className : "htCenter"},
-		{data : 'gnm3', className : "htCenter", width: 200, wordWrap: false, className : "htCenter"},
-		{data : 'gnm4', className : "htCenter", width: 200, wordWrap: false, className : "htCenter"},
-		{data : 'gnm5', className : "htCenter", width: 200, wordWrap: false, className : "htCenter"},
-	];
-}
-
-function fn_expViewSpecTableHeader(){
-	this.expViewSpecHeader = [
-		"신고번호","란번호","규격번호","품명","수량","단가","금액","품명2","품명3","품명4","품명5"
-	];
-}
-
 // 테이블 히든컬럼
 function fn_expViewTableHidden(){
 	var tableType = $("input:radio[name=exportViewType]:checked").val();
-	this.expViewHidden = [];
+	this.expViewHidden = [0];
 }
 
-function fn_expViewLanTableHidden(){
-	this.expViewLanHidden = [0];
+function fn_expTodayViewTableHidden(){
+	this.expViewLanHidden = [];
 }
 
-function fn_expViewSpecTableHidden(){
-	this.expViewSpecHidden = [0,1];
-}		
-		
 
 // table
 function fn_handsonGridViewOption(col, header, hidden){
@@ -596,31 +514,24 @@ function fn_handsonGridViewOption(col, header, hidden){
 	  manualColumnResize : true,
 	  manualColumnMove : false,
 	  licenseKey: 'non-commercial-and-evaluation',
-	  //dropdownMenu : true,
 	  contextMenu : (tableType == "enrol") ? ['row_above', 'row_below', '---------', 'undo', 'redo', 'remove_row'] : false,
 	  filters : true,
 	  readOnly : (tableType == "read") ? true : false,
 	  allowInsertRow : true,
 	  allowRemoveRow : true,
-	 // columnSorting : {indicator : true},
       autoColumnSize : {samplingRatio : 30},
       mergeCells : false,
       wordWrap : true,
       afterOnCellMouseDown : function(event, coords){
-    	  
     	  var excludedColumns = [20];
-    	  
     	  if (excludedColumns.includes(coords.col)) {
     	        return; // 함수 실행 중단
-    	    }
+    	  }
     	  var dataList = "";
     	  var rptNo = "";
     	  var dataList = exportViewHot.getSourceData(coords.row, 35);
     	  var rptNo = dataList[dataList.length-1].rptNo;
-    	  fn_searchExportViewLan(rptNo);
-    	  setTimeout(function() {
-              fn_searchExportViewSpec(rptNo, "001");
-          }, 1);
+    	  fn_searchExpProgressView(rptNo);
       }
 	};
 
@@ -628,93 +539,8 @@ function fn_handsonGridViewOption(col, header, hidden){
 }
 
 
-function fn_handsonGridLanOption(col, header, hidden){
-	exportViewLanSettings = {
-		columns : col,
-		colHeaders : header,
-		hiddenColumns : {
-			copyPasteEnabled : false,
-			indicators : false,
-			columns : hidden
-		},
-		stretchH : 'all',
-		width : '99%',
-		autoWrapRow : true,
-		height : 200,
-		border : 1,
-		rowHeights : 25,
-		rowHeaders : true,
-		columnHeaderHeight : 25,
-		manualRowResize : true,
-		manualColumnResize : true,
-		manualRowMove : true,
-		manualColumnMove : false,
-		licenseKey: 'non-commercial-and-evaluation',
-		//dropdownMenu : true,
-		//contextMenu : (tableType == "enrol") ? ['row_above', 'row_below', '---------', 'undo', 'redo', 'remove_row'] : false,
-		filters : true,
-		//readOnly : (tableType == "read") ? true : false,	
-		readOnly : true ,
-		allowInsertRow : true,
-		allowRemoveRow : true,
-		// columnSorting : {indicator : true},
-		autoColumnSize : {samplingRatio : 23},
-		mergeCells : false,
-		wordWrap : true,
-		afterOnCellMouseDown : function(event, coords){
-			var dataList = "";
-			var rptNo = "";
-			var ranNo = "";
-			var dataList = exportViewLanHot.getSourceData(coords.row, 35);
-			var rptNo = dataList[dataList.length-1].rptNo;
-			var ranNo = dataList[dataList.length-1].ranNo;
-			fn_searchExportViewSpec(rptNo, ranNo);
-		}
-	};
-	
-	return exportViewLanSettings;
-}
-
-
-function fn_handsonGridSpecOption(col, header, hidden){
-	
-	exportViewSpecSettings = {
-		columns : col,
-		colHeaders : header,
-		hiddenColumns : {
-			copyPasteEnabled : false,
-			indicators : false,
-			columns : hidden
-		},
-		stretchH : 'all',
-		width : '100%',
-		autoWrapRow : true,
-		height : 200,
-		rowHeights : 25,
-		rowHeaders : true,
-		columnHeaderHeight : 25,
-		manualRowResize : true,
-		manualColumnResize : true,
-		manualRowMove : true,
-		manualColumnMove : false,
-		licenseKey: 'non-commercial-and-evaluation',
-		filters : true,
-		readOnly : true ,
-		allowInsertRow : true,
-		allowRemoveRow : true,
-		autoColumnSize : {samplingRatio : 23},
-		mergeCells : false,
-		wordWrap : true,
-	};
-	
-	return exportViewSpecSettings;
-}
-
-
-
 //테이블 타입 변경
 function fn_changeExportView(type){
-
 	exportViewHot.updateSettings({readOnly:true, contextMenu : false});
 	$("#btnExportViewSave").hide();
 	$("#expExcel").show();
@@ -729,34 +555,25 @@ function fn_changeExportViewType(){
 	let expViewHeader = new fn_expViewTableHeader();
 	let expViewHidden = new fn_expViewTableHidden();
 	
-	let expViewLanCol = new fn_expViewLanTableCol();
-	let expViewLanHeader = new fn_expViewLanTableHeader();
-	let expViewLanHidden = new fn_expViewLanTableHidden();
+	let expTodayViewCol = new fn_expTodayViewTableCol();
+	let expTodayViewHeader = new fn_expTodayViewTableHeader();
+	let expTodayViewHidden = new fn_expTodayViewTableHidden();
 	
-	let expViewSpecCol = new fn_expViewSpecTableCol();
-	let expViewSpecHeader = new fn_expViewSpecTableHeader();
-	let expViewSpecHidden = new fn_expViewSpecTableHidden();
-	
-	var col, header, hidden, col2, header2, hidden2, col3, header3, hidden3 ;	
+	var col, header, hidden, col2, header2, hidden2;/*, col3, header3, hidden3*/	
 
-	//구매원장
 	col = expViewCol.expViewCol;
 	header = expViewHeader.expViewHeader;
 	hidden = expViewHidden.expViewHidden;
 	
-	col2 = expViewLanCol.expViewLanCol;
-	header2 = expViewLanHeader.expViewLanHeader;
-	hidden2 = expViewLanHidden.expViewLanHidden;
-	
-	col3 = expViewSpecCol.expViewSpecCol;
-	header3 = expViewSpecHeader.expViewSpecHeader;
-	hidden3 = expViewSpecHidden.expViewSpecHidden;
+	col3 = expTodayViewCol.expTodayViewCol;
+	header3 = expTodayViewHeader.expTodayViewHeader;
+	hidden3 = expTodayViewHidden.expTodayViewHidden;
 	
 	exportViewHot.updateSettings(fn_handsonGridViewOption(col, header, hidden));
-	exportViewLanHot.updateSettings(fn_handsonGridLanOption(col2, header2, hidden2));
-	exportViewSpecHot.updateSettings(fn_handsonGridSpecOption(col3, header3, hidden3));
+	expTodayViewHot.updateSettings(fn_handsonGridExpTodayOption(col3, header3, hidden3));
 	
-	fn_searchExportView();
+	fn_searchExpTodayView();
+	fn_searchExportView('');
 };
 	
 
@@ -982,48 +799,185 @@ function expViewFileListClose(){
 }
 
 
-function fn_userMemoSave(row, col){
-	var rowData = exportViewHot.getSourceDataAtRow(row);
-	var rptNo = rowData.rptNo;
-	var value2 = $("#userMemo" + row).val();
-	var sData = {};
-	sData["srch1"] = rptNo;
-	sData["srch2"] = value2;
+function fn_handsonGridExpTodayOption(col, header, hidden){
+	var tableType = $("input:radio[name=exportViewType]:checked").val();
 	
-	if(confirm("저장하시겠습니까?")){
+	expTodayViewSettings = {
+		columns : col,
+		colHeaders : header,
+		hiddenColumns : {
+			copyPasteEnabled : false,
+			indicators : false,
+			columns : hidden
+		},
+		stretchH : 'all',
+		width : 800,
+		height: 'auto',
+		autoWrapRow : true,
+		border : 1,
+		rowHeights : 25,
+		columnHeaderHeight : 25,
+		manualRowResize : true,
+		manualColumnResize : true,
+		manualRowMove : true,
+		manualColumnMove : false,
+		licenseKey: 'non-commercial-and-evaluation',
+		filters : true,
+		readOnly :  true ,
+		allowInsertRow : false,
+		allowRemoveRow : false,
+		maxRows: 1,
+		minRows: 1,
+		autoColumnSize : {samplingRatio : 30},
+		mergeCells : false,
+		wordWrap : true,
 		
-		$.ajax({
-			type : "POST",
-			url : "/export/saveExpUserMemo.do",
-			data : sData,
-			beforeSend : function(xmlHttpRequest){
-				xmlHttpRequest.setRequestHeader("AJAX", "true");
-			},
-			dataType: "json",
-			success : function(data) {
-				alert('저장되었습니다.')
-				fn_searchExportView();
-				
-			},
-			error : function(e, textStatus, errorThrown) {
-				if(e.status == 400){
-					alert("Your request is up. Please log back in if you wish continue");
-					location.href = document.referrer;
-				} else {
-					console.log(errorThrown);
-					alert(msgSearchError);
-				}
-			}
-		});
-	} else {
-		return;
-	}
+		afterOnCellMouseDown : function(event, coords){
+			var selectedRowData = expTodayViewHot.getDataAtRow(coords.row);
+		    var type = coords.col;
+		    if (type) {
+		        var selectedValue = "01";
+		        $("input[name=exportView_srch1][value='01']").prop("checked", true);
+		        $("#expViewTextView").html('<i class="fa-duotone fa-chart-network text-primary-900"></i> 전체');
+		        document.getElementById("expTodayType").value = type;
+		        
+		        fn_searchExportView(type);
+		        fn_searchExpTodayView();
+		    }
+		},
+	};
+	
+	return expTodayViewSettings;
 }
 
+
+function fn_expTodayViewTableCol(){
+	this.expTodayViewCol = [
+		{data : 'expRece', className : "htCenter expReceCell", width: 60, wordWrap: false, readOnly:true,
+			renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                Handsontable.renderers.TextRenderer.apply(this, arguments);
+                td.style.backgroundColor = '#6c6c6a';
+                td.style.color = '#FFFFFF'; 
+                td.style.fontWeight = 'bold';
+                td.style.textAlign = 'center';
+            }},
+		{data : 'reqCnt', className : "htRight", width: 80, wordWrap: false, readOnly:true},
+		{data : 'ingCnt', className : "htRight", width: 80, wordWrap: false, readOnly:true},
+		{data : 'failCnt', className : "htRight", width: 80, wordWrap: false, readOnly:true},
+		{data : 'cmpCnt', className : "htRight", width: 80, wordWrap: false, readOnly:true},
+		{data : 'loadCmpCnt', className : "htRight", width: 80, wordWrap: false, readOnly:true},
+	];
+}
+
+
+function fn_expTodayViewTableHeader(){
+	this.expTodayViewHeader = [
+		"구분", "수출신고의뢰", "수출신고진행중", "수출신고미결", "수출신고수리완료", "선기적완료"
+	];
+}
+
+
+function fn_searchExpTodayView() {
+	var sData = {};
+	expTodayViewIndex = 0;
+	
+	$.ajax({
+        type : "POST",
+        url : "/export/selectExpTodayViewList.do",
+        data : JSON.stringify(sData),
+        contentType: "application/json; charset=utf-8",
+        beforeSend : function(xmlHttpRequest) {
+            xmlHttpRequest.setRequestHeader("AJAX", "true");
+        },
+        dataType: "json",
+        success : function(data) {
+        	console.log(data);
+        	var transformedData = data.resultList.map(function(item) {
+                return {
+                	expRece: Number(item.impRece),
+                	reqCnt: Number(item.reqCnt).toLocaleString(),
+                    ingCnt: Number(item.ingCnt).toLocaleString(),
+                    failCnt: Number(item.failCnt).toLocaleString(),
+                    cmpCnt: Number(item.cmpCnt).toLocaleString(),
+                    loadCmpCnt: Number(item.loadCmpCnt).toLocaleString()
+                };
+            });
+        	expTodayViewHot.loadData([]);
+        	expTodayViewHot.loadData(data.resultList);
+        	expTodayViewHot.updateSettings({
+                autoColumnSize: {samplingRatio: 30}
+            });
+            var totCnt = (data.resultList.length > 0) ? data.resultList[0].cnt : 0;
+        	$("#exportViewCnt").text(totCnt);
+        },
+        error : function(e, textStatus, errorThrown) {
+            if(e.status == 400){
+                alert("Your request is up. Please log back in if you wish continue");
+                location.href = document.referrer;
+            } else {
+                console.log(errorThrown);
+                alert(msgSearchError);
+            }
+        }
+    });
+};
+
+
+/*function fn_expProgressViewTableCol(){
+	this.expProgressViewCol = [
+		{data : 'lisDay', width: 160, wordWrap: false, className : "htCenter", readOnly:true},
+		{data : 'rptNo', width: 160, wordWrap: false, className : "htCenter", readOnly:true},
+	];
+}
+
+function fn_impShipViewTableHeader(){
+	this.impShipViewHeader = [
+		"처리단계", "차량 번호", "차량 기사", "기사 연락처", "배차일시", "도착요청일시", "도착예정일시", "도착일시", "도착지주소", "신고번호"
+	];
+}
+
+function fn_searchImpShipView(rptNo) {
+	rptNo = rptNo.replace(/-/g, '');
+	var lData = {};
+	
+	lData["srch18"] = rptNo;
+	lData["recordCountPerPage"] = $("#importViewPageCnt option:selected").val();
+	lData["pageIndex"] = importViewIndex;
+	
+	console.log(lData);
+	
+	$.ajax({
+		type : "POST",
+		url : "/import/selectImpShipViewList.do",
+		data : lData,
+		beforeSend : function(xmlHttpRequest){
+			xmlHttpRequest.setRequestHeader("AJAX", "true");
+		},
+		dataType: "json",
+	    success : function(data) {
+	    	impShipViewHot.loadData([]);
+	    	impShipViewHot.loadData(data.resultList);
+	    	impShipViewHot.updateSettings({
+        	   autoColumnSize: {samplingRatio: 30}
+        	});
+	    },
+	    error : function(e, textStatus, errorThrown) {
+	    	if(e.status == 400){
+	    		alert("Your request is up. Please log back in if you wish continue");
+	    		location.href = document.referrer;
+	    	} else {
+	        	console.log(errorThrown);
+	        	alert(msgSearchError);
+	    	}
+	    }
+	});
+};
+*/
 
 
 function fn_exportViewExcelDownload(){
 	 var type = $("input:radio[name=exportView_srch1]:checked").val();
+	 const hiddenIndices = [0];
 	 fn_loading(true);
 		//엑셀옵션
 		var exTitArr = [];
@@ -1036,23 +990,23 @@ function fn_exportViewExcelDownload(){
 		let expViewCol = new fn_expViewTableCol();
 		let expViewHeader = new fn_expViewTableHeader();
 		
-		let expViewLanCol = new fn_expViewLanTableCol();
+		/*let expViewLanCol = new fn_expViewLanTableCol();
 		let expViewLanHeader = new fn_expViewLanTableHeader();
 		
 		let expViewSpecCol = new fn_expViewSpecTableCol();
-		let expViewSpecHeader = new fn_expViewSpecTableHeader();
+		let expViewSpecHeader = new fn_expViewSpecTableHeader();*/
 	    
-	    exColArr.push(fn_getExcelCol(expViewCol.expViewCol));
-		exColArr.push(fn_getExcelCol(expViewLanCol.expViewLanCol));
-		exColArr.push(fn_getExcelCol(expViewSpecCol.expViewSpecCol));
+	    exColArr.push(fn_getExcelCol(expViewCol.expViewCol.filter((item, index) => !hiddenIndices.includes(index))));
+		/*exColArr.push(fn_getExcelCol(expViewLanCol.expViewLanCol));
+		exColArr.push(fn_getExcelCol(expViewSpecCol.expViewSpecCol));*/
 		
-		exTitArr.push(fn_getExcelHead(expViewHeader.expViewHeader));
-		exTitArr.push(fn_getExcelHead(expViewLanHeader.expViewLanHeader));
-		exTitArr.push(fn_getExcelHead(expViewSpecHeader.expViewSpecHeader));
+		exTitArr.push(fn_getExcelHead(expViewHeader.expViewHeader.filter((item, index) => !hiddenIndices.includes(index))));
+		/*exTitArr.push(fn_getExcelHead(expViewLanHeader.expViewLanHeader));
+		exTitArr.push(fn_getExcelHead(expViewSpecHeader.expViewSpecHeader));*/
 		
 	 	exCol = exColArr.join("|||");
 		exTit = exTitArr.join("||||");
-		exTitDiv = "1|수츨신고현황||2|수출신고란||3|수출신고규격";
+		exTitDiv = "1|수츨신고현황";
 			
 	   
 	   var parameters = {exCol : "", exTit: "", exTitDiv: "", exType: "", srch40: ""};

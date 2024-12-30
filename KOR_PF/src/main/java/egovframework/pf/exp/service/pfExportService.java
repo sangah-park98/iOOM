@@ -5,6 +5,7 @@ import java.util.Map;
 
 import egovframework.pf.cmmn.service.SearchVO;
 import egovframework.pf.cmmn.service.UserSessionVO;
+import egovframework.pf.docu.service.SaveDocuFileVO;
 
 /**
  * @Class Name : ExportService.java
@@ -150,5 +151,36 @@ public interface pfExportService {
 	List<?> selectTempInvoiceSubList2(SearchVO vo) throws Exception;
 
 	List<?> selectExportMkInConditionList(SearchVO vo) throws Exception;
+
+	List<?> selectExpTodayViewList(SearchVO vo) throws Exception;
+
+	List<?> selectCoRequset(SearchVO vo)throws Exception;
+
+	List<?> selectCoStorage(SearchVO vo)throws Exception;
+
+	void saveCoTempData(SaveCoEnrollVO vo)throws Exception;
+
+	void updateCoTempData(SaveCoEnrollVO vo)throws Exception;
+
+	void saveCoData(SaveCoEnrollVO vo)throws Exception;
+
+	void updateCoData(SaveCoEnrollVO vo)throws Exception;
+
+	String selectmanagerEmail(SaveCoEnrollVO vo)throws Exception;
+
+	List<?> selectCoFilesList(SaveCoEnrollVO vo)throws Exception;
+
+	void insertCoInfo(SaveCoEnrollVO vo)throws Exception;
+
+	List<?> selectCoList(SearchVO vo)throws Exception;
+
+	void insertCoFilesInfo(SaveDocuFileVO vo)throws Exception;
+
+	List<?> selectCoFileModalUpdateList(SearchVO vo)throws Exception;
+
+	List<?> selectSummitFileModalUpdateList(SearchVO vo)throws Exception;
+
+	void deleteCoDocuFile(SearchVO vo)throws Exception;
+
 
 }

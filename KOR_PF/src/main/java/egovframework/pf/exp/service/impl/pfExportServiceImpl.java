@@ -5,6 +5,8 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 import egovframework.pf.cmmn.service.SearchVO;
 import egovframework.pf.cmmn.service.UserSessionVO;
+import egovframework.pf.docu.service.SaveDocuFileVO;
+import egovframework.pf.exp.service.SaveCoEnrollVO;
 import egovframework.pf.exp.service.SaveExpFileVO;
 import egovframework.pf.exp.service.SaveExpInvoiceVO;
 import egovframework.pf.exp.service.SaveExpMainVO;
@@ -370,5 +372,72 @@ public class pfExportServiceImpl extends EgovAbstractMapper implements pfExportS
 	@Override
 	public List<?> selectExportMkInConditionList(SearchVO vo) throws Exception {
 		return pfExportMapper.selectExportMkInConditionList(vo);
+	}
+	@Override
+	public List<?> selectExpTodayViewList(SearchVO vo) throws Exception {
+		return pfExportMapper.selectExpTodayViewList(vo);
+	}
+	// 의뢰팝업일때 기본정보
+	@Override
+	public List<?> selectCoRequset(SearchVO vo) throws Exception {
+		return pfExportMapper.selectCoRequset(vo);
+	}
+	//저장 / 임시저장 일때 정보
+	@Override
+	public List<?> selectCoStorage(SearchVO vo) throws Exception {
+		return pfExportMapper.selectCoStorage(vo);
+	}
+	@Override
+	public void saveCoTempData(SaveCoEnrollVO vo) throws Exception {
+		pfExportMapper.saveCoTempData(vo);
+		
+	}
+	@Override
+	public void updateCoTempData(SaveCoEnrollVO vo) throws Exception {
+		pfExportMapper.updateCoTempData(vo);
+	}
+	@Override
+	public void saveCoData(SaveCoEnrollVO vo) throws Exception {
+		pfExportMapper.saveCoData(vo);
+		
+	}
+	@Override
+	public void updateCoData(SaveCoEnrollVO vo) throws Exception {
+		pfExportMapper.updateCoData(vo);
+		
+	}
+	@Override
+	public String selectmanagerEmail(SaveCoEnrollVO vo) throws Exception {
+		return pfExportMapper.selectmanagerEmail(vo);
+	}
+	@Override
+	public List<?> selectCoFilesList(SaveCoEnrollVO vo) throws Exception {
+		return pfExportMapper.selectCoFilesList(vo);
+	}
+	@Override
+	public void insertCoInfo(SaveCoEnrollVO vo) throws Exception {
+		pfExportMapper.insertCoInfo(vo);
+		
+	}
+	@Override
+	public List<?> selectCoList(SearchVO vo) throws Exception {
+		return pfExportMapper.selectCoList(vo);
+	}
+	@Override
+	public void insertCoFilesInfo(SaveDocuFileVO vo) throws Exception {
+		 pfExportMapper.insertCoFilesInfo(vo);
+		
+	}
+	@Override
+	public List<?> selectCoFileModalUpdateList(SearchVO vo) throws Exception {
+		return pfExportMapper.selectCoFileModalUpdateList(vo);
+	}
+	@Override
+	public List<?> selectSummitFileModalUpdateList(SearchVO vo) throws Exception {
+		return pfExportMapper.selectSummitFileModalUpdateList(vo);
+	}
+	@Override
+	public void deleteCoDocuFile(SearchVO vo) throws Exception {
+		pfExportMapper.deleteCoDocuFile(vo);
 	}
 }

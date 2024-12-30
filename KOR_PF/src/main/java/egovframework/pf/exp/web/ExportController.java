@@ -6,7 +6,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.text.SimpleDateFormat;
@@ -31,6 +33,8 @@ import javax.sql.DataSource;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -38,8 +42,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
@@ -50,16 +60,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.itextpdf.text.log.SysoCounter;
 
 import egovframework.pf.util.ExcelUtil;
 import egovframework.pf.util.FileUtil;
 import egovframework.pf.util.importUpdate_ExcelUtil;
+import egovframework.rte.psl.dataaccess.util.EgovMap;
+import egovframework.pf.api.service.ApiOrderEtcAddVO;
 import egovframework.pf.cmmn.service.SearchVO;
 import egovframework.pf.cmmn.service.UserSessionVO;
+import egovframework.pf.docu.service.SaveDocuFileVO;
+import egovframework.pf.exp.service.SaveCoEnrollVO;
 import egovframework.pf.exp.service.SaveExpFileVO;
 import egovframework.pf.exp.service.SaveExpInvoiceVO;
 import egovframework.pf.exp.service.SaveExpMainVO;
@@ -979,6 +998,19 @@ private JasperPrint makeJasperPage(JasperPrint jprint, String realPath, String t
 	    mav.addObject("resultList", resultList);
 	    return mav;
 	}
+	
+	@RequestMapping(value = "/export/selectExpTodayViewList.do", method = RequestMethod.POST)
+	public ModelAndView selectExpTodayViewList(@RequestBody SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+		HttpSession httpSession = request.getSession(true);
+		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		if(!userVO.getCorpNo().equals("00000000000")) {
+			vo.setList(userVO.getCorpNos());
+		}
+		List<?> resultList = pfexportService.selectExpTodayViewList(vo);
+		ModelAndView mav = new ModelAndView("jsonView");
+		mav.addObject("resultList", resultList);
+		return mav;
+	}
 
 	@RequestMapping(value = "/export/selectExportViewLanList.do")
 	public ModelAndView selectExportViewLanList(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request,
@@ -1455,7 +1487,7 @@ private JasperPrint makeJasperPage(JasperPrint jprint, String realPath, String t
 						reslutList = (List<?>) dataMv.getModel().get("resultList");
 						summary = true; 
 						break;
-					case "2":
+					/*case "2":
 						dataMv = this.selectExportViewLanListExcel(sheetSearchVo, request, new ModelMap());
 						reslutList = (List<?>) dataMv.getModel().get("resultList");
 						summary = true;
@@ -1464,7 +1496,7 @@ private JasperPrint makeJasperPage(JasperPrint jprint, String realPath, String t
 						dataMv = this.selectExportViewSpecListExcel(sheetSearchVo, request, new ModelMap());
 						reslutList = (List<?>) dataMv.getModel().get("resultList");
 						summary = true;
-						break;
+						break;*/
 					default:
 						break;
 					}
@@ -1560,5 +1592,571 @@ private JasperPrint makeJasperPage(JasperPrint jprint, String realPath, String t
 			  pfexportService.deleteLoadDataSubView(vo);
 			  pfexportService.deleteLoadDataMainView(vo);
 		  }
+	}
+	
+	/*@RequestMapping(value="/export/selectExpProgressView.do")
+	public ModelAndView selectExpProgressView(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+	    HttpSession httpSession = request.getSession(true);
+	    UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+	    if(!userVO.getCorpNo().equals("00000000000")) {
+			vo.setCmpnyCd(userVO.getCmpnyCd());
+			vo.setCorpNo(userVO.getCorpNo());
+		}
+        JsonNode callExpUnipassApi = callExpUnipassApi(vo);
+
+        if (callExpUnipassApi == null || !callExpUnipassApi.has("expDclrNoPrExpFfmnBrkdDtlQryRsltVo") || !callExpUnipassApi.get("expDclrNoPrExpFfmnBrkdDtlQryRsltVo").isArray()) {
+           // continue;
+        } else {
+            JsonNode cargCsclPrgsInfoDtlQryVoArr = callExpUnipassApi.get("expDclrNoPrExpFfmnBrkdDtlQryRsltVo");
+            /*String banIpDay = ""; // 반입일자
+
+            if (cargCsclPrgsInfoDtlQryVoArr.isArray()) {
+                for (JsonNode cargCsclPrgsInfoDtlQryVo : cargCsclPrgsInfoDtlQryVoArr) {
+                    String cargTrcnRelaBsopTpcd = cargCsclPrgsInfoDtlQryVo.get("cargTrcnRelaBsopTpcd").asText();
+
+                    if ("반입신고".equals(cargTrcnRelaBsopTpcd)) { // 반입일자
+                        banIpDay = cargCsclPrgsInfoDtlQryVo.get("prcsDttm").asText().replaceAll("[^0-9]", "");
+                        break;
+                    }
+                }
+
+            map.put("banIpDay", dateFormat(banIpDay));
+
+            // 수입신고기한
+            String date4 = addDays(banIpDay, 30);
+            map.put("date4", date4);
+        }
+    }
+	
+    ModelAndView mav = new ModelAndView("jsonView");
+    //mav.addObject("resultList", resultList);
+    return mav;
+	}
+	
+	private JsonNode callExpUnipassApi(SearchVO vo) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE + ";charset=UTF-8");
+			
+			URI uri = UriComponentsBuilder.fromHttpUrl("https://unipass.customs.go.kr:38010/ext/rest/cargCsclPrgsInfoQry/retrieveCargCsclPrgsInfo")
+					.queryParam("crkyCn", "p240e234w064g101l050r050p0")
+					.queryParam("acptDt", vo.getSrch1()) // 수리일자
+					.queryParam("loadDtyTmIm", vo.getSrch2()) // 적재의무기한
+					.queryParam("csclPckGcnt", vo.getSrch3()) // 통관포장개수
+					.queryParam("csclWght", vo.getSrch4()) // 통관중량
+					.queryParam("shpmCmplYn", vo.getSrch5()) // 선적완료여부
+					.queryParam("blNo", vo.getSrch6()) // BL번호
+					.queryParam("shpmDt", vo.getSrch7()) // 선적일
+					.queryParam("shpmPckGcnt", vo.getSrch7()) // 선기적포장개수
+					.queryParam("shpmWght", vo.getSrch7()) // 선기적중량
+					.build()
+					.encode("UTF-8")
+					.toUri();	
+			
+			HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+	        httpRequestFactory.setConnectTimeout(5000);
+	        httpRequestFactory.setReadTimeout(5000);
+	        
+	        HttpClient httpClient = HttpClientBuilder.create()
+	                .setMaxConnTotal(200)
+	                .setMaxConnPerRoute(20)
+	                .build();
+	        
+	        //Rest template setting
+	        RestTemplate restTpl = new RestTemplate(httpRequestFactory);
+	        HttpEntity entity = new HttpEntity<>(headers); // http entity에 header 담아줌
+			
+	        restTpl.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+	        System.out.println("API: " + uri.toString());
+	        ResponseEntity<String>  responseEntity = restTpl.exchange(uri.toString(), HttpMethod.GET, entity, String.class);
+	        
+	        if(responseEntity.getStatusCodeValue() == 200) {
+	        	XmlMapper xmlMapper = new XmlMapper();
+	        	String str = responseEntity.getBody().toString();
+	        	JsonNode node = xmlMapper.readValue(str, new TypeReference<JsonNode>() { });
+	        	return node;
+	        } else {
+	        	System.out.println("responseEntity.getBody(): " + responseEntity.getBody().toString());
+	        	return null;
+	        }
+		} catch (Exception e) {
+			
+		}
+	}*/
+	//팝업 
+	@RequestMapping(value = "/export/selectCoRequset.do")
+	public ModelAndView selectCoRequset(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, 
+			ModelMap model) throws Exception {
+		HttpSession httpSession = request.getSession(true);
+		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		List<?> resultList1 = null;
+		List<?> resultList2 = null;
+		if(!userVO.getCorpNo().equals("00000000000")) {
+			vo.setCorpNo(userVO.getCorpNo());
+		}
+		if(vo.getSrch3().equals("0")) {
+			// 의뢰
+			 resultList1 = pfexportService.selectCoRequset(vo);
+		}else {
+			// 임시저장 , 요청
+			 resultList2 = pfexportService.selectCoStorage(vo);
+		}
+		
+		model.addAttribute("resultList1", resultList1);
+		model.addAttribute("resultList2", resultList2);
+		
+		ModelAndView mav = new ModelAndView("jsonView", model);
+		return mav;
+	}
+	
+	@RequestMapping(value="/export/exportCoTempSave.do")
+	public ResponseEntity<String> saveTempData(
+			@ModelAttribute SaveCoEnrollVO vo,
+			@RequestParam(value = "fileName[]", required = false) List<MultipartFile> files,
+			HttpServletRequest request) {
+        
+		
+		/*StringBuilder fileNames = new StringBuilder();  // 저장할 파일 이름들을 담을 StringBuilder
+        StringBuilder orgFileNames = new StringBuilder();  // 원본 파일 이름들을 담을 StringBuilder
+*/		HttpSession httpSession = request.getSession(true);
+		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		vo.setRegId(userVO.getId());
+		vo.setCorpNo(userVO.getCorpNo());
+		try {
+            // 로그로 입력 데이터 확인
+            System.out.println("rptNo: " + vo.getRptNo());
+            System.out.println("invoice: " + vo.getInvoiceNo());
+            System.out.println("getCmpnyNm: " + vo.getCmpnyNm());
+            System.out.println("getMangerNm: " + vo.getMangerNm());
+            System.out.println("getManagerNum: " +vo.getManagerNum());
+            System.out.println("getManagerEmail: " + vo.getManagerEmail());
+            System.out.println("state"+vo.getState());
+            
+           
+            System.out.println("getBillCmpnyNm: " + vo.getBillCmpnyNm());
+            System.out.println("getCorpNo: " + vo.getCorpNo());
+            System.out.println("getBillManagerNm: " + vo.getBillManagerNm());
+            System.out.println("getBillManagerEmail: " + vo.getBillManagerEmail());
+            
+            // 파일 처리 (선택적)
+          /*  if (files != null && !files.isEmpty()) {
+            //파일이 있을때 
+            	for (MultipartFile file : files) {
+                    System.out.println("Received file: " + file.getOriginalFilename());
+                    String orgFileName = file.getOriginalFilename();
+		            orgFileName = orgFileName.replaceAll(" ", "_");
+		            String[] fileFormat = orgFileName.split("[.]");
+	
+		            if (fileFormat[fileFormat.length-1].toUpperCase().matches("PDF|JPG|SIZ|7Z|PPT|XLS|XLSX|PPTX|TXT|DOCX|DOC|HWP")) {
+		                String fileName = UUID.randomUUID().toString();
+		                String directory = "/home/files";
+		                String filepath = Paths.get(directory, fileName).toString();
+	
+		                BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(new File(filepath)));
+		                stream.write(file.getBytes());
+		                stream.close();
+	
+		                // 파일 이름을 StringBuilder에 추가 (구분자로 "/" 사용)
+		                if (fileNames.length() > 0) fileNames.append("/");
+		                if (orgFileNames.length() > 0) orgFileNames.append("/");
+	
+		                System.out.println("orgFileNames"+orgFileNames);
+		                System.out.println("fileNames"+fileNames);
+		            } else {
+		            }
+            	}
+            }else {*/
+            	//파일이 없는 경우 
+            	if(vo.getState().equals("0")) {
+            	// 의뢰일때	
+            		pfexportService.saveCoTempData(vo);
+            	}else if(vo.getState().equals("1")) {
+            	// 임시저장일때
+            		pfexportService.updateCoTempData(vo);
+            	}
+            	
+            	
+            	
+           /* }*/
+            
+
+            return ResponseEntity.ok("success");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fail");
+        }
+    }
+	
+	//저장
+	@RequestMapping(value="/export/exportCoSave.do")
+	public ResponseEntity<String> saveCoData(
+			@ModelAttribute SaveCoEnrollVO vo,
+			@RequestParam(value = "fileName[]", required = false) List<MultipartFile> files,
+			HttpServletRequest request) {
+        
+		
+		StringBuilder fileNames = new StringBuilder();  // 저장할 파일 이름들을 담을 StringBuilder
+        StringBuilder orgFileNames = new StringBuilder();  // 원본 파일 이름들을 담을 StringBuilder
+		HttpSession httpSession = request.getSession(true);
+		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		vo.setRegId(userVO.getId());
+		vo.setCorpNo(userVO.getCorpNo());
+		vo.setCmpnyName(userVO.getCmpnyCd());
+		
+	
+		
+		
+		String sendEmail = "";
+		String zipFileName = "";
+		String saveDir = "";
+		
+		  System.out.println("rptNo: " + vo.getRptNo());
+          System.out.println("invoice: " + vo.getInvoiceNo());
+          System.out.println("사용자입력 회사: " + vo.getCmpnyNm());
+          System.out.println("이음내 회사: " + vo.getCmpnyName());
+          System.out.println("getMangerNm: " + vo.getMangerNm());
+          System.out.println("getManagerNum: " +vo.getManagerNum());
+          System.out.println("getManagerEmail: " + vo.getManagerEmail());
+          System.out.println("state"+vo.getState());
+          
+         
+          System.out.println("getBillCmpnyNm: " + vo.getBillCmpnyNm());
+          System.out.println("getCorpNo: " + vo.getCorpNo());
+          System.out.println("getBillManagerNm: " + vo.getBillManagerNm());
+          System.out.println("getBillManagerEmail: " + vo.getBillManagerEmail());
+		
+		
+		
+		try {
+            // 로그로 입력 데이터 확인
+            // 파일 처리 (선택적)
+           if (files != null && !files.isEmpty()) {
+            //파일이 있을때 
+        	  // 1. 저장
+            	for (MultipartFile file : files) {
+                    System.out.println("Received file: " + file.getOriginalFilename());
+                    String orgFileName = file.getOriginalFilename();
+		            orgFileName = orgFileName.replaceAll(" ", "_");
+		            String[] fileFormat = orgFileName.split("[.]");
+	
+		            if (fileFormat[fileFormat.length-1].toUpperCase().matches("PDF|JPG|SIZ|7Z|PPT|XLS|XLSX|PPTX|TXT|DOCX|DOC|HWP")) {
+		                String fileName = UUID.randomUUID().toString();
+		                String directory = "/home/files";
+		                String filepath = Paths.get(directory, fileName).toString();
+	
+		                BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(new File(filepath)));
+		                stream.write(file.getBytes());
+		                stream.close();
+	
+		                // 파일 이름을 StringBuilder에 추가 (구분자로 "/" 사용)
+		                if (fileNames.length() > 0) fileNames.append("/");
+		                if (orgFileNames.length() > 0) orgFileNames.append("/");
+	
+		                fileNames.append(fileName);
+		                orgFileNames.append(orgFileName);
+		                System.out.println("orgFileNames"+orgFileNames);
+		                System.out.println("fileNames"+fileNames);
+		               
+		                vo.setFileNm(fileNames.toString());
+		                vo.setFileOrgNm(orgFileNames.toString());
+		                
+		                if(vo.getState().equals("0")) {
+		                //insert
+		                pfexportService.saveCoData(vo);
+		                }else {
+		                //update 
+		                pfexportService.updateCoData(vo);	
+		                }
+		                
+		             }
+            	}
+            	//2. zip 파일로 만들기
+            	List<?> exportCoList = pfexportService.selectCoFilesList(vo);
+            	System.out.println("exportCoList"+exportCoList);
+            		
+            	 saveDir = "/home/files";
+            	 zipFileName = vo.getInvoiceNo() + "_" + vo.getRptNo() + ".zip";
+            	
+            	try {
+            		FileOutputStream fos = new FileOutputStream(saveDir + File.separator + zipFileName);
+            		ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(fos);
+            		
+            	    for (Object obj : exportCoList) {
+            	        if (obj instanceof Map) {
+            	            Map<?, ?> map = (Map<?, ?>) obj;
+
+            	            String docuFiles = (String) map.get("fileNm");
+            	            String docuOrgFiles = (String) map.get("fileOrgNm");
+
+            	            // '/'로 파일 이름 분리
+            	            String[] fileArray = docuFiles.split("/");
+            	            String[] orgFileArray = docuOrgFiles.split("/");
+
+            	            // 각 파일 추가
+            	            for (int i = 0; i < fileArray.length; i++) {
+            	                String docuFile = fileArray[i];
+            	                String docuOrgFile = orgFileArray[i];
+            	                addFileToZip(saveDir, docuFile, zipOut, docuOrgFile);
+            	            }
+            	        }
+            	    }
+
+            	    zipOut.close();
+            	    fos.close();
+            	} catch (Exception e) {
+            	    e.printStackTrace();
+            	}
+            }else {
+            	vo.setFileNm("");
+                vo.setFileOrgNm("");
+            	//파일이 없는 경우 
+                if(vo.getState().equals("0")) {
+	                //insert
+	                pfexportService.saveCoData(vo);
+	                }else {
+	                //update 
+	                pfexportService.updateCoData(vo);	
+	                }
+            }
+           String invoiceRptNo = 
+          vo.getRptNo() + "/" + vo.getInvoiceNo() + "/" + vo.getCmpnyNm()+"/"+vo.getCmpnyName()+"/"+vo.getMangerNm()+"/"+vo.getManagerNum()+"/"+vo.getManagerEmail();
+          
+           vo.setInvoiceRptNo(invoiceRptNo); 
+  
+        //3. 담당자 이메일  
+       	String managerEmail = pfexportService.selectmanagerEmail(vo);
+       	System.out.println("managerEmail: "+managerEmail);
+       	//4. 화주 이메일 
+       	String cmpnyEmail = vo.getManagerEmail();
+       	
+       	// 5. 메일 보내기 
+       	System.out.println("zipFileName"+zipFileName);
+       	if(!zipFileName.isEmpty()) {
+       		// 파일이 있는경우 
+       		//담당자 발송
+       		EmailUtill.sendEmailWithFile(vo.getInvoiceRptNo(), vo.getCmpnyName(), managerEmail, "FTACO", null, "kr", zipFileName);
+       		// 화주 발송 
+       		EmailUtill.sendEmailWithFile(vo.getInvoiceRptNo(), vo.getCmpnyName(), cmpnyEmail, "FTACOCMPNY", null, "kr", zipFileName);
+       	}else {
+       		//파일이 없는 경우 
+       		//담당자 발송
+       		EmailUtill.sendEmailWithFile(vo.getInvoiceRptNo(), vo.getCmpnyName(), managerEmail, "FTACO", null, "kr",null);
+       		//화주 발송
+       		EmailUtill.sendEmailWithFile(vo.getInvoiceRptNo(), vo.getCmpnyName(), cmpnyEmail, "FTACOCMPNY", null, "kr",null);
+       	}
+      //6. co_info insert
+      pfexportService.insertCoInfo(vo);
+      		
+            return ResponseEntity.ok("success");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fail");
+        }
+    }
+	
+	//첨부파일 다운로드
+	@RequestMapping(value = "/export/downloadFile.do")
+	public void downloadFile(HttpServletRequest request, HttpServletResponse response) throws Exception {
+	    String fileNm = request.getParameter("fileNm");
+	    String fileOrgNm = request.getParameter("fileOrgNm");
+
+	    // 로그 출력
+	    System.out.println("Requested fileNm: " + fileNm);
+	    System.out.println("Requested fileOrgNm: " + fileOrgNm);
+
+	    String saveDir = "/home/files";
+	    File file = new File(saveDir + "/" + fileNm);
+
+	    // 파일 존재 여부 확인
+	    if (!file.exists()) {
+	        System.out.println("File not found: " + file.getAbsolutePath());
+	        response.sendError(HttpServletResponse.SC_NOT_FOUND, "File not found");
+	        return;
+	    }
+
+	    // 파일 이름 인코딩
+	    String encodedFileName = java.net.URLEncoder.encode(fileOrgNm, "UTF-8").replace("+", "%20");
+	    response.setHeader("Content-Disposition", "attachment; filename=\"" + encodedFileName + "\";");
+	    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+	    response.setHeader("Pragma", "no-cache");
+	    response.setDateHeader("Expires", 0);
+
+	    // 파일 전송
+	    try (FileInputStream fileInputStream = new FileInputStream(file);
+	         ServletOutputStream servletOutputStream = response.getOutputStream()) {
+
+	        byte[] buffer = new byte[1024];
+	        int bytesRead;
+	        while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+	            servletOutputStream.write(buffer, 0, bytesRead);
+	        }
+	        servletOutputStream.flush();
+	    } catch (Exception e) {
+	        System.out.println("Error during file download: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+	}
+	
+	@RequestMapping(value="/export/selectCoList.do", method=RequestMethod.POST)
+	public ModelAndView selectCoList(@RequestBody SearchVO vo, HttpServletRequest request, 
+			ModelMap model) throws Exception {
+		HttpSession httpSession = request.getSession(true);
+		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+	    vo.setSrch6(userVO.getCorpNo());
+	    List<?>	resultList = pfexportService.selectCoList(vo);
+		
+		model.addAttribute("resultList", resultList);
+		ModelAndView mav = new ModelAndView("jsonView", model);
+		return mav;
+	}
+	//파일업로드 
+	@RequestMapping(value="/export/insertDocuFilesInfo.do",method=RequestMethod.POST)
+	public ModelAndView insertDocuFilesInfo(
+			@RequestParam("fileType") String fileType,
+			@RequestParam("coDate") String coDate,
+			@RequestParam("coName") String coName,
+			@RequestParam("rptNo") String rptNo,
+			@RequestParam("invoiceNo") String invoiceNo,
+			@RequestParam("files") MultipartFile[] files,
+			 HttpServletRequest request, ModelMap model
+			)  throws Exception {
+		HttpSession httpSession = request.getSession(true);
+		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		String cmpnyCd = userVO.getCmpnyCd();
+		System.out.println("fileType"+fileType);
+		
+			for(MultipartFile file : files) {
+				System.out.println("파일"+file.getOriginalFilename());
+				String name = file.getOriginalFilename();
+				String fileName = UUID.randomUUID().toString();
+				String directory = "/home/files";
+				String filepath = Paths.get(directory, fileName).toString();
+				BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(new File(filepath)));
+				stream.write(file.getBytes());
+				stream.close();
+				
+				SaveDocuFileVO vo = new SaveDocuFileVO();
+				
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+				 Calendar date = Calendar.getInstance();
+				 String uploadDt = sdf.format(date.getTime());
+
+				System.out.println("name"+name);
+				System.out.println("fileName"+fileName);
+				System.out.println("coDate"+coDate);
+				System.out.println("coName"+coName);
+				System.out.println("cmpnyCd"+cmpnyCd);
+				System.out.println("rptNo"+rptNo);
+				System.out.println("invoiceNo"+invoiceNo);
+				
+				vo.setOrgFileName(name);
+				vo.setFileName(fileName);
+				vo.setRegDt(coDate);
+				vo.setRegId(coName);
+				vo.setCmpnyCd(cmpnyCd);
+				vo.setRptNo(rptNo);
+				vo.setInvoiceNo(invoiceNo);
+				vo.setUploadDt(uploadDt);
+				
+			if(fileType.equals("coFile")) {	
+					vo.setFileType("CO");
+					vo.setDocuType("COFILE");
+				}else if(fileType.equals("summitFile")) {
+					vo.setFileType("CO");
+					vo.setDocuType("SUMMITFILE");
+				}
+		pfexportService.insertCoFilesInfo(vo);
+	}
+		ModelAndView mav = new ModelAndView("jsonView", model);
+		return mav ;
+	}
+
+@RequestMapping(value = "/export/selectFileModalUpdateList.do")
+public ModelAndView selectDocuImpModalUpdateList(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+	HttpSession httpSession = request.getSession(true);
+	UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+	vo.setLang(userVO.getLang());
+	vo.setCmpnyCd(userVO.getCmpnyCd());
+	List<?> resultList = null;
+	if(vo.getSrch4().equals("coFile")) {
+		resultList = pfexportService.selectCoFileModalUpdateList(vo);
+	}else if(vo.getSrch4().equals("summitFile")) {
+		resultList = pfexportService.selectSummitFileModalUpdateList(vo);
+	}
+	ModelAndView mav = new ModelAndView("jsonView");
+    mav.addObject("resultList", resultList);
+    return mav;
+}
+
+@RequestMapping(value = "/export/deleteCoDocuFile.do", method = RequestMethod.POST)
+@ResponseBody
+public void deleteCoDocuFile(@RequestBody List<ZipFileDownload> downloadFile, HttpServletRequest request, ModelMap model) throws Exception {
+	HttpSession httpSession = request.getSession(true);
+	UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+	SearchVO vo = new SearchVO();
+	  for (ZipFileDownload file : downloadFile) {
+		  vo.setSrch1(file.getDocuFile());
+		  vo.setSrch2(file.getDocuOrgFile());
+		  vo.setSrch3(file.getUploadDt());
+		  vo.setSrch4(userVO.getCmpnyCd());
+		  vo.setSrch5(file.getDocuType());
+		  
+		  pfexportService.deleteCoDocuFile(vo);
+	  }
+	}
+
+@RequestMapping(value="/export/downloadCoFileZip.do")
+public void downloadFileZip(@RequestBody List<ZipFileDownload> downloadFile,
+		@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, ModelMap model,
+		HttpServletResponse response) throws Exception {
+		 Date now = new Date();
+	     // 날짜를 yymmdd 형식으로 변환
+	     SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMdd");
+	     String formattedDate = dateFormat.format(now);
+	
+	     // zip 파일 이름 생성
+	     String zipFileName = "FTA document" + "_" + formattedDate + ".zip";
+		 String saveDir = "/home/files";
+		
+		try {
+			FileOutputStream fos = new FileOutputStream(saveDir + File.separator + zipFileName);
+			ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(fos);
+	        // 파일 목록을 순회하며 압축 파일에 추가
+	        for (ZipFileDownload file : downloadFile) {
+	        	  System.out.println("file.getDocuFile()"+file.getDocuFile());
+	        	  System.out.println("file.getDocuOrgFile()"+file.getDocuOrgFile());
+	        	addFileToZip(saveDir, file.getDocuFile(), zipOut, file.getDocuOrgFile());
+	        }
+	            zipOut.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			
+		}
+	}
+
+@RequestMapping(value = "/export/downloadCoDocuFile.do")
+	public void downloadDocuFile(
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
+	String zipName = request.getParameter("zipDownloadName");
+	System.out.println("zipName: " + zipName);
+		String saveDir = "/home/files";
+		File file = new File(saveDir + "/" + zipName + ".zip");
+		response.setHeader("Content-Disposition","attachment;filename=\"" + zipName + ".zip\";");
+
+		FileInputStream fileInputStream = new FileInputStream(file);
+		ServletOutputStream servletOutputStream = response.getOutputStream();
+
+		byte b [] = new byte[1024];
+		int data = 0;
+
+		while((data=(fileInputStream.read(b, 0, b.length))) != -1)
+		{
+			servletOutputStream.write(b, 0, data);
+		}
+
+		servletOutputStream.flush();
+		servletOutputStream.close();
+		fileInputStream.close();
 	}
 }

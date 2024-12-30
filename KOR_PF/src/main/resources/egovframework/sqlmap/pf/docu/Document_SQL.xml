@@ -75,23 +75,28 @@
 	        rpt_Day,
 	        lis_day,
 		    CASE WHEN SUM(CASE WHEN C.docu_type = 'DC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'DC',
-		    CASE WHEN SUM(CASE WHEN B.docu_type = 'UC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'UC',
-		    CASE WHEN SUM(CASE WHEN B.docu_type = 'CI' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CI',
-		    CASE WHEN SUM(CASE WHEN B.docu_type = 'PL' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'PL',
-		    CASE WHEN SUM(CASE WHEN B.docu_type = 'BL' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'BL',
-		    CASE WHEN SUM(CASE WHEN B.docu_type = 'CO' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CO',
-		    CASE WHEN SUM(CASE WHEN B.docu_type = 'RQ' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'RQ',
-		    CASE WHEN SUM(CASE WHEN B.docu_type = 'CB' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CB',
-		    CASE WHEN SUM(CASE WHEN B.docu_type = 'OT' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'OT',
-		    CASE WHEN SUM(CASE WHEN B.docu_type = 'AC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'AC'	  			      
+		    CASE WHEN SUM(CASE WHEN B.docu_type = 'UC' THEN 1 ELSE 0 END + CASE WHEN D.docu_type = 'UC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'UC',
+		    CASE WHEN SUM(CASE WHEN B.docu_type = 'CI' THEN 1 ELSE 0 END + CASE WHEN D.docu_type = 'CI' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CI',
+		    CASE WHEN SUM(CASE WHEN B.docu_type = 'PL' THEN 1 ELSE 0 END + CASE WHEN D.docu_type = 'PL' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'PL',
+		    CASE WHEN SUM(CASE WHEN B.docu_type = 'BL' THEN 1 ELSE 0 END + CASE WHEN D.docu_type = 'BL' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'BL',
+		    CASE WHEN SUM(CASE WHEN B.docu_type = 'CO' THEN 1 ELSE 0 END + CASE WHEN D.docu_type = 'CO' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CO',
+		    CASE WHEN SUM(CASE WHEN B.docu_type = 'RQ' THEN 1 ELSE 0 END + CASE WHEN D.docu_type = 'RQ' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'RQ',
+		    CASE WHEN SUM(CASE WHEN B.docu_type = 'CB' THEN 1 ELSE 0 END + CASE WHEN D.docu_type = 'CB' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CB',
+		    CASE WHEN SUM(CASE WHEN B.docu_type = 'OT' THEN 1 ELSE 0 END + CASE WHEN D.docu_type = 'OT' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'OT',
+		    CASE WHEN SUM(CASE WHEN B.docu_type = 'AC' THEN 1 ELSE 0 END + CASE WHEN D.docu_type = 'AC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'AC'	  			    
 		    FROM cusdec929a1 A
-		   	LEFT JOIN file_info B
+	   		LEFT JOIN file_info B
 		   	ON A.blno = B.blno
+		   	AND A.Rpt_No = B.RPT_NO
 		   	AND B.FILE_TYPE = 'imp'
 		   	LEFT JOIN file_info C
 		    ON A.rpt_no = C.rpt_no
 		    AND C.FILE_TYPE = 'imp'
 		    AND C.docu_type = 'DC'
+		    LEFT JOIN file_info D
+		   	ON A.blno = D.blno
+		   	AND D.RPT_NO = ''
+		   	AND D.FILE_TYPE = 'imp'
 		    WHERE 1=1
 			AND A.Rpt_Seq = '00'
 			AND A.rece In ('수리', '자수', '승인')			
@@ -165,15 +170,15 @@
 		        rpt_Day,
 		        exp_lis_day,
 		        CASE WHEN SUM(CASE WHEN D.docu_type = 'DC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'DC',
-		        CASE WHEN SUM(CASE WHEN C.docu_type = 'UC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'UC',
-		        CASE WHEN SUM(CASE WHEN C.docu_type = 'CI' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CI',
-		        CASE WHEN SUM(CASE WHEN C.docu_type = 'PL' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'PL',
-		        CASE WHEN SUM(CASE WHEN C.docu_type = 'BL' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'BL',
-		        CASE WHEN SUM(CASE WHEN C.docu_type = 'CO' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CO',
-		        CASE WHEN SUM(CASE WHEN C.docu_type = 'RQ' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'RQ',
-		        CASE WHEN SUM(CASE WHEN C.docu_type = 'CB' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CB',
-		        CASE WHEN SUM(CASE WHEN C.docu_type = 'OT' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'OT',
-		        CASE WHEN SUM(CASE WHEN C.docu_type = 'AC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'AC'
+		        CASE WHEN SUM(CASE WHEN C.docu_type = 'UC' THEN 1 ELSE 0 END + CASE WHEN E.docu_type = 'UC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'UC',
+			    CASE WHEN SUM(CASE WHEN C.docu_type = 'CI' THEN 1 ELSE 0 END + CASE WHEN E.docu_type = 'CI' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CI',
+			    CASE WHEN SUM(CASE WHEN C.docu_type = 'PL' THEN 1 ELSE 0 END + CASE WHEN E.docu_type = 'PL' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'PL',
+			    CASE WHEN SUM(CASE WHEN C.docu_type = 'BL' THEN 1 ELSE 0 END + CASE WHEN E.docu_type = 'BL' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'BL',
+			    CASE WHEN SUM(CASE WHEN C.docu_type = 'CO' THEN 1 ELSE 0 END + CASE WHEN E.docu_type = 'CO' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CO',
+			    CASE WHEN SUM(CASE WHEN C.docu_type = 'RQ' THEN 1 ELSE 0 END + CASE WHEN E.docu_type = 'RQ' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'RQ',
+			    CASE WHEN SUM(CASE WHEN C.docu_type = 'CB' THEN 1 ELSE 0 END + CASE WHEN E.docu_type = 'CB' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'CB',
+			    CASE WHEN SUM(CASE WHEN C.docu_type = 'OT' THEN 1 ELSE 0 END + CASE WHEN E.docu_type = 'OT' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'OT',
+			    CASE WHEN SUM(CASE WHEN C.docu_type = 'AC' THEN 1 ELSE 0 END + CASE WHEN E.docu_type = 'AC' THEN 1 ELSE 0 END) = 0 THEN '-' ELSE 'O' END AS 'AC'	  	
 		    FROM
 		        cusdec830a1 A
 		    INNER JOIN (
@@ -183,11 +188,16 @@
 				 AND A.rpt_no = B.rpt_no
 		    LEFT JOIN file_info C
 		    ON b.mg_code = C.invoice_no
+		    AND A.RPT_NO = C.RPT_NO
 		    AND C.FILE_TYPE = 'exp'
 		    LEFT JOIN file_info D
 		    ON A.rpt_no = D.rpt_no
 		    AND D.FILE_TYPE = 'exp'
 		    AND D.docu_type = 'DC'
+		    LEFT JOIN file_info E
+		    ON b.mg_code = E.invoice_no
+		    AND E.RPT_NO = ''
+		    AND E.FILE_TYPE = 'exp'
 		    WHERE 1=1
 		    AND A.Rpt_Seq = '00'
 		    AND A.rece In ('수리', '승인')			
@@ -325,6 +335,20 @@
 			docu_path
 			FROM file_info
 			WHERE BLNO = #{srch2}
+			AND rpt_no = REPLACE(#{srch1},'-','')
+			AND DOCU_TYPE != 'DC'
+		UNION
+		SELECT 
+			RPT_NO,
+			BLNO,
+			docu_type,
+			DATE_FORMAT(upload_dt, '%Y-%m-%d') AS upload_dt,
+			docu_file,
+			docu_org_file,
+			docu_path
+			FROM file_info
+			WHERE BLNO = #{srch2}
+			AND RPT_NO = ''
 			AND DOCU_TYPE != 'DC'
 		UNION
 		SELECT 
@@ -351,6 +375,22 @@
 		docu_path
 		FROM file_info
 		WHERE INVOICE_NO = #{srch4}
+		AND rpt_no = REPLACE(#{srch1},'-','')
+		AND DOCU_TYPE != 'DC'
+		
+		UNION
+		
+		SELECT 
+		RPT_NO,
+		INVOICE_NO,
+		docu_type,
+		DATE_FORMAT(upload_dt, '%Y-%m-%d') AS upload_dt,
+		docu_file,
+		docu_org_file,
+		docu_path
+		FROM file_info
+		WHERE INVOICE_NO = #{srch4}
+		AND rpt_no = ''
 		AND DOCU_TYPE != 'DC'
 		
 		UNION

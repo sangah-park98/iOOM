@@ -8,6 +8,7 @@
 		WHERE rpt_no = #{rptNo}
 		AND bl_no = #{blNo}
 		AND ct_no = #{ctNo}
+		AND order_id = ''
 		AND order_state = '접수'
 	</update>
 	
@@ -35,14 +36,16 @@
 	<update id="allocCancel" parameterType="egovframework.pf.shipping.service.ShippingOrderVO">
 		UPDATE shipping_order SET
 			order_state = '배차 취소',
-			reg_id = #{regId}
+			edt_id = #{regId},
+			edt_dt = NOW()
 		WHERE order_id = #{orderId}
 	</update>
 	
 	<update id="orderCancel" parameterType="egovframework.pf.shipping.service.ShippingOrderVO">
 		UPDATE shipping_order SET
 			order_state = '요청 취소',
-			edt_id = #{regId}
+			edt_id = #{regId},
+			edt_dt = NOW()
 		WHERE order_id = #{orderId}
 	</update>
 	
@@ -127,11 +130,31 @@
 	RPT_NO,
 	BL_NO,
 	CMPNY_NM,
+	CT_NO,
+	SHIPPER_MAIL,
 	REG_ID
 	FROM SHIPPING_ORDER
 	WHERE ORDER_ID = #{srch1}
 	AND DISPATCH_DT = ''
 	</select>
+	
+	<insert id="insertOrderLog" parameterType="egovframework.pf.shipping.service.ShippingOrderVO">
+	INSERT INTO 
+	SHIPPING_ORDER_LOG (
+	ORDER_ID,
+	ORDER_STATE,
+	ORDER_NOTE,
+	REG_DT,
+	REG_ID
+	) VALUES (
+	#{orderId},
+	#{orderState},
+	#{toAddr},
+	NOW(),
+	#{regId}
+	)
+	
+	</insert>
 	
 	
 </mapper>
