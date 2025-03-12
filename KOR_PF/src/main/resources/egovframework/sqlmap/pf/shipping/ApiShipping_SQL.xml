@@ -24,6 +24,7 @@
 		UPDATE shipping_order SET
 			order_state = '배차',
 			est_charge = #{estCharge},
+			est_charge_add = #{estChargeAdd},
 			car_no = #{carNo},
 			car_nm = #{carNm},
 			car_phn_no = #{carPhnNo},
@@ -61,6 +62,7 @@
 			recv_nm,
 			arrive_addr,
 			est_charge,
+			est_charge_add,
 			order_seq,
 			to_dt,
 			to_addr,
@@ -78,6 +80,7 @@
 			#{recvNm},
 			#{arriveAddr},
 			#{estCharge},
+			#{estChargeAdd},
 			#{orderSeq},
 			DATE_FORMAT(#{arriveDt}, '%Y%m%d'),
 			#{arriveAddr},
@@ -95,7 +98,8 @@
 	
 	<update id="etcCharge" parameterType="egovframework.pf.shipping.service.ShippingOrderVO">
 		UPDATE shipping_order SET
-			fixed_charge = #{fixedCharge}
+			 fixed_charge = #{fixedCharge}
+			,fixed_charge_add = #{fixedChargeAdd}
 		WHERE order_id = #{orderId}
 		AND rpt_no = #{rptNo}
 		AND bl_no = #{blNo}
@@ -136,6 +140,18 @@
 	FROM SHIPPING_ORDER
 	WHERE ORDER_ID = #{srch1}
 	AND DISPATCH_DT = ''
+	</select>
+	
+	<select id="selectShipListArr" parameterType="searchVO" resultType="egovMap">
+	SELECT 
+	RPT_NO,
+	BL_NO,
+	CMPNY_NM,
+	CT_NO,
+	SHIPPER_MAIL,
+	REG_ID
+	FROM SHIPPING_ORDER
+	WHERE ORDER_ID = #{srch1}
 	</select>
 	
 	<insert id="insertOrderLog" parameterType="egovframework.pf.shipping.service.ShippingOrderVO">

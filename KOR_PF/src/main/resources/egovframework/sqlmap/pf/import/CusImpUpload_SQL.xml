@@ -1207,7 +1207,8 @@
 			    WHEN a.Exc_Divi_Cot = '' OR a.Exc_Divi_Cot IS NULL THEN a.Exc_Divi_Mark
 			    ELSE CONCAT(a.Exc_Divi_Mark , '-', a.Exc_Divi_Cot) 
 			END AS Exc_Cot,
-   			CASE WHEN a.Con_Ki_Cot = ''
+   			<!-- CASE WHEN a.Con_Ki_Cot = '' -->
+   			CASE WHEN Con_Ki != ''
 			THEN IFNULL((SELECT CMMN_NM FROM CMMN_CD b WHERE b.GRP_CD = 'CONKI' AND a.Con_Ki = b.CMMN_CD ),'')
 			ELSE a.Con_Ki_Cot END AS Con_Ki_Cot,
 		    a.Con_Cod, 
@@ -1314,7 +1315,7 @@
 	            #{id}
 	        </foreach>
 	    </if>
-	    GROUP BY A.CUS9
+	    GROUP BY C.Ref_No
 	</select>
 	
 	
@@ -1339,6 +1340,74 @@
 			ORDER BY rpt_no, ran_no;
 	</select>
 	
+	<!-- 타관세사 수입신고 현황 상세 란 목록 조회  -->
+	<select id="selectCusImpViewLanListExcel" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+			RPT_NO,
+			RAN_NO,
+			CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
+			GS_DIVI AS na,
+			GS_RATE,
+			STD_GNAME1,
+			EXC_GNAME1,
+			TAX_USD,
+			cs_chk_cot,
+			gs,
+			vat
+		FROM CUSDEC929B1
+			WHERE rpt_no IN (
+		SELECT RPT_NO 
+		FROM CUSDEC929A1 a
+			WHERE 
+			    a.rpt_seq = '00'
+			    AND a.branch = 'iOOM'
+			    <choose>
+				<when test="srch1 =='02'">
+				AND a.rece In ('수리', '자수')			
+				</when>
+				<when test="srch1 =='03'">
+				AND a.rece = '대기'			
+				</when>
+				<when test="srch1 =='04'">
+				AND a.rece = '결재'			
+				</when>
+				<when test="srch1 =='05'">
+				AND a.rece = '미결'			
+				</when>
+				<when test="srch1 =='06'">
+				AND a.rece = '승인'			
+				</when>
+				<when test="srch1 =='07'">
+				AND a.rece = '정정'			
+				</when>
+				</choose>
+				<choose>
+				<when test="srch8 =='01'">
+				 AND a.rpt_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+				</when>
+				<otherwise>
+				 AND a.Lis_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+				</otherwise>
+				</choose>			
+				<if test="srch4 != null and srch4 != ''">
+				AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
+				</if>
+				<if test="srch5 != null and srch5 != ''">
+				AND a.blno LIKE CONCAT('%',UPPER(#{srch5}),'%')
+				</if>
+				<if test="list != null and list.size() > 0">
+		            AND a.nab_sdno IN 
+		            <foreach item="id" collection="list" open="(" separator="," close=")">
+		                #{id}
+		            </foreach>
+	        	</if>
+		)
+		AND rpt_seq = '00'
+		
+		ORDER BY rpt_no, ran_no;
+	</select>
+	
+	
 	<select id="selectCusImpViewSpecList" parameterType="searchVO" resultType="egovMap">
 		SELECT
 			RPT_NO,
@@ -1358,6 +1427,72 @@
 			AND rpt_seq = '00'
 			AND branch = 'iOOM'
 			ORDER BY rpt_no, ran_no, sil;
+	</select>
+	
+	<select id="selectCusImpViewSpecListExcel" parameterType="searchVO" resultType="egovMap">
+		SELECT
+			RPT_NO,
+			RAN_NO,
+			Sil,
+			IMP_GNAME1,
+			Qty,
+			Ut,
+			Upi,
+			Amt,
+			IMP_GNAME2,
+			Compoent1,
+			Compoent2
+		FROM CUSDEC929C1
+			WHERE rpt_no IN (
+		SELECT RPT_NO FROM
+		CUSDEC929A1 a
+			WHERE 
+			    a.rpt_seq = '00'
+			    AND a.branch = 'iOOM'
+			    <choose>
+				<when test="srch1 =='02'">
+				AND a.rece In ('수리', '자수')			
+				</when>
+				<when test="srch1 =='03'">
+				AND a.rece = '대기'			
+				</when>
+				<when test="srch1 =='04'">
+				AND a.rece = '결재'			
+				</when>
+				<when test="srch1 =='05'">
+				AND a.rece = '미결'			
+				</when>
+				<when test="srch1 =='06'">
+				AND a.rece = '승인'			
+				</when>
+				<when test="srch1 =='07'">
+				AND a.rece = '정정'			
+				</when>
+				</choose>
+				<choose>
+				<when test="srch8 =='01'">
+				 AND a.rpt_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+				</when>
+				<otherwise>
+				 AND a.Lis_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+				</otherwise>
+				</choose>			
+				<if test="srch4 != null and srch4 != ''">
+				AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
+				</if>
+				<if test="srch5 != null and srch5 != ''">
+				AND a.blno LIKE CONCAT('%',UPPER(#{srch5}),'%')
+				</if>
+				<if test="list != null and list.size() > 0">
+		            AND a.nab_sdno IN 
+		            <foreach item="id" collection="list" open="(" separator="," close=")">
+		                #{id}
+		            </foreach>
+	        	</if>
+		)
+		AND rpt_seq = '00'
+		
+		ORDER BY rpt_no, ran_no, sil;
 	</select>
 	
 	<!-- [엔컴 / 수입신고서 공통내역 - cusdec929a1] INSERT -->
@@ -1489,7 +1624,8 @@
 		Ad_Amt_Krw,
 		Cus9,
 		REG_ID,
-		REG_DATE
+		REG_DATE,
+		Tot_Tax_Krw
 		
 		)VALUES(
 		'iOOM',
@@ -1672,7 +1808,11 @@
 		#{excel_188},
 		#{fileName},
 		#{Id},
-		NOW()
+		NOW(),
+		(CASE 
+        WHEN #{excel_218} = '-' OR #{excel_218} = '-  0' THEN 0
+        ELSE CAST(REPLACE(#{excel_218}, ',', '') AS DECIMAL(20, 4))
+        END)
 		
 		 )ON DUPLICATE KEY UPDATE
 		 	
@@ -1682,7 +1822,6 @@
 		,Rpt_EMailID = #{excel_6}		
 		,Imp_Code = #{excel_7}		
 		,Imp_Firm = #{excel_8}	
-			
 		,Imp_TgNo = #{excel_9}		
 		,Imp_Divi = #{excel_10}		
 		,Nab_Code = #{excel_11}		
@@ -1821,6 +1960,8 @@
 		,Cus9 = #{fileName}
 		,REG_ID = #{Id}
 		,REG_DATE = NOW()
+		,Tot_Tax_Krw  = (CASE WHEN #{excel_218 = '-' OR #{excel_218} = '-  0' THEN 0
+			     ELSE CAST(REPLACE(REPLACE(#{excel_218}, ' ', ''), ',', '') AS DECIMAL(20, 4))END)	 
 	</insert>
 	
 	<!-- [엔컴 / 수입신고서 란내역 - CUSDEC929B1] INSERT -->
@@ -1896,7 +2037,8 @@
 		ItemCd,
 		REG_ID,
 		REG_DATE,
-		IF_REF2 
+		IF_REF2,
+		gs_rate
 		)VALUES(
 		'iOOM',
 		'ENCOM',
@@ -2036,7 +2178,11 @@
     	#{excel_246},    
 		#{Id},
 		NOW(),
-		#{fileName}  
+		#{fileName},
+		(CASE 
+        WHEN #{excel_194} = '-' OR #{excel_194} = '-  0' THEN 0
+        ELSE CAST(REPLACE(#{excel_194}, ',', '') AS DECIMAL(20, 4))
+        END)
 		)ON DUPLICATE KEY UPDATE
 		 Rpt_Seq = CASE 
 					WHEN #{excel_149} = '1' THEN '01'
@@ -2132,6 +2278,8 @@
 		,REG_ID = #{Id}
 		,REG_DATE = NOW()
 		,IF_REF2 = #{fileName}  
+		,gs_rate = (CASE WHEN #{excel_194} = '-' OR #{excel_194} = '-  0' THEN 0
+			     ELSE CAST(REPLACE(REPLACE(#{excel_194}, ' ', ''), ',', '') AS DECIMAL(20, 4))END)
 	</insert>
 	
 	<!-- [엔컴 / 수입신고서 규격내역 - CUSDEC929C1] INSERT -->

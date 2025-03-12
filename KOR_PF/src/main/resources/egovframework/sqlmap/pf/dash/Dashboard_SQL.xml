@@ -52,14 +52,26 @@
 			
 		UNION
 		
-		SELECT
-		'IT담당자' as usrType,
-		'박상아' as usrNm,
-		'sapark@customsservice.co.kr' as usrEmail,
-		'070-4343-7732' as usrTel
-		) A
-		WHERE 1=1
-		AND usrNm != ''
+    	SELECT 
+        'IT담당자' AS usrType, 
+        CASE 
+            WHEN #{corpNo} IN ('2118180957','3128109408','3128103345','1298118421') 
+            THEN '권예지' 
+            ELSE '박상아' 
+        END AS usrNm, 
+        CASE 
+            WHEN #{corpNo} IN ('2118180957','3128109408','3128103345','1298118421') 
+            THEN 'yjkwon@customsservice.co.kr' 
+            ELSE 'sapark@customsservice.co.kr' 
+        END AS usrEmail, 
+        CASE 
+            WHEN #{corpNo} IN ('2118180957','3128109408','3128103345','1298118421') 
+            THEN '070-4343-7729' 
+            ELSE '070-4343-7732' 
+        END AS usrTel 
+    FROM dual  
+	) A 
+		WHERE usrNm != ''
 	</select>
 	
 	
@@ -94,9 +106,9 @@
 			)
 			SELECT 
 			    CONCAT(LEFT(dr.lis_day, 4), '년 ', RIGHT(dr.lis_day, 2), '월') AS sumDate,
-			    IFNULL(A.CNT, 0) + IFNULL(B.CNT, 0) + IFNULL(C.CNT, 0) + IFNULL(D.CNT, 0) + IFNULL(E.CNT, 0) AS CNT,
-			    FORMAT(IFNULL(A.tot_tax_sum, 0) + IFNULL(B.tot_tax_sum, 0) + IFNULL(C.tot_tax_sum, 0) + IFNULL(D.tot_tax_sum, 0) + IFNULL(E.tot_tax_sum, 0), 0) AS sumTax,
-			    FORMAT(IFNULL(A.tot_tax_krw, 0) + IFNULL(B.tot_tax_krw, 0) + IFNULL(C.tot_tax_krw, 0) + IFNULL(D.tot_tax_krw, 0) + IFNULL(E.tot_tax_krw, 0), 0) AS sumKrw
+			    IFNULL(A.CNT, 0) + IFNULL(B.CNT, 0) + IFNULL(C.CNT, 0) + IFNULL(D.CNT, 0) + IFNULL(E.CNT, 0) + IFNULL(F.CNT, 0) AS CNT,
+			    FORMAT(IFNULL(A.tot_tax_sum, 0) + IFNULL(B.tot_tax_sum, 0) + IFNULL(C.tot_tax_sum, 0) + IFNULL(D.tot_tax_sum, 0) + IFNULL(E.tot_tax_sum, 0) + IFNULL(F.tot_tax_sum, 0), 0) AS sumTax,
+			    FORMAT(IFNULL(A.tot_tax_krw, 0) + IFNULL(B.tot_tax_krw, 0) + IFNULL(C.tot_tax_krw, 0) + IFNULL(D.tot_tax_krw, 0) + IFNULL(E.tot_tax_krw, 0) + IFNULL(F.tot_tax_krw, 0), 0) AS sumKrw
 			FROM date_range dr
 			LEFT JOIN (
 			    SELECT 
@@ -179,6 +191,22 @@
 			    </if>
 			    GROUP BY SUBSTR(TI1_127, 1, 6)
 			) E ON dr.lis_day = E.lis_day
+			LEFT JOIN (
+			    SELECT
+			        SUBSTR(lis_day, 1, 6) AS lis_day,
+			        COUNT(lis_day) AS CNT,
+			        SUM(tot_tax_sum) AS tot_tax_sum,
+			        SUM(tot_tax_krw) AS tot_tax_krw
+			    FROM cusdec929a1
+			    WHERE rpt_seq = '00' AND branch = 'iOOM'
+			    <if test="list != null and list.size() > 0">
+			        AND nab_sdno IN 
+			        <foreach item="id" collection="list" open="(" separator="," close=")">
+			            #{id}
+			        </foreach>
+			    </if>
+			    GROUP BY SUBSTR(lis_day, 1, 6)
+			) F ON dr.lis_day = F.lis_day
 			ORDER BY dr.lis_day DESC;
 	</select>
 	
@@ -212,8 +240,8 @@
 		)
 		SELECT 
 		    CONCAT(LEFT(dr.exp_lis_day, 4), '년 ', RIGHT(dr.exp_lis_day, 2), '월') AS sumDate,
-		    IFNULL(A.CNT, 0) + IFNULL(B.CNT, 0) + IFNULL(C.CNT, 0) + IFNULL(D.CNT, 0) + IFNULL(E.CNT, 0) AS CNT,
-		    FORMAT(IFNULL(A.tot_rpt_krw, 0) + IFNULL(B.tot_rpt_krw, 0) + IFNULL(C.tot_rpt_krw, 0) + IFNULL(D.tot_rpt_krw, 0) + IFNULL(E.tot_rpt_krw, 0), 0) AS sumKrw
+		    IFNULL(A.CNT, 0) + IFNULL(B.CNT, 0) + IFNULL(C.CNT, 0) + IFNULL(D.CNT, 0) + IFNULL(E.CNT, 0) + IFNULL(F.CNT, 0) AS CNT,
+		    FORMAT(IFNULL(A.tot_rpt_krw, 0) + IFNULL(B.tot_rpt_krw, 0) + IFNULL(C.tot_rpt_krw, 0) + IFNULL(D.tot_rpt_krw, 0) + IFNULL(E.tot_rpt_krw, 0) + IFNULL(F.tot_rpt_krw, 0), 0) AS sumKrw
 		FROM date_range dr
 		LEFT JOIN (
 		    SELECT 
@@ -291,8 +319,22 @@
 			</if>
 		    GROUP BY SUBSTR(TE1_095, 1, 6)
 		) E ON dr.exp_lis_day = E.exp_lis_day
+		LEFT JOIN (
+		    SELECT 
+		        SUBSTR(exp_lis_day, 1, 6) AS exp_lis_day,
+		        COUNT(exp_lis_day) AS CNT,
+		        SUM(tot_rpt_krw) AS tot_rpt_krw
+		    FROM cusdec830a1
+		    WHERE rpt_seq = '00' AND branch = 'iOOM'
+			<if test="list != null and list.size() > 0">
+            AND exp_sdno IN 
+            <foreach item="id" collection="list" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+			</if>
+		    GROUP BY SUBSTR(exp_lis_day, 1, 6)
+		) F ON dr.exp_lis_day = F.exp_lis_day
 		ORDER BY dr.exp_lis_day DESC;
-
 	</select>
 	
 	<select id="selectDashboardNoticeList" parameterType="searchVO" resultType="egovMap">
@@ -303,6 +345,7 @@
 	
 	<select id="selectDashboardNewsList" parameterType="searchVO" resultType="egovMap">
 	SELECT TITLE_KR, SEQ, DATE_FORMAT(STR_TO_DATE(REG_DT, '%Y%m%d'), '%Y.%m.%d') as REG_DT FROM news_info
+	WHERE active = 'Y'
 	ORDER BY REG_DT DESC, SEQ DESC
 	LIMIT 5;
 	</select>

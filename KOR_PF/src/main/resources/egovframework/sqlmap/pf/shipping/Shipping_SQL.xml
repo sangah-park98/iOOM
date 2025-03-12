@@ -23,7 +23,9 @@
 		    b.to_staff,
 		    b.to_phn_no,
 		    b.est_charge,
-		    b.fixed_charge
+		    b.est_charge_add,
+		    b.fixed_charge,
+		    b.fixed_charge_add
 		FROM shipping_order b
 		WHERE 1 = 1
 		<if test="list != null and list.size() > 0">
@@ -347,7 +349,6 @@
 		    ct_no,
 		    bl_no,
 		    rpt_no,
-		    est_charge,
 		    to_staff,
 		    to_phn_no,
 		    to_addr,
@@ -385,7 +386,10 @@
 		    arrive_addr,
 		    recv_nm,
 		    recv_phn_no,
+		    est_charge,
+		    est_charge_add,
 		    fixed_charge,
+		    fixed_charge_add,
 		    reg_dt,
 		    reg_id
 		) VALUES (
@@ -393,7 +397,6 @@
 			IFNULL(#{ctNo},''),
 		    #{blNo},
 		    #{rptNo},
-		    #{estCharge}, <!-- 0 -->
 		    #{toStaff},
 		    #{toPhnNo},
 		    #{toAddr},
@@ -430,7 +433,10 @@
 		    '', <!-- 도착지주소 -->
 		    '', <!-- 수령자 -->
 		    '', <!-- 수령자 연락처 -->
-		    0, <!-- 확정 운송료 -->
+		    0, 
+		    0, 
+		    0,
+		    0,
 		    NOW(),
 		    #{regId}
 		) ON DUPLICATE KEY UPDATE

@@ -855,8 +855,10 @@
 		    ship_day,
 		    Exc_Cot,
 		    Con_MetNm,
+		    amt,
 		    tot_pack_cnt,
-		    tot_wt
+		    tot_wt,
+		    state
 		FROM (
 			SELECT
 			a.sn,
@@ -875,15 +877,24 @@
 			ELSE DATE_FORMAT(a.ship_day, '%Y-%m-%d') end as ship_day,
 		    CONCAT(a.Exc_Divi, '-', a.Exc_DiviNm) AS Exc_Cot,
 		    a.Con_MetNm,
+		    FORMAT(a.amt, 2) AS amt,
 		    CONCAT(a.Tot_Pack_Cnt, ' (', a.tot_pack_ut, ')') AS tot_pack_cnt,
-		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt
+		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt,
+		    IFNULL(C.STATE,'0') AS state
 			FROM 
 			    cusdec830a1selrdy a
 			    LEFT JOIN
 				(select cmmn_cd, cmmn_nm from cmmn_cd where grp_cd = 'EXPSHRPTCD') I
 				on I.cmmn_cd = SUBSTRING(a.rpt_no, 1, 5)
-			WHERE 
-			    A.rpt_seq = '00'
+				LEFT JOIN 
+		 		co_request C ON 
+		 		C.CORP_NO = A.EXP_SDNO
+		 		<!-- AND C.CMPNY_NM = A.COMM_FIRM -->
+		 		AND C.RPT_NO = A.RPT_NO
+			   <!--  AND B.mg_code = C.INVOICE_NO
+	     		AND B.rpt_no = C.RPT_NO -->
+				WHERE 
+				    A.rpt_seq = '00'
 		    <choose>
 		    <when test="srch1 =='02'">
 		    AND CONVERT(a.rece USING utf8mb4) = '수리'
@@ -899,33 +910,35 @@
 			</when>
 		    </choose>
 		    <choose>
-			<when test="srch6 == 1">
+			<when test="srch9 == 1">
 			AND CONVERT(a.rece USING utf8mb4) IN ('의뢰', '')			
 			</when>
-			<when test="srch6 == 2">
-			AND CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제')	
+			<!-- <when test="srch9 == 2">
+			AND CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제', '미결')	
+			</when> -->
+			<when test="srch9 == 2">
+			AND CONVERT(a.rece USING utf8mb4) NOT IN ('의뢰', '자수', '수리', '승인', '완료')	
 			</when>
-			<when test="srch6 == 3">
+			<when test="srch9 == 3">
 			AND CONVERT(a.rece USING utf8mb4) = '미결'			
 			</when>
-			<when test="srch6 == 4">
-			AND CONVERT(a.rece USING utf8mb4) = '대기'	
+			<when test="srch9 == 4">
+			AND CONVERT(a.rece USING utf8mb4) IN ('자수', '수리', '승인', '완료')		
 			</when>
-			<when test="srch6 == 5 ">
-			AND CONVERT(a.rece USING utf8mb4) = '결재'			
-			</when>
-			<when test="srch6 == 6">
-			AND CONVERT(a.rece USING utf8mb4) = '완료'			
+			<when test="srch9 == 5">
+			AND a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') 
 			</when>
 			</choose>
-			<choose>
-		    <when test="srch8 =='01'">
-		    AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
-		    </when>
-		    <otherwise>
-		    AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
-		    </otherwise>
-		    </choose>
+			<if test="srch9 != 5">
+             <choose>
+                 <when test="srch8 == '01'">
+                     AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </when>
+                 <otherwise>
+                     AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </otherwise>
+             </choose>
+         	</if>
 			<if test="srch4 != null and srch4 != ''">
 			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
 			</if>
@@ -958,13 +971,23 @@
 			ELSE DATE_FORMAT(a.ship_day, '%Y-%m-%d') end as ship_day,
 		    CONCAT(a.Exc_Divi, '-', a.Exc_DiviNm) AS Exc_Cot,
 		    a.Con_MetNm,
+		    FORMAT(a.amt, 2) AS amt,
 		    CONCAT(a.Tot_Pack_Cnt, ' (', a.tot_pack_ut, ')') AS tot_pack_cnt,
-		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt
+		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt,
+			IFNULL(C.STATE,'0') AS state
+			
 			FROM 
 			    cusdec830a1icnrdy a
 			    LEFT JOIN
 				(select cmmn_cd, cmmn_nm from cmmn_cd where grp_cd = 'EXPSHRPTCD') I
 				on I.cmmn_cd = SUBSTRING(a.rpt_no, 1, 5)
+		 	LEFT JOIN 
+	 		co_request C ON 
+	 		C.CORP_NO = A.EXP_SDNO
+	 		<!-- AND C.CMPNY_NM = A.COMM_FIRM -->
+	 		AND C.RPT_NO = A.RPT_NO
+		    <!-- AND B.mg_code = C.INVOICE_NO
+     		AND B.rpt_no = C.RPT_NO -->
 			WHERE 
 			    A.rpt_seq = '00'
 		    <choose>
@@ -982,45 +1005,47 @@
 			</when>
 		    </choose>
 		    <choose>
-			<when test="srch6 == 1">
-			AND CONVERT(a.rece USING utf8mb4) IN ('의뢰', '')			
+			<when test="srch9 == 1">
+			AND CONVERT(a.rece USING utf8mb4) IN ('의뢰', '')	
 			</when>
-			<when test="srch6 == 2">
-			AND CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제')	
+			<when test="srch9 == 2">
+			AND CONVERT(a.rece USING utf8mb4) NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료')	
 			</when>
-			<when test="srch6 == 3">
-			AND CONVERT(a.rece USING utf8mb4) = '미결'			
+			<when test="srch9 == 3">
+			AND CONVERT(a.rece USING utf8mb4) = '미결'
 			</when>
-			<when test="srch6 == 4">
-			AND CONVERT(a.rece USING utf8mb4) = '대기'	
+			<when test="srch9 == 4">
+			AND CONVERT(a.rece USING utf8mb4) IN ('자수', '수리', '승인', '완료')	
 			</when>
-			<when test="srch6 == 5 ">
-			AND CONVERT(a.rece USING utf8mb4) = '결재'			
-			</when>
-			<when test="srch6 == 6">
-			AND CONVERT(a.rece USING utf8mb4) = '완료'			
+			<when test="srch9 == 5">
+			AND a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d')
+			AND a.rpt_seq = '00'
 			</when>
 			</choose>
-			<choose>
+			<if test="srch9 != 5">
+             <choose>
+                 <when test="srch8 == '01'">
+                     AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </when>
+                 <otherwise>
+                     AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </otherwise>
+             </choose>
+         	</if>
+
+			<!-- <choose>
 		    <when test="srch8 =='01'">
 		    AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 		    </when>
 		    <otherwise>
 		    AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 		    </otherwise>
-		    </choose>
+		    </choose> -->
 			<if test="srch4 != null and srch4 != ''">
 			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
 			</if>
 			<if test="srch5 != null and srch5 != ''">
 			AND a.rpt_no IN (SELECT DISTINCT RPT_NO FROM cusdec830b1icnrdy WHERE mg_code like CONCAT('%',UPPER(#{srch5}),'%'))
-			</if>
-			<if test="list2 != null and list2.size() > 0">
-			    AND (
-			        <foreach item="blNo" collection="list2" open="(" separator="OR" close=")">
-			            b.mg_code LIKE CONCAT('%',UPPER(#{blNo}),'%')
-			        </foreach>
-			    )
 			</if>
 			<if test="list != null and list.size() > 0">
 	            AND a.exp_sdno IN
@@ -1048,13 +1073,22 @@
 			ELSE DATE_FORMAT(a.ship_day, '%Y-%m-%d') end as ship_day,
 		    CONCAT(a.Exc_Divi, '-', a.Exc_DiviNm) AS Exc_Cot,
 		    a.Con_MetNm,
+		    FORMAT(a.amt, 2) AS amt,
 		    CONCAT(a.Tot_Pack_Cnt, ' (', a.tot_pack_ut, ')') AS tot_pack_cnt,
-		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt
+		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt,
+		    IFNULL(C.STATE,'0') AS state
 			FROM 
 			    cusdec830a1airrdy a
 			    LEFT JOIN
 				(select cmmn_cd, cmmn_nm from cmmn_cd where grp_cd = 'EXPSHRPTCD') I
 				on I.cmmn_cd = SUBSTRING(a.rpt_no, 1, 5)
+			 	LEFT JOIN 
+		 		co_request C ON 
+		 		C.CORP_NO = A.EXP_SDNO
+		 		<!-- AND C.CMPNY_NM = A.COMM_FIRM -->
+		 		AND C.RPT_NO = A.RPT_NO
+			   <!--  AND B.mg_code = C.INVOICE_NO
+	     		AND B.rpt_no = C.RPT_NO -->
 			WHERE 
 			    A.rpt_seq = '00'
 		    <choose>
@@ -1072,33 +1106,42 @@
 			</when>
 		    </choose>
 		    <choose>
-			<when test="srch6 == 1">
+			<when test="srch9 == 1">
 			AND CONVERT(a.rece USING utf8mb4) IN ('의뢰', '')			
 			</when>
-			<when test="srch6 == 2">
-			AND CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제')	
+			<when test="srch9 == 2">
+			AND CONVERT(a.rece USING utf8mb4) NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료')
 			</when>
-			<when test="srch6 == 3">
+			<when test="srch9 == 3">
 			AND CONVERT(a.rece USING utf8mb4) = '미결'			
 			</when>
-			<when test="srch6 == 4">
-			AND CONVERT(a.rece USING utf8mb4) = '대기'	
+			<when test="srch9 == 4">
+			AND CONVERT(a.rece USING utf8mb4) IN ('자수', '수리', '승인', '완료')			
 			</when>
-			<when test="srch6 == 5 ">
-			AND CONVERT(a.rece USING utf8mb4) = '결재'			
-			</when>
-			<when test="srch6 == 6">
-			AND CONVERT(a.rece USING utf8mb4) = '완료'			
+			<when test="srch9 == 5">
+			AND a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d')
 			</when>
 			</choose>
-			<choose>
+			<if test="srch9 != 5">
+             <choose>
+                 <when test="srch8 == '01'">
+                     AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </when>
+                 <otherwise>
+                     AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </otherwise>
+             </choose>
+         	</if>
+
+
+			<!-- <choose>
 		    <when test="srch8 =='01'">
 		    AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 		    </when>
 		    <otherwise>
 		    AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 		    </otherwise>
-		    </choose>
+		    </choose> -->
 			<if test="srch4 != null and srch4 != ''">
 			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
 			</if>
@@ -1131,15 +1174,24 @@
 			ELSE DATE_FORMAT(a.ship_day, '%Y-%m-%d') end as ship_day,
 		    CONCAT(a.Exc_Divi, '-', a.Exc_DiviNm) AS Exc_Cot,
 		    a.Con_MetNm,
+		    FORMAT(a.amt, 2) AS amt,
 		    CONCAT(a.Tot_Pack_Cnt, ' (', a.tot_pack_ut, ')') AS tot_pack_cnt,
-		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt
+		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt,
+		    IFNULL(C.STATE,'0') AS state
 			FROM 
 			    cusdec830a1bsnrdy a
 			    LEFT JOIN
 				(select cmmn_cd, cmmn_nm from cmmn_cd where grp_cd = 'EXPSHRPTCD') I
 				on I.cmmn_cd = SUBSTRING(a.rpt_no, 1, 5)
-			WHERE 
-			    A.rpt_seq = '00'
+				LEFT JOIN 
+		 		co_request C ON 
+		 		C.CORP_NO = A.EXP_SDNO
+		 		<!-- AND C.CMPNY_NM = A.COMM_FIRM -->
+		 		AND C.RPT_NO = A.RPT_NO
+			   <!--  AND B.mg_code = C.INVOICE_NO
+	     		AND B.rpt_no = C.RPT_NO -->
+				WHERE 
+				    A.rpt_seq = '00'
 		    <choose>
 		    <when test="srch1 =='02'">
 		    AND CONVERT(a.rece USING utf8mb4) = '수리'
@@ -1155,33 +1207,142 @@
 			</when>
 		    </choose>
 		    <choose>
-			<when test="srch6 == 1">
+			<when test="srch9 == 1">
 			AND CONVERT(a.rece USING utf8mb4) IN ('의뢰', '')			
 			</when>
-			<when test="srch6 == 2">
-			AND CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제')	
+			<when test="srch9 == 2">
+			AND CONVERT(a.rece USING utf8mb4) NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료')
 			</when>
-			<when test="srch6 == 3">
+			<when test="srch9 == 3">
 			AND CONVERT(a.rece USING utf8mb4) = '미결'			
 			</when>
-			<when test="srch6 == 4">
-			AND CONVERT(a.rece USING utf8mb4) = '대기'	
+			<when test="srch9 == 4">
+			AND CONVERT(a.rece USING utf8mb4) IN ('자수', '수리', '승인', '완료')				
 			</when>
-			<when test="srch6 == 5 ">
-			AND CONVERT(a.rece USING utf8mb4) = '결재'			
-			</when>
-			<when test="srch6 == 6">
-			AND CONVERT(a.rece USING utf8mb4) = '완료'			
+			<when test="srch9 == 5">
+			AND a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d')
 			</when>
 			</choose>
-			<choose>
+			<!-- <choose>
 		    <when test="srch8 =='01'">
 		    AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 		    </when>
 		    <otherwise>
 		    AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 		    </otherwise>
+		    </choose> -->
+		    <if test="srch9 != 5">
+             <choose>
+                 <when test="srch8 == '01'">
+                     AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </when>
+                 <otherwise>
+                     AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </otherwise>
+             </choose>
+         	</if>
+
+			<if test="srch4 != null and srch4 != ''">
+			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
+			</if>
+			<if test="srch5 != null and srch5 != ''">
+			AND a.rpt_no IN (SELECT DISTINCT RPT_NO FROM cusdec830b1bsnrdy WHERE mg_code like CONCAT('%',UPPER(#{srch5}),'%'))
+			</if>
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+        	
+        	UNION
+        	
+        	SELECT
+			a.sn,
+		    a.rece,
+		    a.rece_result,
+		    CONCAT(SUBSTRING(a.rpt_no, 1, 5), '-', SUBSTRING(a.rpt_no, 6, 2), '-', SUBSTRING(a.rpt_no, 8, 7)) AS rpt_no,
+		    a.exp_firm,
+		    a.buy_firm,
+		    a.Ta_St_iso,
+		    IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
+		    CASE WHEN a.Rpt_Day != '' THEN DATE_FORMAT(a.Rpt_Day, '%Y-%m-%d') ELSE '' END AS rpt_Day,
+		    CASE WHEN a.Exp_Lis_Day != '' THEN DATE_FORMAT(a.Exp_Lis_Day, '%Y-%m-%d') ELSE '' END AS Exp_Lis_Day,
+		    CASE WHEN a.Juk_Day != '' THEN DATE_FORMAT(a.Juk_Day, '%Y-%m-%d') ELSE '' END AS Juk_Day,
+		    case when a.ship_day IS NULL then '-' 
+		    	 when a.ship_day = '' then '-'
+			ELSE DATE_FORMAT(a.ship_day, '%Y-%m-%d') end as ship_day,
+		    CONCAT(a.Exc_Divi, '-', a.Exc_DiviNm) AS Exc_Cot,
+		    a.Con_MetNm,
+		    FORMAT(a.amt, 2) AS amt,
+		    CONCAT(a.Tot_Pack_Cnt, ' (', a.tot_pack_ut, ')') AS tot_pack_cnt,
+		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt,
+		    IFNULL(C.STATE,'0') AS state
+			FROM 
+			    cusdec830a1 a
+			    LEFT JOIN
+				(select cmmn_cd, cmmn_nm from cmmn_cd where grp_cd = 'EXPSHRPTCD') I
+				on I.cmmn_cd = SUBSTRING(a.rpt_no, 1, 5)
+				LEFT JOIN 
+		 		co_request C ON 
+		 		C.CORP_NO = A.EXP_SDNO
+		 		<!-- AND C.CMPNY_NM = A.COMM_FIRM -->
+		 		AND C.RPT_NO = A.RPT_NO
+			   <!--  AND B.mg_code = C.INVOICE_NO
+	     		AND B.rpt_no = C.RPT_NO -->
+				WHERE 
+				    A.rpt_seq = '00'
+				    AND a.branch = 'ioom'
+		    <choose>
+		    <when test="srch1 =='02'">
+		    AND a.rece = '수리'
+		    </when>
+		    <when test="srch1 =='03'">
+		    AND a.rece NOT IN ('수리', '승인')
+		    </when>
+		    <when test="srch1 == '04'">
+			AND a.rece = ''
+			</when>
+			<when test="srch1 == '05'">
+			AND a.rece != ''
+			</when>
 		    </choose>
+		    <choose>
+			<when test="srch9 == 1">
+			AND a.rece IN ('의뢰', '')			
+			</when>
+			<when test="srch9 == 2">
+			AND a.rece NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료')
+			</when>
+			<when test="srch9 == 3">
+			AND a.rece = '미결'			
+			</when>
+			<when test="srch9 == 4">
+			AND a.rece IN ('자수', '수리', '승인', '완료')				
+			</when>
+			<when test="srch9 == 5">
+			AND a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d')
+			</when>
+			</choose>
+			<!-- <choose>
+		    <when test="srch8 =='01'">
+		    AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		    </when>
+		    <otherwise>
+		    AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		    </otherwise>
+		    </choose> -->
+		    <if test="srch9 != 5">
+             <choose>
+                 <when test="srch8 == '01'">
+                     AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </when>
+                 <otherwise>
+                     AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </otherwise>
+             </choose>
+         	</if>
+
 			<if test="srch4 != null and srch4 != ''">
 			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
 			</if>
@@ -1214,14 +1375,23 @@
 			ELSE DATE_FORMAT(a.TE1_142, '%Y-%m-%d') end as ship_day,
 		    a.TE1_037 AS Exc_Cot,
 		    '' AS Con_MetNm,
+		    0 AS amt,
 		    CONCAT(a.TE1_055, ' (', a.TE1_133, ')') AS tot_pack_cnt,
-		    a.TE1_053 AS tot_wt
+		    a.TE1_053 AS tot_wt,
+		    IFNULL(C.STATE,'0') AS state
 			FROM 
 			    temp_export1bsnenc a
 			    LEFT JOIN
 				(select cmmn_cd, cmmn_nm from cmmn_cd where grp_cd = 'EXPSHRPTCD') I
 				on I.cmmn_cd = SUBSTRING(a.TE1_032, 1, 5)
-			WHERE 1=1
+			 	LEFT JOIN 
+		 		co_request C ON 
+		 		C.CORP_NO = A.TE1_126
+		 		<!-- AND C.CMPNY_NM = A.COMM_FIRM -->
+		 		AND C.RPT_NO = A.TE1_001
+			   <!--  AND B.mg_code = C.INVOICE_NO
+	     		AND B.rpt_no = C.RPT_NO -->
+				WHERE 1=1
 		    <choose>
 		    <when test="srch1 =='02'">
 		    AND A.TE1_098 = '수리'
@@ -1237,33 +1407,32 @@
 			</when>
 		    </choose>
 		    <choose>
-			<when test="srch6 == 1">
-			AND TE1_098 IN ('의뢰', '')			
+			<when test="srch9 == 1">
+			AND CONVERT(a.TE1_098 USING utf8mb4) IN ('의뢰', '')			
 			</when>
-			<when test="srch6 == 2">
-			AND TE1_098 IN ('접수', '검사', '제출', '전제')
+			<when test="srch9 == 2">
+			AND CONVERT(a.TE1_098 USING utf8mb4) NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료')	
 			</when>
-			<when test="srch6 == 3">
-			AND TE1_098 = '미결'			
+			<when test="srch9 == 3">
+			AND CONVERT(a.TE1_098 USING utf8mb4) = '미결'			
 			</when>
-			<when test="srch6 == 4">
-			AND TE1_098 = '대기'	
+			<when test="srch9 == 4">
+			AND CONVERT(a.TE1_098 USING utf8mb4) IN ('자수', '수리', '승인', '완료')				
 			</when>
-			<when test="srch6 == 5">
-			AND TE1_098 = '결재'			
-			</when>
-			<when test="srch6 == 6">
-			AND TE1_098 = '완료'			
+			<when test="srch9 == 5">
+			AND a.TE1_142 = DATE_FORMAT(CURDATE(), '%Y%m%d')
 			</when>
 			</choose>
-			<choose>
-		    <when test="srch8 =='01'">
-		    AND A.TE1_034 BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
-		    </when>
-		    <otherwise>
-		    AND A.TE1_095 BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
-		    </otherwise>
-		    </choose>
+			<if test="srch9 != 5">
+             <choose>
+                 <when test="srch8 == '01'">
+                     AND A.TE1_034 BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </when>
+                 <otherwise>
+                     AND A.TE1_095 BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </otherwise>
+             </choose>
+         	</if>
 			<if test="srch4 != null and srch4 != ''">
 			AND a.TE1_032 LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
 			</if>
@@ -1276,7 +1445,6 @@
 	                #{id}
 	            </foreach>
         	</if>
-        	
 		) AS EXPORT
 		WHERE 1=1
 			<if test="srchType1 != null and srchType1 != '' and srchText1 != null and srchText1 != ''">
@@ -1373,6 +1541,25 @@
 		FROM cusdec830b1bsnrdy
 			WHERE rpt_no = #{srch4}
 			AND rpt_seq = '00'
+			
+			UNION
+			
+			SELECT 
+			RPT_NO,
+			RAN_NO,
+			CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
+			Exc_Gnm,
+			Con_Amt,
+			Sun_Wt,
+			Pack_Cnt,
+			Ori_st_mark1,
+			mg_code AS invoice,
+			Att_yn,
+			amt_cod AS incorterms
+		FROM cusdec830b1
+			WHERE rpt_no = #{srch4}
+			AND rpt_seq = '00'
+			AND branch = 'ioom'
 			
 			UNION
 			
@@ -1540,6 +1727,26 @@
 		UNION
 		
 		SELECT
+			RPT_NO,
+			RAN_NO, 
+			Sil,
+			Gnm1, 
+			Qty, 
+			Price, 
+			Amt,
+			Gnm2, 
+			Gnm3, 
+			Gnm4, 
+			Gnm5
+		FROM cusdec830c1
+		WHERE rpt_no = #{srch4}
+		AND RAN_NO = #{srch6}
+		AND rpt_seq = '00'
+		AND branch = 'ioom'
+		
+		UNION
+		
+		SELECT
 		TE3_001 AS RPT_NO,  
 		TE3_002 AS RAN_NO,  
 		TE3_003 AS Sil,     
@@ -1617,113 +1824,137 @@
 	
 	<select id="selectExportUpdateList" parameterType="searchVO" resultType="egovMap">
 		SELECT 
-			COUNT(*) over() AS cnt,
-			factory_code,
-			sr_ordr,
-			rece,
-			modi_seq,
-			rece_result,
-			Modi_Cot1,
-			rpt_no,
-			invoice,
-			exp_firm,
-			buy_firm,
-			Ta_St_iso,
-			rpt_Day,
-		    Exp_Lis_Day,
-		    Juk_Day,
-			ship_day,
-			exp_details,
-			Exc_Cot,
-			Con_MetNm,
-			incoterms,
-			tot_pack_cnt,
-			tot_wt, 
-			approval,
-			user_memo,
-			cus_memo
-		FROM 
-		(	
-			SELECT 
-		    SUBSTRING_INDEX(b.user_memo, '\n', 1) AS factory_code,
-		    CASE WHEN STR_CNT(b.user_memo, '\n') >= 1 THEN
-			SUBSTRING_INDEX(SUBSTRING_INDEX(b.user_memo, '\n', 2), '\n', -1)
-			ELSE '' END AS sr_ordr,
-		    a.rece,
-		    a.modi_seq,
-		    IFNULL(b.rece_result, '') AS RECE_RESULT,
-		    a.Modi_Cot1,
-		    CONCAT(SUBSTRING(b.rpt_no, 1, 5), '-', SUBSTRING(b.rpt_no, 6, 2), '-', SUBSTRING(b.rpt_no, 8, 7)) AS rpt_no,
-		    c.Mg_Code AS invoice,
-		    b.exp_firm,
-		    b.buy_firm,
-		    b.Ta_St_iso,
-		    CASE WHEN a.Rpt_Day != '' THEN DATE_FORMAT(a.Rpt_Day, '%Y-%m-%d') ELSE '' END AS rpt_Day,
-		    CASE WHEN a.Lis_Day != '' THEN DATE_FORMAT(a.Lis_Day, '%Y-%m-%d') ELSE '' END AS Exp_Lis_Day,
-		    CASE WHEN b.Juk_Day != '' THEN DATE_FORMAT(b.Juk_Day, '%Y-%m-%d') ELSE '' END AS Juk_Day,
-		    case when b.ship_day IS NULL then '-' 
-		    	 when b.ship_day = '' then '-'
-			ELSE DATE_FORMAT(b.ship_day, '%Y-%m-%d') end as ship_day,
-		    '' AS exp_details,
-		    CONCAT(Exc_Divi, '-', Exc_DiviNm) AS Exc_Cot,
-		    Con_MetNm,
-		    c.amt_cod AS incoterms,
-		    CONCAT(b.Tot_Pack_Cnt, ' (', b.tot_pack_ut, ')') AS tot_pack_cnt, 
-		    CONCAT(b.Tot_Wt, ' (', b.ut, ')') AS tot_wt,         
-		    '' AS approval,
-		    b.user_memo,
-		    '' AS cus_memo
-			FROM 
-		    cusdmr5asa1 a
-			INNER JOIN cusdec830a1 b
-			ON a.exp_rpt_no = b.rpt_no 
-			AND a.BRANCH = b.BRANCH 
-			AND a.CUS_PRG = b.CUS_PRG 
-			AND a.CUSDEC830SN = b.SN
-			AND LEFT(b.Rpt_No, 5) IN ('40084', '42836', '44648', '44013', '44804')
-			INNER JOIN
-				    (SELECT COUNT(*) over() AS cnt, sna1, rpt_no, MAX(mg_code) AS mg_code, amt_cod FROM cusdec830b1 GROUP BY sna1, rpt_no) c
-			ON b.sn = c.sna1
-			AND b.rpt_no = c.rpt_no
-			where 1=1
-				<choose>
-			    <when test="srch1 =='02'">
-			    AND a.rece = '승인'
-			    </when>
-			    <when test="srch1 =='03'">
-			    AND a.rece NOT IN ('승인')
-			    </when>
-			    </choose>
-				<choose>
-			    <when test="srch8 =='01'">
-			    AND a.rpt_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
-			    </when>
-			    <otherwise>
-			    AND a.Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
-			    </otherwise>
-			    </choose>
-				<if test="srch4 != null and srch4 != ''">
-				AND b.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
-				</if>
-				<if test="srch5 != null and srch5 != ''">
-				AND c.mg_code LIKE CONCAT('%',UPPER(#{srch5}),'%')
-				</if>
-				<if test="list != null and list.size() > 0">
-		            AND b.exp_sdno IN
-		            <foreach item="id" collection="list" open="(" separator="," close=")">
-		                #{id}
-		            </foreach>
-	        	</if>
-			) AS PagingQuery
-			WHERE 1=1
-			<if test="srchType1 != null and srchType1 != '' and srchText1 != null and srchText1 != ''">
-			AND ${srchType1} LIKE CONCAT('%',UPPER(#{srchText1}),'%')
-			</if>
-			<if test="srchType2 != null and srchType2 != '' and srchText2 != null and srchText2 != ''">
-			AND ${srchType2} LIKE CONCAT('%',UPPER(#{srchText2}),'%')
-			</if>
-			ORDER BY rpt_day desc, rpt_no desc
-			LIMIT #{recordCountPerPage} OFFSET #{startPage};
+		    COUNT(*) OVER() AS CNT,
+		    sn,
+		    rece,
+		    expName,
+		    invoice,
+		    expRptNo,
+		    modiSeq,
+		    rptDay,
+		    dptDay, 
+		    modiCot1, 
+		    customs,
+		    lisDay,
+		    plant,
+		    so
+		FROM (
+		    SELECT
+		    	A.sn AS sn,
+		    	B.exp_sdno AS exp_sdno,
+		        A.rece AS rece,
+		        A.exp_name AS expName,
+		        C.invoice AS invoice,
+		        CONCAT(SUBSTRING(A.exp_rpt_no, 1, 5), '-', SUBSTRING(A.exp_rpt_no, 6, 2), '-', SUBSTRING(A.exp_rpt_no, 8)) AS expRptNo,
+		        A.modi_seq AS modiSeq,
+		        (CASE WHEN A.rpt_day IS NULL OR A.rpt_day = '' THEN '' ELSE DATE_FORMAT(STR_TO_DATE(A.rpt_day, '%Y%m%d'), '%Y-%m-%d') END) AS rptDay,
+		        (CASE WHEN A.dpt_day IS NULL OR A.dpt_day = '' THEN '' ELSE DATE_FORMAT(STR_TO_DATE(A.dpt_day, '%Y%m%d'), '%Y-%m-%d') END) AS dptDay, 
+		        A.modi_cot1 AS modiCot1,
+		        E.Cont AS customs, 
+		        (CASE WHEN A.lis_day IS NULL OR A.lis_day = '' THEN '' ELSE DATE_FORMAT(STR_TO_DATE(A.lis_day, '%Y%m%d'), '%Y-%m-%d') END) AS lisDay,
+		        B.plant AS plant,
+		        B.so AS so
+		    FROM (
+		        SELECT
+		            sn, 
+		            exp_rpt_no, 
+		            branch, 
+		            exp_name,
+		            cus_prg,  
+		            cus, 
+		            lis_day, 
+		            rpt_day,
+		            duty_cot,
+		            modi_seq,
+		            modi_cot1,
+		            send_divi,
+		            dpt_day,
+		            rece
+		        FROM cusdmr5asa1
+		    ) A
+		    LEFT OUTER JOIN (
+		        SELECT 
+		            exp_sdno,
+		            rpt_no,
+		            rpt_cus,
+		            SUBSTRING_INDEX(USER_MEMO, '\n', 1) AS plant, 
+		            CASE WHEN STR_CNT(USER_MEMO, '\n') >= 1 THEN SUBSTRING_INDEX(SUBSTRING_INDEX(USER_MEMO, '\n', 2), '\n', -1) ELSE '' END AS so
+		        FROM cusdec830a1
+		        WHERE RPT_SEQ = '00'
+		    ) B ON A.exp_rpt_no = B.rpt_no
+		    LEFT OUTER JOIN (
+		        SELECT  
+		            Rpt_No, 
+		            BRANCH, 
+		            CUS_PRG, 
+		            GROUP_CONCAT(mg_code SEPARATOR ', ') AS invoice
+		        FROM cusdec830b1
+		        GROUP BY rpt_no
+		    ) C ON A.exp_rpt_no = C.Rpt_No AND A.branch = C.BRANCH AND A.cus_prg = C.CUS_PRG
+		    LEFT OUTER JOIN (
+		        SELECT code, Cont
+		        FROM cdstd
+		        WHERE divi = '수출정정귀책사유'
+		    ) D ON A.send_divi = D.code
+		    LEFT OUTER JOIN (
+		        SELECT code, Cont 
+		        FROM cdstd 
+		        WHERE divi = '세관및출장소'
+		    ) E on B.Rpt_Cus = E.code
+		    WHERE 1 = 1
+		    <choose>
+		        <when test="srch1 == '02'">
+		            AND rece = '승인'
+		        </when>
+		        <when test="srch1 == '03'">
+		            AND rece NOT IN ('승인')
+		        </when>
+		    </choose>
+		    <choose>
+		        <when test="srch8 == '01'">
+		            AND rpt_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		        </when>
+		        <otherwise>
+		            AND lis_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		        </otherwise>
+		    </choose>
+		    <if test="srch4 != null and srch4 != ''">
+		        AND b.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
+		    </if>
+		    <if test="srch5 != null and srch5 != ''">
+		        AND c.mg_code LIKE CONCAT('%',UPPER(#{srch5}),'%')
+		    </if>
+		    <if test="list != null and list.size() > 0">
+		    	AND B.Exp_Sdno IN 
+		        <foreach item="id" collection="list" open="(" separator="," close=")">
+		            #{id}
+		        </foreach>
+		    </if>
+		    ) A
+		    WHERE 1=1
+		    <if test="srchType1 != null and srchType1 != '' and srchText1 != null and srchText1 != ''">
+		        AND ${srchType1} LIKE CONCAT('%',UPPER(#{srchText1}),'%')
+		    </if>
+		    <if test="srchType2 != null and srchType2 != '' and srchText2 != null and srchText2 != ''">
+		        AND ${srchType2} LIKE CONCAT('%',UPPER(#{srchText2}),'%')
+		    </if>
+			GROUP BY expRptNo
+			ORDER BY rptDay DESC;
+	</select>
+	
+	<select id="selectExpDtlUpdViewList" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+			exp_rpt_no,
+			ran_no,
+			size_no,
+			item_nm,
+			modiFront1,
+			modiAfter1,
+			pre_no,
+			seq_no,
+			cont_seqno
+		FROM cusdmr5asb1 b
+		WHERE sna1 = #{srch1} AND exp_rpt_no = #{srch2}
 	</select>
 	
 	<delete id="deleteExpInFile" parameterType="searchVO">
@@ -2156,101 +2387,6 @@
 		</if>
 	</select>
 	
-	<select id="selectExpTodayViewList" parameterType="searchVO" resultType="egovMap">
-		SELECT 
-		    '진행현황' AS expRece,
-	    	SUM(reqCnt) AS reqCnt,
-	    	SUM(ingCnt) AS ingCnt,
-	    	SUM(failCnt) AS failCnt,
-	    	SUM(cmpCnt) AS cmpCnt,
-	    	SUM(loadCmpCnt) AS loadCmpCnt
-		FROM (
-			SELECT  
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제') THEN 1 ELSE NULL END) AS ingCnt,
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '완료' THEN 1 ELSE NULL END) AS cmpCnt,
-			    (SELECT COUNT(*) FROM cusdec830a1selrdy b WHERE b.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND b.rpt_seq = '00') AS loadCmpCnt
-			FROM cusdec830a1selrdy a
-			WHERE a.rpt_seq = '00' 
-			AND a.rpt_Day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
-			<if test="list != null and list.size() > 0">
-	            AND a.nab_sdno IN 
-	            <foreach item="id" collection="list" open="(" separator="," close=")">
-	                #{id}
-	            </foreach>
-        	</if>
-	    	UNION
-	
-	    	SELECT 
-	    		COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제') THEN 1 ELSE NULL END) AS ingCnt,
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '완료' THEN 1 ELSE NULL END) AS cmpCnt,
-			    (SELECT COUNT(*) FROM cusdec830a1icnrdy b WHERE b.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND b.rpt_seq = '00') AS loadCmpCnt
-	    	FROM cusdec830a1icnrdy a
-	    	WHERE a.rpt_seq = '00' 
-	      	AND a.rpt_Day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
-			<if test="list != null and list.size() > 0">
-	            AND a.nab_sdno IN 
-	            <foreach item="id" collection="list" open="(" separator="," close=")">
-	                #{id}
-	            </foreach>
-        	</if>
-	    	UNION
-	
-	    	SELECT 
-	       		COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제') THEN 1 ELSE NULL END) AS ingCnt,
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '완료' THEN 1 ELSE NULL END) AS cmpCnt,
-			    (SELECT COUNT(*) FROM cusdec830a1airrdy b WHERE b.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND b.rpt_seq = '00') AS loadCmpCnt
-	    	FROM cusdec830a1airrdy a
-	    	WHERE a.rpt_seq = '00' 
-	      	AND a.rpt_Day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
-			<if test="list != null and list.size() > 0">
-	            AND a.nab_sdno IN 
-	            <foreach item="id" collection="list" open="(" separator="," close=")">
-	                #{id}
-	            </foreach>
-        	</if>
-	    	UNION
-	
-			SELECT 
-	    		COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제') THEN 1 ELSE NULL END) AS ingCnt,
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
-			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '완료' THEN 1 ELSE NULL END) AS cmpCnt,
-			    (SELECT COUNT(*) FROM cusdec830a1bsnrdy b WHERE b.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND b.rpt_seq = '00') AS loadCmpCnt
-			FROM cusdec830a1bsnrdy a
-			WHERE a.rpt_seq = '00' 
-	  		AND a.rpt_Day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
-			<if test="list != null and list.size() > 0">
-	            AND a.nab_sdno IN 
-	            <foreach item="id" collection="list" open="(" separator="," close=")">
-	                #{id}
-	            </foreach>
-        	</if>
-	   		UNION
-	
-	    	SELECT 
-	    	
-	    	COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
-		    COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) IN ('접수', '검사', '제출', '전제') THEN 1 ELSE NULL END) AS ingCnt,
-		    COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
-		    COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) = '완료' THEN 1 ELSE NULL END) AS cmpCnt,
-		    (SELECT COUNT(*) FROM temp_export1bsnenc b WHERE b.TE1_142 = DATE_FORMAT(CURDATE(), '%Y%m%d') AND b.TE1_032 = '00') AS loadCmpCnt
-	    	FROM temp_export1bsnenc a
-	   		WHERE a.TE1_034 BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
-		 	<if test="list != null and list.size() > 0">
-	            AND a.TE1_126 IN 
-	            <foreach item="id" collection="list" open="(" separator="," close=")">
-	                #{id}
-	            </foreach>
-        	</if>
-		) AS EXPORT
-	</select>
-	
 	<select id="selectCoRequset" parameterType="searchVO" resultType="egovMap">
 		SELECT A.comm_firm AS compnyName,A.exp_sdno AS corpNo
 		FROM cusdec830a1 A
@@ -2417,11 +2553,13 @@
 	<insert id="insertCoInfo" parameterType="egovframework.pf.exp.service.SaveExpMainVO">
 		INSERT INTO CO_INFO 
 		(
+		TAX_NO,
 		RPT_NO,
 		INVOICE_NO,
 		CO_DATE,
 		CO_NAME
 		)VALUES(
+		#{corpNo},
 		REPLACE(#{rptNo},'-',''),
 		#{invoiceNo},
 		DATE_FORMAT(NOW(), '%Y%m%d%H%i%s'),
@@ -2437,8 +2575,8 @@
 			A.STATE,
 			A.SUB_NUM,
 			A.INVOICE_NO,
-			A.RPT_NO,
-			A.LIS_DAY,
+			CONCAT(SUBSTRING(a.rpt_no, 1, 5), '-', SUBSTRING(a.rpt_no, 6, 2), '-', SUBSTRING(a.rpt_no, 8, 7)) AS rpt_no,
+			DATE_FORMAT(STR_TO_DATE(A.LIS_DAY, '%Y%m%d'), '%Y/%m/%d') AS lisDay,
 			A.PRODUCER,
 			A.IMPORT_COUNTRY,
 			A.IMPORTER,
@@ -2447,20 +2585,25 @@
 			A.UT,
 			A.AMT,
 			A.CONCOD,
-			A.HSCODE,
+			CONCAT(SUBSTRING(A.HSCODE, 1, 4), '.', 
+            SUBSTRING(A.HSCODE, 5, 2), '-', 
+            SUBSTRING(A.HSCODE, 7, 4)) AS hsCode,
 			A.DETER_ORIGIN,
 			A.FREE_NAME,
 			A.ISSUE_NO,
-			A.ISSUE_DATE,
+			'' as ex,
+			DATE_FORMAT(STR_TO_DATE(A.ISSUE_DATE, '%Y%m%d'), '%Y/%m/%d') AS issueDate,
 			CASE WHEN
-			    COALESCE(b.docu_file, '') &lt;&gt;  ''
-			    OR b.docu_type = 'COFILE'
+			    <!-- COALESCE(b.docu_file, '') &lt;&gt;  ''
+			    OR  -->
+			    b.docu_type = 'COFILE'
 			THEN 'O'
 			ELSE '-'
 			END AS coFile,
 			CASE WHEN
-			    COALESCE(b.docu_file, '') &lt;&gt; ''
-			    OR b.docu_type = 'SUMMITFILE'
+			   <!--  COALESCE(b.docu_file, '') &lt;&gt; ''
+			    OR  -->
+			    b.docu_type = 'SUMMITFILE'
 			THEN 'O'
 			ELSE '-'
 			END AS summitFile,
@@ -2471,6 +2614,18 @@
 		ON A.CO_DATE = B.REG_DT
 		AND A.CO_NAME = B.REG_ID
 		WHERE 1=1 
+		<if test="list != null and list.size() > 0">
+            AND A.TAX_NO IN 
+            <foreach item="id" collection="list" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+     	</if>
+     	<if test="list2 != null and list2.size() > 0">
+	    AND A.RPT_NO IN 
+	    <foreach item="rptno" collection="list2" open="(" separator="," close=")">
+	        #{rptno}
+	    </foreach>
+	    </if>
 		<if test="srch1 == '03'">
 			 AND A.STATE LIKE CONCAT('%', '의뢰', '%')
 		</if>
@@ -2493,7 +2648,7 @@
 			AND A.INVOICE_NO LIKE CONCAT('%',UPPER(#{srch2}),'%')
 		</if>
 		<if test="srch3 != null and srch3 != ''">
-			AND A.RPT_NO LIKE CONCAT('%',UPPER(#{srch3}),'%')
+			AND REPLACE(A.RPT_NO, '-', '') LIKE CONCAT('%', REPLACE(UPPER(#{srch3}), '-', ''), '%')
 		</if>
 		<choose>
 		    <when test="srch7 == '01'">
@@ -2504,13 +2659,12 @@
 		    </otherwise>
 		</choose>
 		GROUP BY A.CO_DATE
-		ORDER BY A.CO_DATE desc
-		
+		ORDER BY A.SUB_NUM,A.CO_DATE desc
 		LIMIT #{recordCountPerPage} OFFSET #{startPage};
 	</select>
 	
 	<insert id="insertCoFilesInfo"  parameterType="egovframework.pf.docu.service.SaveDocuFileVO">
-	INSERT INTO file_infoLWL
+	INSERT INTO file_info
 		(	FILE_TYPE
 		  ,	RPT_NO
 		  , INVOICE_NO
@@ -2577,4 +2731,348 @@
 		AND DOCU_TYPE = #{srch5}
 	</delete>
 	
+	<update id = "saveCoInfo" parameterType="egovframework.pf.exp.service.SaveExportCoVO">
+		UPDATE CO_INFO SET 
+			 STATE = #{state}
+			,SUB_NUM = #{subNum}
+			,INVOICE_NO = #{invoiceNo}
+			,RPT_NO = REPLACE(REPLACE(#{rptNo}, '-', ''), '/', '')
+			,LIS_DAY = REPLACE(REPLACE(#{lisDay}, '-', ''), '/', '')
+			,PRODUCER = #{producer}
+			,IMPORT_COUNTRY = #{importCountry}
+			,IMPORTER = #{importer}
+			,IMPGNAME = #{impgname}
+			,QTY = #{qty}
+			,UT = #{ut}
+			,AMT = #{amt}
+			,CONCOD = #{concod}
+			,HSCODE = #{hscode}
+			,DETER_ORIGIN = #{deterOrigin}
+			,FREE_NAME = #{freeName}
+			,ISSUE_NO = #{issueNo}
+			,ISSUE_DATE = REPLACE(REPLACE(#{issueDate}, '-', ''), '/', '')
+			,ISSUANCE_COST = REPLACE(#{issuanceCost},',','')
+			,JUDGMENT_COST = REPLACE(#{judgmentCost},',','')
+			,DEL_YN = 'N'
+			,REG_DT = DATE_FORMAT(NOW(), '%Y%m%d')
+			,REG_ID = #{regId}
+		WHERE 
+		      CO_DATE = #{coDate} 
+		  AND CO_NAME = #{coName}
+	</update>
+	
+	<select id="selectBlno" parameterType="searchVO" resultType="string">
+	
+	SELECT invoice
+	FROM (
+	SELECT mg_code AS invoice
+	FROM cusdec830b1selrdy
+	WHERE rpt_no = REPLACE(#{srch2},'-','') AND rpt_seq = '00' UNION
+	SELECT mg_code AS invoice
+	FROM cusdec830b1airrdy
+	WHERE rpt_no = REPLACE(#{srch2},'-','') AND rpt_seq = '00' UNION
+	SELECT  mg_code AS invoice
+	FROM cusdec830b1icnrdy
+	WHERE rpt_no = REPLACE(#{srch2},'-','') AND rpt_seq = '00' UNION
+	SELECT mg_code AS invoice
+	FROM cusdec830b1bsnrdy
+	WHERE rpt_no = REPLACE(#{srch2},'-','') AND rpt_seq = '00' UNION
+	SELECT TE2_005 AS invoice
+	FROM temp_export2bsnenc
+	WHERE TE2_001 = REPLACE(#{srch2},'-','')) A
+    LIMIT 1
+   ;	 
+	</select>
+	
+	<select id="selectExpTodayViewList" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+		    '진행현황' AS expRece,
+	    	SUM(reqCnt) AS reqCnt,
+	    	SUM(ingCnt) AS ingCnt,
+	    	SUM(failCnt) AS failCnt,
+	    	SUM(cmpCnt) AS cmpCnt,
+	    	SUM(loadCmpCnt) AS loadCmpCnt
+		FROM (
+			SELECT  
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS ingCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS cmpCnt,
+			    COUNT(CASE WHEN a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.Rpt_Seq = '00' THEN 1 ELSE 0 END) AS loadCmpCnt
+			FROM cusdec830a1selrdy a
+			WHERE a.rpt_seq = '00'
+			AND a.rpt_Day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+	    	UNION
+	
+	    	SELECT 
+	    		COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS ingCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS cmpCnt,
+			    COUNT(CASE WHEN a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.Rpt_Seq = '00' THEN 1 ELSE 0 END) AS loadCmpCnt
+	    	FROM cusdec830a1icnrdy a
+	    	WHERE a.rpt_seq = '00' 
+	      	AND a.rpt_Day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+	    	UNION
+	
+	    	SELECT 
+	       		COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS ingCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS cmpCnt,
+			    COUNT(CASE WHEN a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.Rpt_Seq = '00' THEN 1 ELSE 0 END) AS loadCmpCnt
+	    	FROM cusdec830a1airrdy a
+	    	WHERE a.rpt_seq = '00'
+	      	AND a.rpt_Day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+	    	UNION
+	
+			SELECT 
+	    		COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS ingCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS cmpCnt,
+			    COUNT(CASE WHEN a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.Rpt_Seq = '00' THEN 1 ELSE 0 END) AS loadCmpCnt
+			FROM cusdec830a1bsnrdy a
+			WHERE a.rpt_seq = '00' 
+	  		AND a.rpt_Day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+	   		UNION
+	
+	    	SELECT 
+	    	
+	    	COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+		    COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS ingCnt,
+		    COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+		    COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) IN ('자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS cmpCnt,
+		    COUNT(CASE WHEN a.TE1_142 = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.TE1_032 = '00' THEN 1 ELSE 0 END) AS loadCmpCnt
+	    	FROM temp_export1bsnenc a
+	   		WHERE a.TE1_034 BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+		 	<if test="list != null and list.size() > 0">
+	            AND a.TE1_126 IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+		) AS EXPORT
+	</select>
+	
+	<select id="selectExpTodayInclOthViewList" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+		    '진행현황' AS expRece,
+	    	SUM(a.reqCnt) + b.reqCnt AS reqCnt,
+	    	SUM(a.ingCnt) + b.ingCnt AS ingCnt,
+	    	SUM(a.failCnt) + b.failCnt AS failCnt,
+	    	SUM(a.cmpCnt) + b.cmpCnt AS cmpCnt,
+	    	SUM(a.loadCmpCnt) + b.loadCmpCnt AS loadCmpCnt
+		FROM (
+			SELECT  
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제') THEN 1 ELSE NULL END) AS ingCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '완료' THEN 1 ELSE NULL END) AS cmpCnt,
+			    (SELECT COUNT(*) FROM cusdec830a1selrdy b WHERE b.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND b.rpt_seq = '00') AS loadCmpCnt
+			FROM cusdec830a1selrdy a
+			WHERE a.rpt_seq = '00'
+			AND a.rpt_Day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+	    	UNION
+	
+	    	SELECT 
+	    		COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제') THEN 1 ELSE NULL END) AS ingCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '완료' THEN 1 ELSE NULL END) AS cmpCnt,
+			    (SELECT COUNT(*) FROM cusdec830a1icnrdy b WHERE b.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND b.rpt_seq = '00') AS loadCmpCnt
+	    	FROM cusdec830a1icnrdy a
+	    	WHERE a.rpt_seq = '00' 
+	      	AND a.rpt_Day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+	    	UNION
+	
+	    	SELECT 
+	       		COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제') THEN 1 ELSE NULL END) AS ingCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '완료' THEN 1 ELSE NULL END) AS cmpCnt,
+			    (SELECT COUNT(*) FROM cusdec830a1airrdy b WHERE b.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND b.rpt_seq = '00') AS loadCmpCnt
+	    	FROM cusdec830a1airrdy a
+	    	WHERE a.rpt_seq = '00'
+	      	AND a.rpt_Day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+	    	UNION
+	
+			SELECT 
+	    		COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제') THEN 1 ELSE NULL END) AS ingCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '완료' THEN 1 ELSE NULL END) AS cmpCnt,
+			    (SELECT COUNT(*) FROM cusdec830a1bsnrdy b WHERE b.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND b.rpt_seq = '00') AS loadCmpCnt
+			FROM cusdec830a1bsnrdy a
+			WHERE a.rpt_seq = '00' 
+	  		AND a.rpt_Day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+	   		UNION
+	
+	    	SELECT 
+	    	
+	    	COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+		    COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) IN ('접수', '검사', '제출', '전제') THEN 1 ELSE NULL END) AS ingCnt,
+		    COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+		    COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) = '완료' THEN 1 ELSE NULL END) AS cmpCnt,
+		    (SELECT COUNT(*) FROM temp_export1bsnenc b WHERE b.TE1_142 = DATE_FORMAT(CURDATE(), '%Y%m%d') AND b.TE1_032 = '00') AS loadCmpCnt
+	    	FROM temp_export1bsnenc a
+	   		WHERE a.TE1_034 BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+		 	<if test="list != null and list.size() > 0">
+	            AND a.TE1_126 IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+		) AS a
+		JOIN 
+		    (
+		     SELECT 
+		     	COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) IN ('접수', '검사', '제출', '전제') THEN 1 ELSE NULL END) AS ingCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+			    COUNT(CASE WHEN CONVERT(a.rece USING utf8mb4) = '완료' THEN 1 ELSE NULL END) AS cmpCnt,
+			    (SELECT COUNT(*) FROM cusdec830a1 b WHERE b.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND b.rpt_seq = '00') AS loadCmpCnt
+		     FROM cusdec830a1 a
+		     WHERE a.branch = 'ioom' 
+		     AND a.rpt_day = REPLACE(CURDATE(), '-', '')
+		     <if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+		    ) b;
+	</select>
+	
+	<select id="selectExpDetailView" parameterType="searchVO" resultType="egovMap">
+	    SELECT 
+			CASE WHEN a.rpt_no != '' THEN CONCAT_WS('-', SUBSTRING(a.rpt_no, 1, 5), SUBSTRING(a.rpt_no, 6, 2), SUBSTRING(a.rpt_no, 8)) ELSE '' END AS rpt_no, 
+			CASE WHEN rpt_day != '' THEN DATE_FORMAT(rpt_day, '%Y-%m-%d') ELSE '' END AS rpt_day,
+			CASE WHEN exp_lis_day != '' THEN DATE_FORMAT(exp_lis_day, '%Y-%m-%d') ELSE '' END AS exp_lis_day,
+			a.exp_firm,
+			a.mak_firm, 
+			a.buy_Firm,
+			b.mg_Code, 
+			a.amt_cod,
+			a.cur,
+			FORMAT(a.amt, 2) AS amt,
+			a.fre_Krw,
+			a.insu_Krw,
+			a.tot_pack_cnt,
+			a.tot_pack_ut,
+			FORMAT(a.tot_wt, 2) AS tot_wt,
+			a.ut,
+			a.exc_divi,
+			a.con_met,
+			CASE WHEN juk_day != '' THEN DATE_FORMAT(a.juk_day, '%Y-%m-%d') ELSE '' END AS juk_day,
+			b.ran_no, 
+			b.hs,
+			b.std_gnm,
+			FORMAT(b.Rpt_Krw, 2) AS Rpt_Krw,
+			FORMAT(b.Rpt_Usd, 2) AS Rpt_Usd, 
+			b.cur_ut,
+			FORMAT(b.con_amt, 4) AS con_amt,
+			FORMAT(b.Sun_Wt, 4) AS Sun_Wt,
+			b.sun_ut,
+			b.wt,
+			b.ut,
+			b.Imp_Rpt_Send,
+			b.Imp_Ran_No,
+			b.ori_st_mark1,
+			c.sil, 
+			c.mg_cd, 
+			c.Gnm1,
+			c.gnm2,
+			FORMAT(c.qty, 4) AS qty,
+			c.qty_ut,
+			FORMAT(c.Price, 2) AS Price,
+			FORMAT(c.amt, 4) AS amt
+		FROM cusdec830a1 a
+		INNER JOIN cusdec830b1 b ON a.rpt_no = b.rpt_no AND a.BRANCH = b.BRANCH AND a.CUS_PRG = b.CUS_PRG AND a.SN = b.SNA1
+		INNER JOIN cusdec830c1 c ON a.rpt_no = c.rpt_no AND a.BRANCH = c.BRANCH AND a.CUS_PRG = c.CUS_PRG AND a.SN = c.SNA1 AND b.SN = c.SNB1
+	    WHERE 1=1
+	    AND a.rpt_seq = '00'
+        AND a.exp_lis_day BETWEEN REPLACE(#{srch1}, '-', '') AND REPLACE(#{srch2}, '-', '')
+	    <if test="list != null and list.size() > 0">
+	        AND a.exp_sdno IN 
+	        <foreach item="id" collection="list" open="(" separator="," close=")">
+	            #{id}
+	        </foreach>
+	    </if>
+	</select>
+	
+	<insert id="insertExpExcelStatus" parameterType="searchVO">
+		INSERT INTO excel_status (
+			cmpny_cd,
+			type, 
+			total_cnt, 
+			job_cnt, 
+			reg_dt,
+			reg_id
+		) VALUES (
+			#{cmpnyCd},
+			'exp', 
+			#{sExcelBuffer}, 
+			#{eExcelBuffer}, 
+			NOW(),
+			#{id}
+		) ON DUPLICATE KEY UPDATE
+			type = 'exp',
+		    total_cnt = #{sExcelBuffer},
+		    job_cnt = #{eExcelBuffer}, 
+		    reg_dt = NOW(),
+		    reg_id = #{id}
+	</insert>
+	
+	<select id="selectExpDetailProgress" parameterType="searchVO" resultType="egovMap">
+		SELECT job_cnt, total_cnt FROM excel_status WHERE cmpny_cd = #{srch1}
+	</select>
 </mapper>

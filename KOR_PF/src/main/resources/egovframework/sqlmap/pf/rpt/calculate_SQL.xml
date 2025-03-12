@@ -310,45 +310,160 @@ AND po LIKE CONCAT('%',UPPER(#{srch9}),'%')
 
 	<select id="selectCalculInfo2" parameterType="searchVO" resultType="egovMap">
 	SELECT 
-	A.BL_NO ,
-	CONCAT(SUBSTRING(B.rpt_no, 1, 5), '-', SUBSTRING(B.rpt_no, 6, 2), '-', SUBSTRING(B.rpt_no, 8, 7)) as rptNo,
-	CASE WHEN B.rpt_Day != '' THEN DATE_FORMAT(B.rpt_Day, '%Y-%m-%d') ELSE '' END AS rptDay, -- 신고일자
-	CASE WHEN B.Lis_Day != '' THEN DATE_FORMAT(B.Lis_Day, '%Y-%m-%d') ELSE '' END AS lisDay, -- 수리일자
-	A.PARTN_CMPNY_NM as partnCmpny, -- 구분
-	A.description as description,
-	D.SUM_EK as clearFee , -- 통관수수료
-	C.fixed_charge as inlandFee, -- 내국운송료
-	A.SUP_AMT as supAmt,
-	A.TAX_AMT as taxAmt,
-	A.TOT_AMT as totAmt,
-	A.REMARKS as remarks,
-	A.PAYMENT_YN as paymentYn
-	FROM calcul_info A
-	LEFT JOIN cusdec929a1 B
-	ON A.BL_NO = B.BlNo
-	AND B.Rpt_Seq = '00'
-	LEFT JOIN  shipping_order C 
-    ON A.bl_no = C.BL_NO  AND B.BlNo = C.bl_no AND B.BlNo = C.bl_no
-    LEFT JOIN FR_MAIN E  
-    ON B.RPT_NO = E.RPT_NO AND B.BlNo = E.HAWB  AND A.BL_NO = E.HAWB
-    LEFT JOIN ADJ_LIST D  
-    ON D.FR_KEY = E.FR_KEY AND B.BRANCH = D.BRANCH 
-	WHERE 1=1
-	AND D.ADJ_NM LIKE '%통관수수료%'
-	AND A.TAX_NO = #{corpNo}
+			B.PARTN_CMPNY_NM as partnCmpny, -- 구분
+			A.BLNO as blNo, -- BL
+			CONCAT(SUBSTRING(A.rpt_no, 1, 5), '-', SUBSTRING(A.rpt_no, 6, 2), '-', SUBSTRING(A.rpt_no, 8, 7)) AS rpt_no,
+			CASE WHEN A.rpt_Day != '' THEN DATE_FORMAT(A.rpt_Day, '%Y-%m-%d') ELSE '' END AS rptDay, -- 신고일자
+			CASE WHEN A.Lis_Day != '' THEN DATE_FORMAT(A.Lis_Day, '%Y-%m-%d') ELSE '' END AS lisDay, -- 수리일자
+			D.SUP_EK as clearFee , -- 통관수수료
+			D.TAX_EK, -- 통관 VAT
+			CASE
+			    WHEN C.fixed_charge IS NOT NULL AND B.SHIPPING_FEE IS NOT NULL THEN B.SHIPPING_FEE
+			    WHEN C.fixed_charge IS NOT NULL THEN C.fixed_charge
+			    ELSE B.SHIPPING_FEE
+			END AS shippingFee, -- 내륙운송료
+			B.FARE_FEE, -- 운임
+			B.FARE_FEE_VAT, -- 운임(VAT) 
+			CASE
+			    WHEN C.fixed_charge_add IS NOT NULL AND B.WARE_FEE IS NOT NULL THEN B.WARE_FEE
+			    WHEN C.fixed_charge_add IS NOT NULL THEN C.fixed_charge_add
+			    ELSE B.WARE_FEE
+			END AS wareFee, -- 창고료
+			B.WARE_FEE_VAT, -- 창고료(VAT)
+			<!-- <if test="srch10 == 'read'">
+			CASE 
+			    WHEN B.ETC_FEE_VAT IS NULL OR B.ETC_FEE_VAT = ''
+			    THEN B.ETC_FEE 
+			    ELSE CONCAT(FORMAT(CAST(B.ETC_FEE AS DECIMAL), 0), '*')
+			END AS etcFee, 
+			</if>
+			<if test="srch10 == 'edit'">
+			   B.ETC_FEE, 
+			</if> -->
+			 B.ETC_FEE, -- 기타
+			 B.ETC_FEE_VAT, -- 기타(VAT)
+			  -- 공급가액 계산 (통관수수료, 내국운송료, 운임, 창고료, 기타 합산)
+		    COALESCE(D.SUP_EK, 0) 
+		     + (CASE
+		        WHEN C.fixed_charge IS NOT NULL AND B.SHIPPING_FEE IS NOT NULL THEN B.SHIPPING_FEE
+		        WHEN B.SHIPPING_FEE IS NOT NULL THEN B.SHIPPING_FEE
+		        WHEN C.fixed_charge IS NOT NULL THEN C.fixed_charge
+		        ELSE 0
+		       END)
+		    + COALESCE(B.FARE_FEE, 0) 
+		    + COALESCE(B.WARE_FEE, 0) 
+		    + COALESCE(B.ETC_FEE, 0) AS supplyAmount,
+			 -- 조정된 VAT
+		    COALESCE(D.TAX_EK, 0) 
+		    + (CASE
+		        WHEN C.fixed_charge IS NOT NULL AND B.SHIPPING_FEE IS NOT NULL THEN B.SHIPPING_FEE * 0.1
+		        WHEN B.SHIPPING_FEE IS NOT NULL THEN B.SHIPPING_FEE * 0.1
+		        WHEN C.fixed_charge IS NOT NULL THEN C.fixed_charge * 0.1
+		        ELSE 0
+		       END) AS calculVat,
+			<!-- CASE 
+			    WHEN B.VAT IS NULL OR B.VAT = '' 
+			    THEN '' 
+			    ELSE 
+			       COALESCE(D.TAX_EK,0) + (COALESCE(IFNULL(C.fixed_charge, B.SHIPPING_FEE), 0) * 0.1) + B.VAT 
+			END AS totalVat,  -->
+			 COALESCE(D.TAX_EK,0)  
+			 + (CASE
+		        WHEN C.fixed_charge IS NOT NULL AND B.SHIPPING_FEE IS NOT NULL THEN B.SHIPPING_FEE * 0.1
+		        WHEN B.SHIPPING_FEE IS NOT NULL THEN B.SHIPPING_FEE * 0.1
+		        WHEN C.fixed_charge IS NOT NULL THEN C.fixed_charge * 0.1
+		        ELSE 0
+		       END)  
+		       + IFNULL(B.FARE_FEE_VAT,0) + IFNULL(B.WARE_FEE_VAT,0) + IFNULL(B.ETC_FEE_VAT,0)  AS totalVat, -- 총 VAT
+			<!-- CASE
+			 WHEN B.VAT IS NULL OR B.VAT = '' 
+			    THEN  
+				  COALESCE(D.SUP_EK, 0) + COALESCE(IFNULL(C.fixed_charge, B.SHIPPING_FEE), 0) + COALESCE(B.FARE_FEE, 0) + COALESCE(B.WARE_FEE, 0) + COALESCE(B.ETC_FEE, 0)
+			    ELSE 
+				(COALESCE(D.SUP_EK, 0) + COALESCE(IFNULL(C.fixed_charge, B.SHIPPING_FEE), 0) + COALESCE(B.FARE_FEE, 0) + COALESCE(B.WARE_FEE, 0) + COALESCE(B.ETC_FEE, 0)) + 
+				(COALESCE(D.TAX_EK,0) + (COALESCE(IFNULL(C.fixed_charge, B.SHIPPING_FEE), 0) * 0.1) + B.VAT) 
+			END AS totalAmount, -->
+			 -- 합계 계산 (공급가액 + 총 VAT)
+			  (
+		        COALESCE(D.SUP_EK, 0) 
+		        +  COALESCE(
+						    CASE 
+						        WHEN C.fixed_charge IS NOT NULL AND B.SHIPPING_FEE IS NOT NULL THEN B.SHIPPING_FEE
+						        WHEN C.fixed_charge IS NOT NULL THEN C.fixed_charge
+						        ELSE B.SHIPPING_FEE 
+						    END, 
+						    0
+						)
+		        + COALESCE(B.FARE_FEE, 0) 
+		        + COALESCE(B.WARE_FEE, 0) 
+		        + COALESCE(B.ETC_FEE, 0)
+		    ) + (
+		        COALESCE(D.TAX_EK, 0) 
+		        + (CASE
+		        WHEN C.fixed_charge IS NOT NULL AND B.SHIPPING_FEE IS NOT NULL THEN B.SHIPPING_FEE * 0.1
+		        WHEN B.SHIPPING_FEE IS NOT NULL THEN B.SHIPPING_FEE * 0.1
+		        WHEN C.fixed_charge IS NOT NULL THEN C.fixed_charge * 0.1
+		        ELSE 0
+		       END)
+		        + IFNULL(B.FARE_FEE_VAT, 0) 
+		        + IFNULL(B.WARE_FEE_VAT, 0) 
+		        + IFNULL(B.ETC_FEE_VAT, 0)
+		    ) AS totalAmount,
+			B.END_YN AS end
+			FROM cusdec929a1 A
+				LEFT JOIN calcul_info B
+				ON A.BLNO = B.Bl_No AND A.Nab_SdNo = B.TAX_NO AND A.RPT_NO = B.RPT_NO
+				<if test="srch10 == 'edit'">
+				AND END_YN = 'N'
+				</if>
+				<!-- LEFT JOIN  (
+				SELECT fixed_charge,BL_NO,RPT_NO,ORDER_state
+				FROM shipping_order
+				WHERE ORDER_state = '도착'
+				)C -->
+				LEFT JOIN SHIPPING_ORDER C
+			    ON A.blno = C.BL_NO  AND A.RPT_NO = C.RPT_NO AND C.ORDER_state = '도착' AND A.NAB_SDNO = C.CORP_NO 
+			    LEFT JOIN FR_MAIN E  
+			    ON A.RPT_NO = E.RPT_NO AND A.BlNo = E.HAWB
+			    <!-- LEFT JOIN (
+				 SELECT SUP_EK,TAX_EK,FR_KEY,BRANCH,ADJ_NM
+				 FROM adj_list  
+				 WHERE ADJ_NM LIKE '%통관수수료%'
+				 )D -->
+			    LEFT JOIN adj_list D
+				ON D.FR_KEY = E.FR_KEY AND E.BRANCH = D.BRANCH AND D.ADJ_NM LIKE '%통관수수료%'
+		WHERE 1=1
+	<if test="list != null and list.size() > 0">
+            AND A.Nab_SdNo IN 
+            <foreach item="id" collection="list" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+     </if>
+     <if test="list2 != null and list2.size() > 0">
+	    AND A.RPT_NO IN 
+	    <foreach item="rptno" collection="list2" open="(" separator="," close=")">
+	        #{rptno}
+	    </foreach>
+	</if>
+	AND A.Lis_Day != ''
+	AND A.Rpt_Seq = '00'
+
 	<if test="srch7 != null and srch7 != ''">
-	AND A.BL_NO LIKE CONCAT('%',UPPER(#{srch7}),'%')
+	AND A.BLNO LIKE CONCAT('%',UPPER(#{srch7}),'%')
+	</if>
+	<if test="srch6 != null and srch6 != ''">
+	 AND A.RPT_NO LIKE CONCAT('%', UPPER(REPLACE(#{srch6}, '-', '')), '%')
 	</if>
 	<choose>
 	<when test="srch33 =='01'">
-	AND B.rpt_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+	AND A.rpt_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 	</when>
 	<otherwise>
-	AND B.Lis_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+	AND A.Lis_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 	</otherwise>
 	</choose>			
- ORDER BY A.PARTN_CMPNY_NM,B.rpt_Day desc,B.Lis_Day desc
- ;
+ 	ORDER BY A.Lis_Day desc,A.rpt_Day desc,blno,rpt_no
+	<!-- LIMIT #{recordCountPerPage} OFFSET #{startPage} -->;
 	</select>
 	
 	
@@ -533,31 +648,63 @@ AND so LIKE CONCAT('%',UPPER(#{srch9}),'%')
 	
 	<select id="selectCalculDetailViewInfo3" parameterType="searchVO" resultType="egovMap">
 	SELECT 
-	A.BL_NO ,
-	CONCAT(SUBSTRING(B.rpt_no, 1, 5), '-', SUBSTRING(B.rpt_no, 6, 2), '-', SUBSTRING(B.rpt_no, 8, 7)) as rptNo,
-	A.PARTN_CMPNY_NM as partnCmpny, -- 구분
-	A.description as description,
-	A.SUP_AMT as supAmt,
-	A.TAX_AMT as taxAmt,
-	A.TOT_AMT as totAmt,
-	A.REMARKS as remarks,
-	A.PAYMENT_YN as paymentYn
-	FROM calcul_info A
-	LEFT JOIN cusdec929a1 B
-	ON A.BL_NO = B.BlNo
-	AND B.Rpt_Seq = '00'
-	WHERE 1=1
-	AND A.TAX_NO = #{corpNo}
-	AND A.PARTN_CMPNY_NM = #{srch1}	
+			B.PARTN_CMPNY_NM as partnCmpny, -- 구분
+			A.BLNO as blNo, -- BL
+			CONCAT(SUBSTRING(A.rpt_no, 1, 5), '-', SUBSTRING(A.rpt_no, 6, 2), '-', SUBSTRING(A.rpt_no, 8, 7)) AS rpt_no,
+			CASE WHEN A.rpt_Day != '' THEN DATE_FORMAT(A.rpt_Day, '%Y-%m-%d') ELSE '' END AS rptDay, -- 신고일자
+			CASE WHEN A.Lis_Day != '' THEN DATE_FORMAT(A.Lis_Day, '%Y-%m-%d') ELSE '' END AS lisDay, -- 수리일자
+			D.SUP_EK as clearFee , -- 통관수수료
+			D.TAX_EK, -- 통관 VAT
+			IFNULL(C.fixed_charge,B.SHIPPING_FEE) as shippingFee, -- 내륙운송료
+			B.FARE_FEE, -- 운임
+			B.FARE_FEE_VAT, -- 운임(VAT) 
+			B.WARE_FEE, -- 창고료
+			B.WARE_FEE_VAT, -- 창고료(VAT)
+			B.ETC_FEE, -- 기타
+			B.ETC_FEE_VAT, -- 기타(VAT)
+			 -- 공급가액 계산 (통관수수료, 내국운송료, 운임, 창고료, 기타 합산)
+			COALESCE(D.SUP_EK, 0) + COALESCE(IFNULL(C.fixed_charge, B.SHIPPING_FEE), 0) + COALESCE(B.FARE_FEE, 0) + COALESCE(B.WARE_FEE, 0) + COALESCE(B.ETC_FEE, 0) AS supplyAmount,
+			COALESCE(D.TAX_EK,0) + (COALESCE(IFNULL(C.fixed_charge, B.SHIPPING_FEE), 0) * 0.1) AS calculVat, -- 조정된 VAT
+			COALESCE(D.TAX_EK,0) + (COALESCE(IFNULL(C.fixed_charge, B.SHIPPING_FEE), 0) * 0.1) + IFNULL(B.FARE_FEE_VAT,0) + IFNULL(B.WARE_FEE_VAT,0) + IFNULL(B.ETC_FEE_VAT,0)  AS totalVat, -- 총 VAT
+			 -- 합계 계산 (운임 + 운임VAT)
+			 (COALESCE(B.FARE_FEE, 0) + COALESCE(B.FARE_FEE_VAT, 0)) AS totalAmount,
+			B.END_YN AS end
+			FROM cusdec929a1 A
+				LEFT JOIN calcul_info B
+				ON A.BLNO = B.Bl_No AND A.Nab_SdNo = B.TAX_NO AND A.RPT_NO = B.RPT_NO
+				
+				LEFT JOIN SHIPPING_ORDER C
+			    ON A.blno = C.BL_NO  AND A.RPT_NO = C.RPT_NO AND C.ORDER_state = '도착' AND A.NAB_SDNO = C.CORP_NO 
+			    LEFT JOIN FR_MAIN E  
+			    ON A.RPT_NO = E.RPT_NO AND A.BlNo = E.HAWB
+			   
+			    LEFT JOIN adj_list D
+				ON D.FR_KEY = E.FR_KEY AND E.BRANCH = D.BRANCH AND D.ADJ_NM LIKE '%통관수수료%'
+		WHERE 1=1
+	<if test="list != null and list.size() > 0">
+            AND A.Nab_SdNo IN 
+            <foreach item="id" collection="list" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+     </if>
+     <if test="list2 != null and list2.size() > 0">
+            AND A.RPT_NO IN 
+            <foreach item="rptno" collection="list2" open="(" separator="," close=")">
+                #{rptno}
+            </foreach>
+     </if>
+	AND B.PARTN_CMPNY_NM = #{srch1}	
+	AND A.Lis_Day != ''
+	AND A.Rpt_Seq = '00'
 	<choose>
 	<when test="srch33 =='01'">
-	AND B.rpt_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+	AND A.rpt_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 	</when>
 	<otherwise>
-	AND B.Lis_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+	AND A.Lis_Day Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 	</otherwise>
 	</choose>	
- ORDER BY A.PARTN_CMPNY_NM
+ ORDER BY B.PARTN_CMPNY_NM,A.Lis_Day desc,A.rpt_Day desc,blno,rpt_no
  ;
 	
 	</select>
@@ -955,5 +1102,141 @@ AND so LIKE CONCAT('%',UPPER(#{srch9}),'%')
 	AND TAX_AMT = #{srch4}
 	</if>
 	 AND TOT_AMT = #{srch5}
+	</update>
+	
+	<insert id="saveUploadFile" parameterType="egovframework.pf.rpt.service.SaveCalculInfoVO">
+		INSERT INTO CALCUL_INFO(
+		TAX_NO,
+		CMPNY_NM,
+		PARTN_CMPNY_NM,
+		BL_NO,
+		RPT_NO,
+		SHIPPING_FEE,
+		FARE_FEE,
+		FARE_FEE_VAT,
+		WARE_FEE,
+		WARE_FEE_VAT,
+		ETC_FEE,
+		ETC_FEE_VAT,
+		END_YN,
+		DEL_YN,
+		REG_DT,
+		REG_ID
+		)VALUES(
+		#{taxNo},
+		#{cmpnyNm},
+		#{partnCmpnyNm},
+		#{blNo},
+		REPLACE(#{rptNo}, '-',''),
+		#{shippingFee},
+		#{fareFee},
+		#{fareFeeVat},
+		#{wareFee},
+		#{wareFeeVat},
+		#{etcFee},
+		#{etcFeeVat},
+		'N',
+		'N',
+		DATE_FORMAT(NOW(), '%Y%m%d'),
+		#{regId}
+		) ON DUPLICATE KEY
+		  UPDATE PARTN_CMPNY_NM = #{partnCmpnyNm}
+		  		, SHIPPING_FEE = #{shippingFee}
+		  		, FARE_FEE = #{fareFee}
+		  		, FARE_FEE_VAT = #{fareFeeVat}
+		  		, WARE_FEE = #{wareFee}
+		  		, WARE_FEE_VAT = #{wareFeeVat}
+		  		, ETC_FEE = #{etcFee}
+		  		, ETC_FEE_VAT = #{etcFeeVat}
+		  		, END_YN = 'N'
+		  		, DEL_YN = 'N'
+		  		, EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d')
+		  		, EDT_ID = #{regId}
+	</insert>
+	
+	<insert id="saveCalculSave" parameterType="egovframework.pf.rpt.service.SaveCalculInfoVO">
+		<!-- UPDATE CALCUL_INFO SET 
+			PARTN_CMPNY_NM = #{partnCmpny}
+			, SHIPPING_FEE = #{shippingFee}
+			, FARE_FEE = #{fareFee}
+			, WARE_FEE = #{wareFee}
+			, ETC_FEE = #{etcFee}
+			, VAT = #{vat}
+			, END_YN = 'N'
+			, DEL_YN = 'N'
+			, EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d')
+			, EDT_ID = #{regId}
+		WHERE 
+			TAX_NO = #{taxNo}
+		AND CMPNY_NM = #{cmpnyNm}
+		AND BL_NO = #{blNo}
+		AND RPT_NO = REPLACE(#{rptNo}, '-','') -->
+	INSERT INTO CALCUL_INFO(
+		TAX_NO,
+		CMPNY_NM,
+		PARTN_CMPNY_NM,
+		BL_NO,
+		RPT_NO,
+		SHIPPING_FEE,
+		FARE_FEE,
+		WARE_FEE,
+		ETC_FEE,
+		VAT,
+		END_YN,
+		DEL_YN,
+		REG_DT,
+		REG_ID
+		)VALUES(
+		#{taxNo},
+		#{cmpnyNm},
+		#{partnCmpny},
+		#{blNo},
+		REPLACE(#{rptNo}, '-',''),
+		#{shippingFee},
+		#{fareFee},
+		#{wareFee},
+		#{etcFee},
+		#{vat},
+		'N',
+		'N',
+		DATE_FORMAT(NOW(), '%Y%m%d'),
+		#{regId}
+		) ON DUPLICATE KEY
+		  UPDATE PARTN_CMPNY_NM = #{partnCmpny}
+		  		, SHIPPING_FEE = #{shippingFee}
+		  		, FARE_FEE = #{fareFee}
+		  		, WARE_FEE = #{wareFee}
+		  		, ETC_FEE = #{etcFee}
+		  		, VAT = #{vat}
+		  		, END_YN = 'N'
+		  		, DEL_YN = 'N'
+		  		, EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d')
+		  		, EDT_ID = #{regId}
+	</insert>
+	
+	<update id="saveCloseDown" parameterType="egovframework.pf.rpt.service.SaveCalculInfoVO">
+		UPDATE CALCUL_INFO SET 
+				  END_YN = 'Y'
+				, DEL_YN = 'N'
+				, EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d')
+				, EDT_ID = #{regId}
+			WHERE 
+				TAX_NO = #{taxNo}
+			AND CMPNY_NM = #{cmpnyNm}
+			AND BL_NO = #{blNo}
+			AND RPT_NO = REPLACE(#{rptNo}, '-','')
+	</update>
+	
+	<update id="saveCloseCancel" parameterType="egovframework.pf.rpt.service.SaveCalculInfoVO">
+		UPDATE CALCUL_INFO SET 
+				  END_YN = 'N'
+				, DEL_YN = 'N'
+				, EDT_DT = DATE_FORMAT(NOW(), '%Y%m%d')
+				, EDT_ID = #{regId}
+			WHERE 
+				TAX_NO = #{taxNo}
+			AND CMPNY_NM = #{cmpnyNm}
+			AND BL_NO = #{blNo}
+			AND RPT_NO = REPLACE(#{rptNo}, '-','')
 	</update>
 </mapper>

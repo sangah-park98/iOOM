@@ -257,7 +257,7 @@
 		WHERE A.declarationType = 'N'
 		AND A.CompanyCode = '2300794371'
 		AND A.CustomerName IN ('Y2 SOLUTION CO.,LTD')
-		AND A.declarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		<!-- AND A.declarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
 		<if test="srch4 != null and srch4 != ''">
 		AND right(B.ItemName,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>
@@ -273,7 +273,8 @@
 		SUM(qty) AS qty, 
 		cd_no AS invoiceNo
 		FROM liq_entry_info A
-		WHERE A.entry_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		WHERE 1=1
+		<!-- AND A.entry_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
 		<if test="srch4 != null and srch4 != ''">
 		AND item_cd LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>
@@ -388,7 +389,7 @@
 		AND A.CompanyCode = '2300794371'
 		AND A.DeclarationKindCode IN ('B11','E11','E15')
 		AND A.CustomerName = 'SEHYUN TECH CO.,LTD.'
-		AND A.declarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		<!-- AND A.declarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
 		<if test="srch4 != null and srch4 != ''">
 		AND right(B.ItemName,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>
@@ -404,7 +405,8 @@
 		SUM(qty) AS qty, 
 		cd_no AS invoiceNo
 		FROM liq_entry_info A
-		WHERE A.entry_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		WHERE 1=1 
+		<!-- AND A.entry_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
 		<if test="srch4 != null and srch4 != ''">
 		AND item_cd LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>
@@ -511,7 +513,7 @@
 		AND A.CompanyCode = '2300794371'
 		AND A.DeclarationKindCode IN ('B11', 'E11', 'E15')
 		AND A.CustomerName = 'SEHYUN TECH CO.,LTD.'
-		AND A.declarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		<!-- AND A.declarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
 		<if test="srch4 != null and srch4 != ''">
 		AND right(B.ItemName,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>
@@ -527,7 +529,8 @@
 		SUM(qty) AS qty, 
 		cd_no AS invoiceNo
 		FROM liq_entry_info A
-		WHERE A.entry_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		WHERE 1=1
+		<!-- AND A.entry_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
 		<if test="srch4 != null and srch4 != ''">
 		AND item_cd LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>
@@ -662,7 +665,7 @@
 		AND A.CompanyCode = '2300794371'
 		AND A.DeclarationKindCode IN ('B11', 'E11', 'E15')
 		AND A.CustomerName = 'SEHYUN TECH CO.,LTD.'
-		AND A.declarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		<!-- AND A.declarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
 		<if test="srch4 != null and srch4 != ''">
 		AND right(B.ItemName,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>
@@ -678,7 +681,8 @@
 		SUM(qty) AS qty, 
 		cd_no AS invoiceNo 
 		FROM liq_entry_info A
-		WHERE A.entry_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		WHERE 1=1
+		<!-- AND A.entry_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
 		<if test="srch4 != null and srch4 != ''">
 		AND item_cd LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>

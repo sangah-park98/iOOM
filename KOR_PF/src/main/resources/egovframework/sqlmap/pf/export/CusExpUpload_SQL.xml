@@ -580,7 +580,7 @@
 			#{excel_0},
 			#{excel_1},
 			#{excel_2},
-			#{excel_121},
+			IFNULL(#{excel_121},''),
 			#{excel_122},
 			'00',
 			
@@ -613,7 +613,7 @@
 			 )ON DUPLICATE KEY UPDATE
 			  RAN_NO = #{excel_1}
 			 ,Sil = #{excel_2}
-			 ,Mg_Cd = #{excel_121}
+			 ,Mg_Cd = IFNULL(#{excel_121},'')
 			 ,Gnm1 = #{excel_122}
 			 
 			 ,Gnm2 = #{excel_123}	
@@ -740,7 +740,9 @@
 		Rpt_usg10,
 	 	REG_ID,
 	 	REG_DATE,
-	 	Rpt_usg01
+	 	Rpt_usg01,
+	 	Exp_Lis_Day,
+	 	Tot_Rpt_Krw
 	 	)VALUES(
 	 	'iOOM',
 	 	'ENCOM',
@@ -751,7 +753,15 @@
 		#{excel_4},
 		#{excel_9},
 		#{excel_10},
-		CONCAT('0', #{excel_131}),
+		CASE 
+	        WHEN #{excel_131} IN ('00', '01','02','03','04') THEN #{excel_131}
+	        WHEN #{excel_131} IS NULL OR TRIM(#{excel_131}) = '' THEN '00'
+	        WHEN #{excel_131} = '0' THEN '00'
+	        WHEN #{excel_131} = '1' THEN '01'
+	        WHEN #{excel_131} = '3' THEN '03'
+	        WHEN #{excel_131} = '4' THEN '04'
+	        ELSE CONCAT('0', #{excel_131})
+	    END,
 		#{excel_108},
 		#{excel_36},
 		#{excel_37},
@@ -849,14 +859,28 @@
 		#{fileName},
 		#{Id},
 		NOW(),
-		#{excel_109}
+		#{excel_109},
+		#{excel_89},
+		(CASE 
+        WHEN #{excel_63} = '-' OR #{excel_63} = '-  0' THEN 0
+        ELSE CAST(REPLACE(#{excel_63}, ',', '') AS DECIMAL(20, 4))
+        END)
 	 	)ON DUPLICATE KEY UPDATE
 		 Rpt_Cus = #{excel_1}	
 		,Rpt_Sec = #{excel_2}	
 		,Rpt_Year = #{excel_3}				
 		,Rpt_Day = #{excel_9}	
 		,Rpt_Divi = #{excel_10}
-		,Rpt_Seq = CONCAT('0', #{excel_131})
+		,Rpt_Seq = 
+		CASE 
+	        WHEN #{excel_131} IN ('00', '01','02','03','04') THEN #{excel_131}
+	        WHEN #{excel_131} IS NULL OR TRIM(#{excel_131}) = '' THEN '00'
+	        WHEN #{excel_131} = '0' THEN '00'
+	        WHEN #{excel_131} = '1' THEN '01'
+	        WHEN #{excel_131} = '3' THEN '03'
+	        WHEN #{excel_131} = '4' THEN '04'
+	        ELSE CONCAT('0', #{excel_131})
+	    END
 		,Tot_Pack_Ut = #{excel_108}
 				
 		,Exc_Divi = #{excel_12}	
@@ -952,6 +976,11 @@
 	 	,REG_ID = #{Id}
 	 	,REG_DATE = NOW()
 	 	,Rpt_usg01 = #{excel_109}
+	 	,Exp_Lis_Day = #{excel_89}
+	 	,Tot_Rpt_Krw = (CASE 
+				     WHEN #{excel_63} = '-' OR #{excel_63} = '-  0' THEN 0
+				     ELSE CAST(REPLACE(#{excel_63}, ',', '') AS DECIMAL(20, 4))
+				     END)
 	</insert>
 	
 	<!-- [엔컴 / 수출신고서 란내역 - CUSDEC830B1] INSERT -->
@@ -992,7 +1021,15 @@
 		 #{excel_4},
 		 #{excel_134},
 		 #{excel_135},
-		 CONCAT('0', #{excel_131}),
+		CASE 
+	        WHEN #{excel_131} IN ('00', '01','02','03','04') THEN #{excel_131}
+	        WHEN #{excel_131} IS NULL OR TRIM(#{excel_131}) = '' THEN '00'
+	        WHEN #{excel_131} = '0' THEN '00'
+	        WHEN #{excel_131} = '1' THEN '01'
+	        WHEN #{excel_131} = '3' THEN '03'
+	        WHEN #{excel_131} = '4' THEN '04'
+	        ELSE CONCAT('0', #{excel_131})
+	    END,
 		 #{excel_65},
 		 
 		 #{excel_138},
@@ -1015,8 +1052,16 @@
 		)ON DUPLICATE KEY UPDATE
 		 HS =  #{excel_134}	
 		,Mg_Code =  #{excel_135}	
-		,Rpt_Seq = CONCAT('0', #{excel_131})
-				
+		,Rpt_Seq = 
+			CASE 
+		        WHEN #{excel_131} IN ('00', '01','02','03','04') THEN #{excel_131}
+		        WHEN #{excel_131} IS NULL OR TRIM(#{excel_131}) = '' THEN '00'
+		        WHEN #{excel_131} = '0' THEN '00'
+		        WHEN #{excel_131} = '1' THEN '01'
+		        WHEN #{excel_131} = '3' THEN '03'
+		        WHEN #{excel_131} = '4' THEN '04'
+		        ELSE CONCAT('0', #{excel_131})
+		    END
 		,Wt =  #{excel_138}	
 		,Ut =  #{excel_139}	
 		,Pack_Cnt =  #{excel_140}	
@@ -1076,20 +1121,27 @@
 			#{excel_4},
 			#{excel_159},
 			#{excel_160},
-			#{excel_161},
+			IFNULL(#{excel_161},''),
 			#{excel_162},
-			CONCAT('0', #{excel_131}),
-			
+			CASE 
+		        WHEN #{excel_131} IN ('00', '01','02','03','04') THEN #{excel_131}
+		        WHEN #{excel_131} IS NULL OR TRIM(#{excel_131}) = '' THEN '00'
+		        WHEN #{excel_131} = '0' THEN '00'
+		        WHEN #{excel_131} = '1' THEN '01'
+		        WHEN #{excel_131} = '3' THEN '03'
+		        WHEN #{excel_131} = '4' THEN '04'
+		        ELSE CONCAT('0', #{excel_131})
+		    END,
 			#{excel_163},
+		     (CASE 
+			    WHEN #{excel_164} IS NULL OR #{excel_164} = '-' OR #{excel_164} = '- 0' OR NULLIF(#{excel_164}, '') IS NULL THEN 0 
+			    ELSE CAST(REPLACE(#{excel_164}, ',', '') AS DECIMAL(20, 4)) 
+			END),
 			(CASE 
-		     WHEN #{excel_164} = '-' OR #{excel_164} = '-  0' THEN 0
-		     ELSE CAST(REPLACE(#{excel_164}, ',', '') AS DECIMAL(20, 4))
-		     END),
-			(CASE 
-		     WHEN #{excel_165} = '-' OR #{excel_165} = '-  0' THEN 0
-		     ELSE CAST(REPLACE(#{excel_165}, ',', '') AS DECIMAL(20, 4))
-		     END),
-			#{excel_166},
+			    WHEN #{excel_165} IS NULL OR #{excel_165} = '-' OR #{excel_165} = '- 0' OR NULLIF(#{excel_165}, '') IS NULL THEN 0 
+			    ELSE CAST(REPLACE(#{excel_165}, ',', '') AS DECIMAL(20, 4)) 
+			END),
+			IFNULL(#{excel_166},''),
 			#{excel_167},
 			#{excel_168},
 			#{excel_169},
@@ -1110,17 +1162,28 @@
 			 ,Rpt_No = #{excel_4}
 			 ,RAN_NO = #{excel_159}
 			 ,Sil = #{excel_160}
-			 ,Mg_Cd = #{excel_161}	
+			 ,Mg_Cd = IFNULL(#{excel_161},'')
 			 ,Qty = #{excel_162}
-			 ,Rpt_Seq = CONCAT('0', #{excel_131})
-			 
+			 ,Rpt_Seq = 
+				CASE 
+			        WHEN #{excel_131} IN ('00', '01','02','03','04') THEN #{excel_131}
+			        WHEN #{excel_131} IS NULL OR TRIM(#{excel_131}) = '' THEN '00'
+			        WHEN #{excel_131} = '0' THEN '00'
+			        WHEN #{excel_131} = '1' THEN '01'
+			        WHEN #{excel_131} = '3' THEN '03'
+			        WHEN #{excel_131} = '4' THEN '04'
+			        ELSE CONCAT('0', #{excel_131})
+			    END
 			 ,Qty_Ut = #{excel_163}	
-			 ,Amt = #{excel_164}		
-			 ,Price= (CASE 
-				     WHEN #{excel_165} = '-' OR #{excel_165} = '-  0' THEN 0
-				     ELSE CAST(REPLACE(#{excel_165}, ',', '') AS DECIMAL(20, 4))
-				     END)	
-			 ,Gnm1 = #{excel_166}		
+			 ,Amt =  (CASE 
+					    WHEN #{excel_164} IS NULL OR #{excel_164} = '-' OR #{excel_164} = '- 0' OR NULLIF(#{excel_164}, '') IS NULL THEN 0 
+					    ELSE CAST(REPLACE(#{excel_164}, ',', '') AS DECIMAL(20, 4)) 
+					END)	
+			 ,Price=  (CASE 
+					    WHEN #{excel_165} IS NULL OR #{excel_165} = '-' OR #{excel_165} = '- 0' OR NULLIF(#{excel_165}, '') IS NULL THEN 0 
+					    ELSE CAST(REPLACE(#{excel_165}, ',', '') AS DECIMAL(20, 4)) 
+					END)	
+			 ,Gnm1 = IFNULL(#{excel_166},'')		
 			 ,Gnm2 = #{excel_167}		
 			 ,Gnm3 = #{excel_168}	
 			 ,Gnm4 = #{excel_169}	
@@ -1136,17 +1199,22 @@
 	
 	<!-- 타관세사 업로드 목록 조회 -->
 	<select id="selectCusFileList" parameterType="searchVO" resultType="egovMap">
-		SELECT IFNULL(A.Rpt_usg10, '') AS fileName, 
-			IFNULL(CONCAT(MIN(A.Rpt_Day), ' - ', MAX(A.Rpt_Day)), '') AS rptDayRange, 
-			IFNULL(DATE_FORMAT(A.reg_date, '%Y-%m-%d'), '') AS regDate, 
-			IFNULL(COUNT(C.Ref_No), 0) AS refNoCount
-			
-			FROM cusdec830a1 A
-			LEFT JOIN cusdec830c1 C 
-			ON A.BRANCH = C.BRANCH
-					AND A.SN = C.SNA1
-					AND A.Rpt_No = C.Rpt_No
-			WHERE A.branch = 'iOOM'
+		SELECT 
+		    IFNULL(A.Rpt_usg10, '') AS fileName, 
+		    IFNULL(CONCAT(MIN(A.Rpt_Day), ' - ', MAX(A.Rpt_Day)), '') AS rptDayRange, 
+		    IFNULL(DATE_FORMAT(A.reg_date, '%Y-%m-%d'), '') AS regDate, 
+		    IFNULL(C.refNoCount, 0) AS refNoCount 
+		FROM cusdec830a1 A
+		LEFT JOIN (
+		    SELECT BRANCH, SNA1, Rpt_No,Ref_No, COUNT(Ref_No) AS refNoCount
+		    FROM cusdec830c1
+		    GROUP BY Ref_No
+		) C
+		ON A.BRANCH = C.BRANCH 
+		AND A.SN = C.SNA1 
+		AND A.Rpt_No = C.Rpt_No 
+		AND A.Rpt_usg10 = C.Ref_No
+		WHERE A.branch = 'iOOM' 
 		<if test="list != null and list.size() > 0">
 	        AND  A.EXP_sdno IN 
 	        <foreach item="id" collection="list" open="(" separator="," close=")">
@@ -1302,6 +1370,61 @@
 			ORDER BY RPT_NO, RAN_NO;
 	</select>
 	
+	 <!-- 엑셀 수출신고 현황 상세 란 목록 조회 -->
+	 <select id="selectCusExpViewLanListExcel" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+			RPT_NO,
+			RAN_NO,
+			CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
+			Exc_Gnm,
+			Con_Amt,
+			Sun_Wt,
+			Pack_Cnt,
+			Ori_st_mark1,
+			mg_code AS invoice,
+			Att_yn
+		FROM cusdec830b1
+			WHERE rpt_no IN (
+			SELECT RPT_NO FROM CUSDEC830A1 A
+			WHERE A.rpt_seq = '00'
+			AND a.branch = 'iOOM'
+		    <choose>
+		    <when test="srch1 =='02'">
+		    AND A.rece = '수리'
+		    </when>
+		    <when test="srch1 =='03'">
+		    AND A.rece NOT IN ('수리', '승인')
+		    </when>
+		    <when test="srch1 =='04'">
+		    AND A.rece = '승인'
+		    </when>
+		    </choose>
+			<choose>
+		    <when test="srch8 =='01'">
+		    AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		    </when>
+		    <otherwise>
+		    AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		    </otherwise>
+		    </choose>
+			<if test="srch4 != null and srch4 != ''">
+			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
+			</if>
+			<if test="srch5 != null and srch5 != ''">
+			AND b.mg_code LIKE CONCAT('%',UPPER(#{srch5}),'%')
+			</if>
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+		)
+		AND rpt_seq = '00'
+		
+		ORDER BY rpt_no, ran_no;
+	</select>
+	
 	<!-- 수출신고 현황 상세 규격 목록 조회 -->
 	<select id="selectCusExpViewSpecList" parameterType="searchVO" resultType="egovMap">
 		SELECT
@@ -1322,6 +1445,65 @@
 		<!-- AND rpt_seq = '00' -->
 		AND branch = 'iOOM'
 		ORDER BY RPT_NO, RAN_NO, SIL;
+	</select>
+	
+	<!-- 엑셀 수출신고 현황 상세 규격 목록 조회 -->
+	<select id="selectCusExpViewSpecListExcel" parameterType="searchVO" resultType="egovMap">
+		SELECT
+			RPT_NO,
+			RAN_NO, 
+			Sil,
+			Gnm1, 
+			Qty, 
+			Price, 
+			Amt,
+			Gnm2, 
+			Gnm3, 
+			Gnm4, 
+			Gnm5
+		FROM cusdec830c1
+			WHERE rpt_no IN (
+			SELECT RPT_NO 
+		FROM CUSDEC830A1 A
+		WHERE 
+		
+		    A.rpt_seq = '00'
+		    AND a.branch = 'iOOM'
+		    <choose>
+		    <when test="srch1 =='02'">
+		    AND A.rece = '수리'
+		    </when>
+		    <when test="srch1 =='03'">
+		    AND A.rece NOT IN ('수리', '승인')
+		    </when>
+		    <when test="srch1 =='04'">
+		    AND A.rece = '승인'
+		    </when>
+		    </choose>
+			<choose>
+		    <when test="srch8 =='01'">
+		    AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		    </when>
+		    <otherwise>
+		    AND A.exp_Lis_Day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		    </otherwise>
+		    </choose>
+			<if test="srch4 != null and srch4 != ''">
+			AND a.rpt_no LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
+			</if>
+			<if test="srch5 != null and srch5 != ''">
+			AND b.mg_code LIKE CONCAT('%',UPPER(#{srch5}),'%')
+			</if>
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+		)
+		AND rpt_seq = '00'
+		
+		ORDER BY rpt_no, ran_no, sil;
 	</select>
 	
 	<delete id="deleteCusExpDataA1"  parameterType="searchVO">

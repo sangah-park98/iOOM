@@ -45,16 +45,16 @@
 				ELSE CONCAT('(', a.lev_form, ')')
 			END AS levForm,
 			CASE 		
-			    WHEN a.lev_form = '43' AND CAST(SUBSTRING(a.lis_day, 7, 2) AS INT) &lt;= 15 
+			    WHEN a.lev_form = '43' AND DAY(LAST_DAY(STR_TO_DATE(lis_day, '%Y%m%d'))) - CAST(SUBSTRING(lis_day, 7, 2) AS UNSIGNED) > 14 
 			    THEN IFNULL(LAST_DAY(CAST(CONCAT(SUBSTRING(a.lis_day, 1, 4), '-', SUBSTRING(a.lis_day, 5, 2), '-01') AS DATE)), '-')
-			    WHEN a.lev_form = '43' AND CAST(SUBSTRING(a.lis_day, 7, 2) AS INT) >= 16 
-			    THEN IFNULL(DATE_FORMAT(DATE_ADD(LAST_DAY(CAST(CONCAT(SUBSTRING(a.lis_day, 1, 4), '-', SUBSTRING(a.lis_day, 5, 2), '-01') AS DATE)), INTERVAL 15 DAY), '%Y-%m-%d'), '-')
+			    WHEN a.lev_form = '43' AND DAY(LAST_DAY(STR_TO_DATE(lis_day, '%Y%m%d'))) - CAST(SUBSTRING(lis_day, 7, 2) AS UNSIGNED) &lt;= 14 
+			    THEN IFNULL(DATE_FORMAT(LAST_DAY(DATE_ADD(LAST_DAY(CAST(CONCAT(SUBSTRING(a.lis_day, 1, 4), '-', SUBSTRING(a.lis_day, 5, 2), '-01') AS DATE)), INTERVAL 15 DAY)), '%Y-%m-%d'), '-')
 			    WHEN a.lev_form = '43' 
 			    THEN IFNULL(DATE_FORMAT(LAST_DAY(CAST(CONCAT(SUBSTRING(a.lis_day, 1, 4), '-', SUBSTRING(a.lis_day, 5, 2), '-01') AS DATE)), '%Y-%m-%d'), '-')
 			    WHEN a.lev_form IN ('13', '14', '18') 
 			    THEN IFNULL(DATE_FORMAT(c.nab_day1, '%Y-%m-%d'), '-')
 			    ELSE IFNULL(DATE_FORMAT(DATE_ADD(CAST(CONCAT(SUBSTRING(a.lis_day, 1, 4), '-', SUBSTRING(a.lis_day, 5, 2), '-', SUBSTRING(a.lis_day, 7, 2)) AS DATE), INTERVAL 15 DAY), '%Y-%m-%d'), '-')
-			END AS date1,-- 납부기한 
+			END AS date1, -- 납부기한 
 			CASE WHEN a.lev_form = '11' THEN IFNULL(DATE_FORMAT(c.nab_day2, '%Y-%m-%d'), '-') WHEN a.lev_form IN ('13','14') THEN IFNULL(DATE_FORMAT(c.nab_day2, '%Y-%m-%d'), '-') WHEN a.lev_form = '43' THEN IFNULL(DATE_FORMAT(c.nab_day3, '%Y-%m-%d'), '-') ELSE IFNULL(DATE_FORMAT(STR_TO_DATE(nab_day2, '%y%m%d'), '%Y-%m-%d'), '-') END AS date2, -- 납부일자 
 		    CASE WHEN a.Fod_Mark IN (SELECT cmmn_cd FROM cmmn_cd WHERE GRP_CD = 'FTANATION') AND IFNULL(b.FTACNT, 0) > 0 AND a.lis_day != '' THEN DATE_FORMAT(DATE_ADD(DATE_ADD(a.lis_day, INTERVAL 1 YEAR), INTERVAL -1 DAY), '%Y-%m-%d') ELSE '-' END AS FTA, 
 		    CASE 
