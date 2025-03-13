@@ -6,22 +6,22 @@
         
      
    <!-- 운영서버    -->
-     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    <!--  <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
         <property name="url" value="jdbc:mysql://211.119.136.154/platform?autoReconnect=true" />
 	    <property name="username" value="pi_team"/>
 	    <property name="password" value="shin8299!@"/>
         <property name="validationQuery" value="SELECT 1" />
         <property name="testWhileIdle" value="true" />
-    </bean>  
-	<!--  <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    </bean>   -->
+	  <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 		 <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
         <property name="url" value="jdbc:mysql://203.242.143.196:3306/platform?autoReconnect=true" />
         <property name="username" value="pi_team"/>
         <property name="password" value="shin8299!@"/>
         <property name="validationQuery" value="SELECT 1" />
         <property name="testWhileIdle" value="true" />
-    </bean> -->
+    </bean>
       
 	<bean id="dataSource2" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 		<property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>

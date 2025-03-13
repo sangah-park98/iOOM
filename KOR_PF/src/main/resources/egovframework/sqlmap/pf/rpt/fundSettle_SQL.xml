@@ -316,7 +316,7 @@
 								    SUP_EK AS clearFee,
 								    TAX_EK AS taxVat,
 								    SUM_EK AS sumEk,
-								    ADJ_NOTE AS note
+								    NULL AS note
 								FROM adj_listselops
 								WHERE fr_key = #{srch9} AND TRIM(ADJ_NM) = '창고료'
 							) C LIMIT 1) 
@@ -350,7 +350,7 @@
 							    SUP_EK AS clearFee,
 							    TAX_EK AS taxVat,
 							    SUM_EK AS sumEk,
-							    ADJ_NOTE AS note
+							    NULL AS note
 							FROM adj_listselops
 							WHERE fr_key = #{srch9} AND TRIM(ADJ_NM) = '운송료'
 						) D LIMIT 1)
