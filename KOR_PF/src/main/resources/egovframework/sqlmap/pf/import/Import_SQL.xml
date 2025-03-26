@@ -1006,7 +1006,7 @@
 				b.TI2_008 AS EXC_GNAME1,
 				b.TI2_075 AS TAX_KRW,
 				b.TI2_085 AS gs,
-				0 AS vat,
+				b.TI2_109 AS vat,
 				'' AS cs_chk_cot,
 				'N' AS rmv
 			FROM temp_import2bsnenc b

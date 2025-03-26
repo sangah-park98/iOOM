@@ -742,7 +742,8 @@
 	 	REG_DATE,
 	 	Rpt_usg01,
 	 	Exp_Lis_Day,
-	 	Tot_Rpt_Krw
+	 	Tot_Rpt_Krw,
+	 	CUR
 	 	)VALUES(
 	 	'iOOM',
 	 	'ENCOM',
@@ -864,7 +865,8 @@
 		(CASE 
         WHEN #{excel_63} = '-' OR #{excel_63} = '-  0' THEN 0
         ELSE CAST(REPLACE(#{excel_63}, ',', '') AS DECIMAL(20, 4))
-        END)
+        END),
+        #{excel_66}
 	 	)ON DUPLICATE KEY UPDATE
 		 Rpt_Cus = #{excel_1}	
 		,Rpt_Sec = #{excel_2}	
@@ -981,6 +983,9 @@
 				     WHEN #{excel_63} = '-' OR #{excel_63} = '-  0' THEN 0
 				     ELSE CAST(REPLACE(#{excel_63}, ',', '') AS DECIMAL(20, 4))
 				     END)
+		,CUR = #{excel_66}
+				   
+				    
 	</insert>
 	
 	<!-- [엔컴 / 수출신고서 란내역 - CUSDEC830B1] INSERT -->

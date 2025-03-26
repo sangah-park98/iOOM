@@ -59,6 +59,7 @@
 		LEFT JOIN trade_info D
 	    ON D.SEQ = D_MAX.MAX_SEQ
 		WHERE A.rece IN ('수리', '승인')
+		AND A.RPT_SEQ = '00'
 		AND A.Exc_Divi IN ('29', '11')
 		AND A.Buy_Mark = 'VNSEHYUN0005F'
 		<if test="list != null and list.size() > 0">
@@ -233,6 +234,7 @@
 		AND B.SN = C.SNB1 
 		AND B.Ran_No = C.Ran_No
 		WHERE A.rece IN ('수리', '승인')
+		AND A.RPT_SEQ = '00'
 		AND A.Exc_Divi IN ('29', '11')
 		AND A.exp_sdno IN ('2208121836')
 		AND A.Buy_Mark = 'VNSEHYUN0005F'
@@ -365,6 +367,7 @@
 		AND B.SN = C.SNB1 
 		AND B.Ran_No = C.Ran_No
 		WHERE A.rece IN ('수리', '승인')
+		AND A.RPT_SEQ = '00'
 		AND A.Exc_Divi ='11'
 		AND A.exp_sdno = '1248709424'
 		AND A.Buy_Mark = 'VNSEHYUN0005F'
@@ -640,6 +643,7 @@
 		AND B.SN = C.SNB1 
 		AND B.Ran_No = C.Ran_No
 		WHERE A.rece IN ('수리', '승인')
+		AND A.RPT_SEQ = '00'
 		AND A.Exc_Divi ='11'
 		AND A.exp_sdno = '1248709424'
 		AND A.Buy_Mark = 'VNSEHYUN0005F'

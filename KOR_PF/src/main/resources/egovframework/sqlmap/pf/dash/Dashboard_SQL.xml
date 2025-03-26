@@ -3,74 +3,108 @@
 <mapper namespace="egovframework.pf.dashboard.service.impl.DashboardMapper">
 
 	<select id="selectDashManagerInfo" parameterType="searchVO" resultType="egovMap">
-	SELECT * FROM 
-		(
+		SELECT * FROM (
 		SELECT 
-		chr_type1 as usrType,
-	    chr_name1 as usrNm,
-	    chr_email1 as usrEmail,
-	    chr_tel1 as usrTel
-		FROM 
-		    cmpny_charge_info
-		WHERE 
-		    tax_no = #{corpNo}
-		UNION 
-		
-		SELECT 
-		chr_type2 as usrType,
-	    chr_name2 as usrNm,
-	    chr_email2 as usrEmail,
-	    chr_tel2 as usrTel
-		FROM 
-		    cmpny_charge_info
-		WHERE 
-		    tax_no = #{corpNo}
+        CASE 
+            WHEN #{lang} = 'en' THEN 
+                CASE chr_type1 
+                    WHEN '임원' THEN 'Executive' 
+                    WHEN '전담관세사' THEN 'Dedicated Customs Broker' 
+                    WHEN '통관담당자' THEN 'Customs Representative' 
+                    WHEN 'IT담당자' THEN 'IT Representative' 
+                    ELSE chr_type1 
+                END ELSE chr_type1 
+        	END AS usrType, 
+        	chr_name1 AS usrNm, 
+        	chr_email1 AS usrEmail, 
+        	chr_tel1 AS usrTel
+    	FROM cmpny_charge_info
+		WHERE tax_no = #{corpNo}
 		    
 		UNION 
 		
 		SELECT 
-		chr_type3 as usrType,
-		chr_name3 as usrNm,
-	    chr_email3 as usrEmail,
-	    chr_tel3 as usrTel
-		FROM 
-		    cmpny_charge_info
-		WHERE 
-		    tax_no = #{corpNo}
+        CASE 
+            WHEN #{lang} = 'en' THEN 
+                CASE chr_type2 
+                    WHEN '임원' THEN 'Executive' 
+                    WHEN '전담관세사' THEN 'Dedicated Customs Broker' 
+                    WHEN '통관담당자' THEN 'Customs Representative' 
+                    WHEN 'IT담당자' THEN 'IT Representative' 
+                    ELSE chr_type2 
+                END 
+            ELSE chr_type2 
+        END AS usrType, 
+        chr_name2 AS usrNm, 
+        chr_email2 AS usrEmail, 
+        chr_tel2 AS usrTel
+    	FROM cmpny_charge_info
+		WHERE tax_no = #{corpNo}
 			
 		UNION
 		
 		SELECT 
-		chr_type4 as usrType,
-		chr_name4 as usrNm,
-	    chr_email4 as usrEmail,
-	    chr_tel4 as usrTel
-		FROM 
-		    cmpny_charge_info
-		WHERE 
-		    tax_no = #{corpNo}
+        CASE 
+            WHEN #{lang} = 'en' THEN 
+                CASE chr_type3 
+                    WHEN '임원' THEN 'Executive' 
+                    WHEN '전담관세사' THEN 'Dedicated Customs Broker' 
+                    WHEN '통관담당자' THEN 'Customs Representative' 
+                    WHEN 'IT담당자' THEN 'IT Representative' 
+                    ELSE chr_type3 
+                END 
+            ELSE chr_type3 
+        END AS usrType, 
+        chr_name3 AS usrNm, 
+        chr_email3 AS usrEmail, 
+        chr_tel3 AS usrTel
+    	FROM cmpny_charge_info
+		WHERE tax_no = #{corpNo}
 			
 		UNION
 		
+		SELECT 
+        CASE 
+            WHEN #{lang} = 'en' THEN 
+                CASE chr_type4 
+                    WHEN '임원' THEN 'Executive' 
+                    WHEN '전담관세사' THEN 'Dedicated Customs Broker' 
+                    WHEN '통관담당자' THEN 'Customs Representative' 
+                    WHEN 'IT담당자' THEN 'IT Representative' 
+                    ELSE chr_type4 
+                END 
+            ELSE chr_type4 
+        END AS usrType, 
+        chr_name4 AS usrNm, 
+        chr_email4 AS usrEmail, 
+        chr_tel4 AS usrTel
+    	FROM cmpny_charge_info
+    	WHERE tax_no = #{corpNo}
+		
+		UNION
+		
     	SELECT 
-        'IT담당자' AS usrType, 
-        CASE 
-            WHEN #{corpNo} IN ('2118180957','3128109408','3128103345','1298118421') 
-            THEN '권예지' 
-            ELSE '박상아' 
-        END AS usrNm, 
-        CASE 
-            WHEN #{corpNo} IN ('2118180957','3128109408','3128103345','1298118421') 
-            THEN 'yjkwon@customsservice.co.kr' 
-            ELSE 'sapark@customsservice.co.kr' 
-        END AS usrEmail, 
-        CASE 
-            WHEN #{corpNo} IN ('2118180957','3128109408','3128103345','1298118421') 
-            THEN '070-4343-7729' 
-            ELSE '070-4343-7732' 
-        END AS usrTel 
-    FROM dual  
-	) A 
+	        CASE 
+	            WHEN #{lang} = 'en' THEN 'IT Representative' 
+	            ELSE 'IT 담당자' 
+	        END AS usrType, 
+	        CASE 
+	            WHEN #{corpNo} IN ('2118180957','3128109408','3128103345','1298118421') 
+	            THEN '권예지' 
+	            ELSE '박상아' 
+	        END AS usrNm, 
+	        CASE 
+	            WHEN #{corpNo} IN ('2118180957','3128109408','3128103345','1298118421') 
+	            THEN 'yjkwon@customsservice.co.kr' 
+	            ELSE 'sapark@customsservice.co.kr' 
+	        END AS usrEmail, 
+	        CASE 
+	            WHEN #{corpNo} IN ('2118180957','3128109408','3128103345','1298118421') 
+	            THEN '070-4343-7729' 
+	            ELSE '070-4343-7732' 
+	        END AS usrTel 
+    	FROM dual  
+		) A 
 		WHERE usrNm != ''
 	</select>
 	
@@ -105,7 +139,10 @@
 			    ) t
 			)
 			SELECT 
-			    CONCAT(LEFT(dr.lis_day, 4), '년 ', RIGHT(dr.lis_day, 2), '월') AS sumDate,
+			    CASE WHEN #{lang} = 'en' 
+        		THEN DATE_FORMAT(STR_TO_DATE(dr.lis_day, '%Y%m'), '%M %Y') 
+        		ELSE CONCAT(LEFT(dr.lis_day, 4), '년 ', RIGHT(dr.lis_day, 2), '월') 
+    			END AS sumDate,
 			    IFNULL(A.CNT, 0) + IFNULL(B.CNT, 0) + IFNULL(C.CNT, 0) + IFNULL(D.CNT, 0) + IFNULL(E.CNT, 0) + IFNULL(F.CNT, 0) AS CNT,
 			    FORMAT(IFNULL(A.tot_tax_sum, 0) + IFNULL(B.tot_tax_sum, 0) + IFNULL(C.tot_tax_sum, 0) + IFNULL(D.tot_tax_sum, 0) + IFNULL(E.tot_tax_sum, 0) + IFNULL(F.tot_tax_sum, 0), 0) AS sumTax,
 			    FORMAT(IFNULL(A.tot_tax_krw, 0) + IFNULL(B.tot_tax_krw, 0) + IFNULL(C.tot_tax_krw, 0) + IFNULL(D.tot_tax_krw, 0) + IFNULL(E.tot_tax_krw, 0) + IFNULL(F.tot_tax_krw, 0), 0) AS sumKrw
@@ -239,7 +276,10 @@
 		    ) t
 		)
 		SELECT 
-		    CONCAT(LEFT(dr.exp_lis_day, 4), '년 ', RIGHT(dr.exp_lis_day, 2), '월') AS sumDate,
+			CASE WHEN #{lang} = 'en' 
+        	THEN DATE_FORMAT(STR_TO_DATE(dr.exp_lis_day, '%Y%m'), '%M %Y') 
+        	ELSE CONCAT(LEFT(dr.exp_lis_day, 4), '년 ', RIGHT(dr.exp_lis_day, 2), '월') 
+    		END AS sumDate,
 		    IFNULL(A.CNT, 0) + IFNULL(B.CNT, 0) + IFNULL(C.CNT, 0) + IFNULL(D.CNT, 0) + IFNULL(E.CNT, 0) + IFNULL(F.CNT, 0) AS CNT,
 		    FORMAT(IFNULL(A.tot_rpt_krw, 0) + IFNULL(B.tot_rpt_krw, 0) + IFNULL(C.tot_rpt_krw, 0) + IFNULL(D.tot_rpt_krw, 0) + IFNULL(E.tot_rpt_krw, 0) + IFNULL(F.tot_rpt_krw, 0), 0) AS sumKrw
 		FROM date_range dr
@@ -338,16 +378,26 @@
 	</select>
 	
 	<select id="selectDashboardNoticeList" parameterType="searchVO" resultType="egovMap">
-	SELECT NOTICE_TYPE, TITLE_KR, NOTICE_SEQ, file_Org_Nm, DATE_FORMAT(STR_TO_DATE(NOTICE_DT, '%Y%m%d'), '%Y.%m.%d') as NOTICE_DT FROM notice_info
-	ORDER BY notice_type DESC, notice_seq DESC
-	LIMIT 5;
+		SELECT 
+			NOTICE_TYPE, 
+			TITLE_KR, 
+			NOTICE_SEQ, 
+			file_Org_Nm, 
+			DATE_FORMAT(STR_TO_DATE(NOTICE_DT, '%Y%m%d'), '%Y.%m.%d') as NOTICE_DT 
+		FROM notice_info
+		ORDER BY notice_type DESC, notice_seq DESC
+		LIMIT 5;
 	</select>
 	
 	<select id="selectDashboardNewsList" parameterType="searchVO" resultType="egovMap">
-	SELECT TITLE_KR, SEQ, DATE_FORMAT(STR_TO_DATE(REG_DT, '%Y%m%d'), '%Y.%m.%d') as REG_DT FROM news_info
-	WHERE active = 'Y'
-	ORDER BY REG_DT DESC, SEQ DESC
-	LIMIT 5;
+		SELECT 
+			TITLE_KR, 
+			SEQ, 
+			DATE_FORMAT(STR_TO_DATE(REG_DT, '%Y%m%d'), '%Y.%m.%d') as REG_DT 
+		FROM news_info
+		WHERE active = 'Y'
+		ORDER BY REG_DT DESC, SEQ DESC
+		LIMIT 5;
 	</select>
 	
 	<select id="selectDashNoticeViewList" parameterType="searchVO" resultType="egovMap">

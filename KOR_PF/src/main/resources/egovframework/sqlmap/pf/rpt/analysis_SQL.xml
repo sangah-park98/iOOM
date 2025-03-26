@@ -3,19 +3,28 @@
 <mapper namespace="egovframework.pf.rpt.service.impl.AnalysisMapper">
 
 	<select id="selectAnalysis1List" parameterType="searchVO" resultType="egovMap">
-		SELECT A.markCont AS markCont, <!-- 거래구분 -->
-			   FORMAT(IFNULL(B.cnt1, 0), 0) AS cnt1, <!-- 건수 -4년 -->
-			   FORMAT(IFNULL(B.sum1, 0), 0) AS sum1, <!-- 합계 -4년 -->
-			   FORMAT(IFNULL(B.cnt2, 0), 0) AS cnt2, <!-- 건수 -3년 -->
-			   FORMAT(IFNULL(B.sum2, 0), 0) AS sum2, <!-- 합계 -3년 -->
-			   FORMAT(IFNULL(B.cnt3, 0), 0) AS cnt3, <!-- 건수 -2년 -->
-			   FORMAT(IFNULL(B.sum3, 0), 0) AS sum3, <!-- 합계 -2년 -->
-			   FORMAT(IFNULL(B.cnt4, 0), 0) AS cnt4, <!-- 건수 -1년 -->
-			   FORMAT(IFNULL(B.sum4, 0), 0) AS sum4, <!-- 합계 -1년 -->
-			   FORMAT(IFNULL(B.cnt5, 0), 0) AS cnt5, <!-- 건수 당해 -->
-			   FORMAT(IFNULL(B.sum5, 0), 0) AS sum5, <!-- 한계 당해 -->
-			   FORMAT(IFNULL(B.cnt6, 0), 0) AS cnt6, <!-- 건수 전체 -->
-			   FORMAT(IFNULL(B.sum6, 0), 0) AS sum6 <!-- 합계 전체 -->
+		SELECT 
+			CASE 
+		        WHEN #{lang} = 'en' AND A.mark = '11' THEN 'Regular Imports(11)' 
+		        WHEN #{lang} = 'en' AND A.mark = '94' THEN 'Other goods exempted from import approval(94)'
+		        WHEN #{lang} = 'en' AND A.mark = '87' THEN 'Free accessories and advertising supplies(87)'
+		        WHEN #{lang} = 'en' AND A.mark = '83' THEN 'Re-import after Inspection/Repair(83)'
+		        WHEN #{lang} = 'en' AND A.mark = '93' THEN 'Import of replacement goods(93)'
+		        WHEN #{lang} = 'en' AND A.mark = '9999' THEN 'Other (Bonded Factory, Other Re-Imports, etc.)'
+	        ELSE A.markCont
+	    	END AS markCont,
+		   	FORMAT(IFNULL(B.cnt1, 0), 0) AS cnt1, <!-- 건수 -4년 -->
+		   	FORMAT(IFNULL(B.sum1, 0), 0) AS sum1, <!-- 합계 -4년 -->
+		   	FORMAT(IFNULL(B.cnt2, 0), 0) AS cnt2, <!-- 건수 -3년 -->
+		   	FORMAT(IFNULL(B.sum2, 0), 0) AS sum2, <!-- 합계 -3년 -->
+		   	FORMAT(IFNULL(B.cnt3, 0), 0) AS cnt3, <!-- 건수 -2년 -->
+		   	FORMAT(IFNULL(B.sum3, 0), 0) AS sum3, <!-- 합계 -2년 -->
+		   	FORMAT(IFNULL(B.cnt4, 0), 0) AS cnt4, <!-- 건수 -1년 -->
+		   	FORMAT(IFNULL(B.sum4, 0), 0) AS sum4, <!-- 합계 -1년 -->
+		   	FORMAT(IFNULL(B.cnt5, 0), 0) AS cnt5, <!-- 건수 당해 -->
+		   	FORMAT(IFNULL(B.sum5, 0), 0) AS sum5, <!-- 한계 당해 -->
+		   	FORMAT(IFNULL(B.cnt6, 0), 0) AS cnt6, <!-- 건수 전체 -->
+		   	FORMAT(IFNULL(B.sum6, 0), 0) AS sum6 <!-- 합계 전체 -->
 		FROM 
 			(SELECT '일반수입(11)' AS markCont, '11' AS mark
 			 	UNION
@@ -128,19 +137,27 @@
 	</select>
 	
 	<select id="selectAnalysis2List" parameterType="searchVO" resultType="egovMap">
-		SELECT A.markCont AS markCont, <!-- 거래구분 -->
-			   FORMAT(IFNULL(B.cnt1, 0), 0) AS cnt1, <!-- 건수 -4년 -->  
-			   FORMAT(IFNULL(B.sum1, 0), 0) AS sum1, <!-- 합계 -4년 -->  
-			   FORMAT(IFNULL(B.cnt2, 0), 0) AS cnt2, <!-- 건수 -3년 -->  
-			   FORMAT(IFNULL(B.sum2, 0), 0) AS sum2, <!-- 합계 -3년 -->  
-			   FORMAT(IFNULL(B.cnt3, 0), 0) AS cnt3, <!-- 건수 -2년 -->  
-			   FORMAT(IFNULL(B.sum3, 0), 0) AS sum3, <!-- 합계 -2년 -->  
-			   FORMAT(IFNULL(B.cnt4, 0), 0) AS cnt4, <!-- 건수 -1년 -->  
-			   FORMAT(IFNULL(B.sum4, 0), 0) AS sum4, <!-- 합계 -1년 -->  
-			   FORMAT(IFNULL(B.cnt5, 0), 0) AS cnt5, <!-- 건수 당해 -->   
-			   FORMAT(IFNULL(B.sum5, 0), 0) AS sum5, <!-- 한계 당해 -->   
-			   FORMAT(IFNULL(B.cnt6, 0), 0) AS cnt6, <!-- 건수 전체 -->   
-			   FORMAT(IFNULL(B.sum6, 0), 0) AS sum6 <!-- 합계 전체 -->
+		SELECT 
+			CASE 
+        		WHEN #{lang} = 'en' AND A.mark = '11' THEN 'Regular Exports(11)' 
+        		WHEN #{lang} = 'en' AND A.mark = '29' THEN 'Export for consignment processing(29)'
+		        WHEN #{lang} = 'en' AND A.mark = '83' THEN 'Export of re-import after Acceptance(83)'
+		        WHEN #{lang} = 'en' AND A.mark = '94' THEN 'Other goods exempted from export approval(94)'
+		        WHEN #{lang} = 'en' AND A.mark = '9999' THEN 'Others (Bonded Factory, Other Re-Exports, etc.)'
+		        ELSE A.markCont
+    		END AS markCont,
+			FORMAT(IFNULL(B.cnt1, 0), 0) AS cnt1, <!-- 건수 -4년 -->  
+			FORMAT(IFNULL(B.sum1, 0), 0) AS sum1, <!-- 합계 -4년 -->  
+			FORMAT(IFNULL(B.cnt2, 0), 0) AS cnt2, <!-- 건수 -3년 -->  
+			FORMAT(IFNULL(B.sum2, 0), 0) AS sum2, <!-- 합계 -3년 -->  
+			FORMAT(IFNULL(B.cnt3, 0), 0) AS cnt3, <!-- 건수 -2년 -->  
+			FORMAT(IFNULL(B.sum3, 0), 0) AS sum3, <!-- 합계 -2년 -->  
+			FORMAT(IFNULL(B.cnt4, 0), 0) AS cnt4, <!-- 건수 -1년 -->  
+			FORMAT(IFNULL(B.sum4, 0), 0) AS sum4, <!-- 합계 -1년 -->  
+			FORMAT(IFNULL(B.cnt5, 0), 0) AS cnt5, <!-- 건수 당해 -->   
+			FORMAT(IFNULL(B.sum5, 0), 0) AS sum5, <!-- 한계 당해 -->   
+			FORMAT(IFNULL(B.cnt6, 0), 0) AS cnt6, <!-- 건수 전체 -->   
+			FORMAT(IFNULL(B.sum6, 0), 0) AS sum6 <!-- 합계 전체 -->
 		FROM 
 			(SELECT '일반수출(11)' AS markCont, '11' AS mark
 			 	UNION

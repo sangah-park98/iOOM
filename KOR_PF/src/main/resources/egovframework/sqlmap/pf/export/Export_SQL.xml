@@ -2879,6 +2879,76 @@
 		) AS EXPORT
 	</select>
 	
+	<select id="selectExpTodayViewList2" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+	    	SUM(loadCmpCnt) AS loadCmpCnt
+		FROM (
+			SELECT  
+			    COUNT(CASE WHEN a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.Rpt_Seq = '00' THEN 1 ELSE NULL END) AS loadCmpCnt
+			FROM cusdec830a1selrdy a
+			WHERE a.rpt_seq = '00'
+			AND a.ship_day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+	    	UNION
+	
+	    	SELECT 
+			    COUNT(CASE WHEN a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.Rpt_Seq = '00' THEN 1 ELSE NULL END) AS loadCmpCnt
+	    	FROM cusdec830a1icnrdy a
+	    	WHERE a.rpt_seq = '00' 
+	      	AND a.ship_day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+	    	UNION
+	
+	    	SELECT 
+			    COUNT(CASE WHEN a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.Rpt_Seq = '00' THEN 1 ELSE NULL END) AS loadCmpCnt
+	    	FROM cusdec830a1airrdy a
+	    	WHERE a.rpt_seq = '00'
+	      	AND a.ship_day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+	    	UNION
+	
+			SELECT 
+			    COUNT(CASE WHEN a.ship_day = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.Rpt_Seq = '00' THEN 1 ELSE NULL END) AS loadCmpCnt
+			FROM cusdec830a1bsnrdy a
+			WHERE a.rpt_seq = '00' 
+	  		AND a.ship_day BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+			<if test="list != null and list.size() > 0">
+	            AND a.exp_sdno IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+	   		UNION
+	
+	    	SELECT 
+	    	
+		    COUNT(CASE WHEN a.TE1_142 = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.TE1_032 = '00' THEN 1 ELSE NULL END) AS loadCmpCnt
+	    	FROM temp_export1bsnenc a
+	   		WHERE a.TE1_142 BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+		 	<if test="list != null and list.size() > 0">
+	            AND a.TE1_126 IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+		) AS EXPORT
+	</select>
+	
 	<select id="selectExpTodayInclOthViewList" parameterType="searchVO" resultType="egovMap">
 		SELECT 
 		    '진행현황' AS expRece,

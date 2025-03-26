@@ -169,6 +169,7 @@
 					AND TRIM(A.ADJ_NM) = TRIM(C.CATEGORY)
 					WHERE A.fr_key = #{srch9}
 					AND TRIM(A.ADJ_NM) = '관세'
+					AND A.DEL_YN = 'N'
 					
 						UNION 
 					
@@ -196,6 +197,7 @@
 					    AND TRIM(A.ADJ_NM) = TRIM(C.CATEGORY)
 					WHERE A.fr_key = #{srch9}
 					AND TRIM(A.ADJ_NM) = '부가세'
+					AND A.DEL_YN = 'N'
 					
 								UNION 
 					
@@ -227,6 +229,7 @@
 					    AND TRIM(A.ADJ_NM) = TRIM(C.CATEGORY)
 					WHERE A.fr_key = #{srch9}
 					AND TRIM(A.ADJ_NM) = '항공운임'
+					AND A.DEL_YN = 'N'
 					
 								
 						UNION 
@@ -254,6 +257,7 @@
 					 AND TRIM(A.ADJ_NM) = TRIM(B.CATEGORY)
 					WHERE A.fr_key = #{srch9}
 					AND TRIM(ADJ_NM) = '보험료'
+					AND A.DEL_YN = 'N'
 					
 					UNION 
 					
@@ -285,6 +289,7 @@
 					    AND TRIM(A.ADJ_NM) = TRIM(C.CATEGORY)
 					WHERE A.fr_key = #{srch9}
 					AND TRIM(A.ADJ_NM) = '항공사수수료'
+					AND A.DEL_YN = 'N'
 					
 					union
 					
@@ -318,7 +323,9 @@
 								    SUM_EK AS sumEk,
 								    NULL AS note
 								FROM adj_listselops
-								WHERE fr_key = #{srch9} AND TRIM(ADJ_NM) = '창고료'
+								WHERE fr_key = #{srch9} 
+								AND (TRIM(ADJ_NM) = '창고료' OR TRIM(ADJ_NM) = '내국창고료' OR TRIM(ADJ_NM) = '내륙창고료')
+								AND DEL_YN = 'N'
 							) C LIMIT 1) 
 							
 					union
@@ -352,7 +359,7 @@
 							    SUM_EK AS sumEk,
 							    NULL AS note
 							FROM adj_listselops
-							WHERE fr_key = #{srch9} AND TRIM(ADJ_NM) = '운송료'
+							WHERE fr_key = #{srch9} AND TRIM(ADJ_NM) = '운송료' AND DEL_YN = 'N'
 						) D LIMIT 1)
 					
 						UNION
@@ -378,6 +385,7 @@
 					 AND TRIM(A.ADJ_NM) = TRIM(B.CATEGORY)
 					WHERE A.fr_key = #{srch9}
 					AND TRIM(ADJ_NM) = '통관수수료'
+					AND A.DEL_YN = 'N'
 			) final
 			ON cl.category = final.category;
 	</select>

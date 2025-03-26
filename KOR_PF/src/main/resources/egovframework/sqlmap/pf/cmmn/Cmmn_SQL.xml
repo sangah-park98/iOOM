@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="egovframework.pf.cmmn.service.impl.CmmnMapper">
-
+	
 	<!-- 로그인체크 -->
 	<select id="selectCmpnyIdCheck" parameterType="searchVO" resultType="egovMap">
 		  SELECT    b.TAX_NO as CMPNY_CD
@@ -97,15 +97,14 @@
 
 	<!-- 메시지 조회 -->
 	<select id="selectMsgList" parameterType="searchVO" resultType="egovMap">
-		SELECT b.MSG_ID
-  			 , CASE WHEN #{lang} = 'en' THEN b.MSG_NM_EN
-					ELSE b.MSG_NM_KR
-  			   END AS MSG_NM
-		  FROM MENU_MSG_INFO a
-          	   JOIN MSG_INFO b ON a.MSG_ID = b.MSG_ID
-		 WHERE a.MENU_ID = #{srch2}
-		   AND a.DEL_YN = 'N'
-		   AND b.DEL_YN = 'N'
+		SELECT 
+			b.MSG_ID,
+			CASE WHEN #{lang} = 'en' THEN b.MSG_NM_EN ELSE b.MSG_NM_KR END AS MSG_NM
+		FROM MENU_MSG_INFO a
+		JOIN MSG_INFO b ON a.MSG_ID = b.MSG_ID
+		WHERE a.MENU_ID = #{srch2}
+		AND a.DEL_YN = 'N'
+		AND b.DEL_YN = 'N'
 	</select>
 
 	<!-- 공통코드 조회(팝업) -->

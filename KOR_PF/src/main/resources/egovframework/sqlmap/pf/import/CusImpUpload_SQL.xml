@@ -2045,6 +2045,7 @@
 		#{resultCount2},
 		#{resultCount1},
 		CASE 
+		WHEN #{excel_149} = '0' THEN '00'
 		WHEN #{excel_149} = '1' THEN '01'
 		WHEN #{excel_149} = '2' THEN '02'
 		WHEN #{excel_149} = '3' THEN '03'
@@ -2093,7 +2094,12 @@
         WHEN #{excel_117} = '-' OR #{excel_117} = '-  0' THEN 0
         ELSE CAST(REPLACE(#{excel_117}, ',', '') AS DECIMAL(20, 4))
         END),
-        #{excel_166},
+        CASE 
+        WHEN #{excel_166} = '1' THEN '001'
+        WHEN #{excel_166} = '2' THEN '002'
+        WHEN #{excel_166} = '3' THEN '002'
+        ELSE #{excel_166} 
+	    END,
         #{excel_167},
         #{excel_168},
         #{excel_169},
@@ -2185,6 +2191,7 @@
         END)
 		)ON DUPLICATE KEY UPDATE
 		 Rpt_Seq = CASE 
+		 			WHEN #{excel_149} = '0' THEN '00'
 					WHEN #{excel_149} = '1' THEN '01'
 					WHEN #{excel_149} = '2' THEN '02'
 					WHEN #{excel_149} = '3' THEN '03'
@@ -2213,7 +2220,13 @@
 		,Vat= (CASE WHEN #{excel_117} = '-' OR #{excel_117} = '-  0' THEN 0
 			     ELSE CAST(REPLACE(REPLACE(#{excel_117}, ' ', ''), ',', '') AS DECIMAL(20, 4))END)	
 		
-		,Ran_No = #{excel_166}
+		,Ran_No =
+		    CASE 
+		        WHEN #{excel_166} = '1' THEN '001'
+		        WHEN #{excel_166} = '2' THEN '002'
+		        WHEN #{excel_166} = '3' THEN '002'
+		        ELSE #{excel_166} 
+		    END
 		,Hs = #{excel_167}	
 		,Gs_Divi = #{excel_168}	
 		,Tax_Ki_Divi = #{excel_169}
@@ -2316,6 +2329,7 @@
 		#{resultCount1},
 		#{resultCount2},
 		CASE 
+		WHEN #{excel_149} = '0' THEN '00'
 		WHEN #{excel_149} = '1' THEN '01'
 		WHEN #{excel_149} = '2' THEN '02'
 		WHEN #{excel_149} = '3' THEN '03'
@@ -2348,6 +2362,7 @@
 		)ON DUPLICATE KEY UPDATE
 		
 		Rpt_Seq = CASE 
+					WHEN #{excel_149} = '0' THEN '00'
 					WHEN #{excel_149} = '1' THEN '01'
 					WHEN #{excel_149} = '2' THEN '02'
 					WHEN #{excel_149} = '3' THEN '03'
