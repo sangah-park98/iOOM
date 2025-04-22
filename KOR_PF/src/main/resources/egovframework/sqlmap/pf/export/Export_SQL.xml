@@ -1445,16 +1445,102 @@
 	                #{id}
 	            </foreach>
         	</if>
+        	
+        	UNION
+        	
+        	SELECT
+				a.TE1_001 AS sn,
+			    a.TE1_098 AS rece,
+			    a.TE1_036 AS rece_result,
+			    CONCAT(SUBSTRING(a.TE1_032, 1, 5), '-', SUBSTRING(a.TE1_032, 6, 2), '-', SUBSTRING(a.TE1_032, 8, 7)) AS rpt_no,
+			    a.TE1_122 AS exp_firm,
+			    a.TE1_024 AS buy_firm,
+			    a.TE1_040 AS Ta_St_iso,
+			    IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
+			    CASE WHEN a.TE1_034 != '' THEN DATE_FORMAT(a.TE1_034, '%Y-%m-%d') ELSE '' END AS rpt_Day,
+			    CASE WHEN a.TE1_095 != '' THEN DATE_FORMAT(a.TE1_095, '%Y-%m-%d') ELSE '' END AS Exp_Lis_Day,
+			    CASE WHEN a.TE1_117 != '' THEN DATE_FORMAT(a.TE1_117, '%Y-%m-%d') ELSE '' END AS Juk_Day,
+			    case when a.TE1_142 IS NULL then '-' 
+			    	 when a.TE1_142 = '' then '-'
+				ELSE DATE_FORMAT(a.TE1_142, '%Y-%m-%d') end as ship_day,
+			    a.TE1_037 AS Exc_Cot,
+			    '' AS Con_MetNm,
+			    0 AS amt,
+			    CONCAT(a.TE1_055, ' (', a.TE1_133, ')') AS tot_pack_cnt,
+			    a.TE1_053 AS tot_wt,
+			    IFNULL(C.STATE,'0') AS state
+			FROM temp_export1gmienc a
+		    LEFT JOIN
+			(select cmmn_cd, cmmn_nm from cmmn_cd where grp_cd = 'EXPSHRPTCD') I
+			on I.cmmn_cd = SUBSTRING(a.TE1_032, 1, 5)
+		 	LEFT JOIN 
+	 		co_request C ON 
+	 		C.CORP_NO = A.TE1_126
+	 		AND C.RPT_NO = A.TE1_001
+			WHERE 1=1
+		    <choose>
+		    <when test="srch1 =='02'">
+		    AND A.TE1_098 = '수리'
+		    </when>
+		    <when test="srch1 =='03'">
+		    AND A.TE1_098 NOT IN ('수리', '승인')
+		    </when>
+		    <when test="srch1 == '04'">
+			AND A.TE1_098 = ''
+			</when>
+			<when test="srch1 == '05'">
+			AND A.TE1_098 != ''
+			</when>
+		    </choose>
+		    <choose>
+			<when test="srch9 == 1">
+			AND CONVERT(a.TE1_098 USING utf8mb4) IN ('의뢰', '')			
+			</when>
+			<when test="srch9 == 2">
+			AND CONVERT(a.TE1_098 USING utf8mb4) NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료')	
+			</when>
+			<when test="srch9 == 3">
+			AND CONVERT(a.TE1_098 USING utf8mb4) = '미결'			
+			</when>
+			<when test="srch9 == 4">
+			AND CONVERT(a.TE1_098 USING utf8mb4) IN ('자수', '수리', '승인', '완료')				
+			</when>
+			<when test="srch9 == 5">
+			AND a.TE1_142 = DATE_FORMAT(CURDATE(), '%Y%m%d')
+			</when>
+			</choose>
+			<if test="srch9 != 5">
+             <choose>
+                 <when test="srch8 == '01'">
+                     AND A.TE1_034 BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </when>
+                 <otherwise>
+                     AND A.TE1_095 BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
+                 </otherwise>
+             </choose>
+         	</if>
+			<if test="srch4 != null and srch4 != ''">
+			AND a.TE1_032 LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
+			</if>
+			<if test="srch5 != null and srch5 != ''">
+			AND a.TE1_001 IN (SELECT DISTINCT TE1_001 FROM temp_export2gmienc WHERE TE2_005 like CONCAT('%',UPPER(#{srch5}),'%'))
+			</if>
+			<if test="list != null and list.size() > 0">
+	            AND a.TE1_126 IN
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
 		) AS EXPORT
 		WHERE 1=1
-			<if test="srchType1 != null and srchType1 != '' and srchText1 != null and srchText1 != ''">
-			AND ${srchType1} LIKE CONCAT('%',UPPER(#{srchText1}),'%')
-			</if>
-			<if test="srchType2 != null and srchType2 != '' and srchText2 != null and srchText2 != ''">
-			AND ${srchType2} LIKE CONCAT('%',UPPER(#{srchText2}),'%')
-			</if>
-			ORDER BY rpt_day desc, rpt_no desc
-			LIMIT #{recordCountPerPage} OFFSET #{startPage};
+		<if test="srchType1 != null and srchType1 != '' and srchText1 != null and srchText1 != ''">
+		AND ${srchType1} LIKE CONCAT('%',UPPER(#{srchText1}),'%')
+		</if>
+		<if test="srchType2 != null and srchType2 != '' and srchText2 != null and srchText2 != ''">
+		AND ${srchType2} LIKE CONCAT('%',UPPER(#{srchText2}),'%')
+		</if>
+		ORDER BY rpt_day desc, rpt_no desc
+		LIMIT #{recordCountPerPage} OFFSET #{startPage};
 	 </select>
 	
 	 <!-- 수출신고 현황 상세 란 목록 조회 -->
@@ -1472,112 +1558,128 @@
 			Att_yn,
 			incorterms
 		FROM (
-		SELECT 
-			RPT_NO,
-			RAN_NO,
-			CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
-			Exc_Gnm,
-			Con_Amt,
-			Sun_Wt,
-			Pack_Cnt,
-			Ori_st_mark1,
-			mg_code AS invoice,
-			Att_yn,
-			amt_cod AS incorterms
-		FROM cusdec830b1selrdy
+			SELECT 
+				RPT_NO,
+				RAN_NO,
+				CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
+				Exc_Gnm,
+				Con_Amt,
+				Sun_Wt,
+				Pack_Cnt,
+				Ori_st_mark1,
+				mg_code AS invoice,
+				Att_yn,
+				amt_cod AS incorterms
+			FROM cusdec830b1selrdy
 			WHERE rpt_no = #{srch4}
 			AND rpt_seq = '00'
-			
+				
 			UNION
-			
+				
 			SELECT 
-			RPT_NO,
-			RAN_NO,
-			CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
-			Exc_Gnm,
-			Con_Amt,
-			Sun_Wt,
-			Pack_Cnt,
-			Ori_st_mark1,
-			mg_code AS invoice,
-			Att_yn,
-			amt_cod AS incorterms
-		FROM cusdec830b1airrdy
+				RPT_NO,
+				RAN_NO,
+				CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
+				Exc_Gnm,
+				Con_Amt,
+				Sun_Wt,
+				Pack_Cnt,
+				Ori_st_mark1,
+				mg_code AS invoice,
+				Att_yn,
+				amt_cod AS incorterms
+			FROM cusdec830b1airrdy
 			WHERE rpt_no = #{srch4}
 			AND rpt_seq = '00'
-			
+				
 			UNION
-			
+				
 			SELECT 
-			RPT_NO,
-			RAN_NO,
-			CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
-			Exc_Gnm,
-			Con_Amt,
-			Sun_Wt,
-			Pack_Cnt,
-			Ori_st_mark1,
-			mg_code AS invoice,
-			Att_yn,
-			amt_cod AS incorterms
-		FROM cusdec830b1icnrdy
+				RPT_NO,
+				RAN_NO,
+				CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
+				Exc_Gnm,
+				Con_Amt,
+				Sun_Wt,
+				Pack_Cnt,
+				Ori_st_mark1,
+				mg_code AS invoice,
+				Att_yn,
+				amt_cod AS incorterms
+			FROM cusdec830b1icnrdy
 			WHERE rpt_no = #{srch4}
 			AND rpt_seq = '00'
-			
+				
 			UNION
-			
+				
 			SELECT 
-			RPT_NO,
-			RAN_NO,
-			CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
-			Exc_Gnm,
-			Con_Amt,
-			Sun_Wt,
-			Pack_Cnt,
-			Ori_st_mark1,
-			mg_code AS invoice,
-			Att_yn,
-			amt_cod AS incorterms
-		FROM cusdec830b1bsnrdy
+				RPT_NO,
+				RAN_NO,
+				CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
+				Exc_Gnm,
+				Con_Amt,
+				Sun_Wt,
+				Pack_Cnt,
+				Ori_st_mark1,
+				mg_code AS invoice,
+				Att_yn,
+				amt_cod AS incorterms
+			FROM cusdec830b1bsnrdy
 			WHERE rpt_no = #{srch4}
 			AND rpt_seq = '00'
-			
+				
 			UNION
-			
+				
 			SELECT 
-			RPT_NO,
-			RAN_NO,
-			CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
-			Exc_Gnm,
-			Con_Amt,
-			Sun_Wt,
-			Pack_Cnt,
-			Ori_st_mark1,
-			mg_code AS invoice,
-			Att_yn,
-			amt_cod AS incorterms
-		FROM cusdec830b1
+				RPT_NO,
+				RAN_NO,
+				CONCAT(SUBSTRING(HS, 1, 4), '.', SUBSTRING(HS, 5, 2), '-', SUBSTRING(HS, 7, 4)) AS HS,
+				Exc_Gnm,
+				Con_Amt,
+				Sun_Wt,
+				Pack_Cnt,
+				Ori_st_mark1,
+				mg_code AS invoice,
+				Att_yn,
+				amt_cod AS incorterms
+			FROM cusdec830b1
 			WHERE rpt_no = #{srch4}
 			AND rpt_seq = '00'
 			AND branch = 'ioom'
-			
+				
 			UNION
-			
+				
 			SELECT 
-			TE2_001 AS RPT_NO,
-			TE2_002 AS RAN_NO,
-			CONCAT(SUBSTRING(TE2_004, 1, 4), '.', SUBSTRING(TE2_004, 5, 2), '-', SUBSTRING(TE2_004, 7, 4)) AS HS,
-			TE2_015 AS Exc_Gnm,
-			TE2_018 AS Con_Amt,
-			TE2_006 AS Sun_Wt,
-			TE2_010 AS Pack_Cnt,
-			TE2_027 AS Ori_st_mark1,
-			TE2_005 AS invoice,
-			'' AS Att_yn,
-			'' AS incorterms
-		FROM temp_export2bsnenc
+				TE2_001 AS RPT_NO,
+				TE2_002 AS RAN_NO,
+				CONCAT(SUBSTRING(TE2_004, 1, 4), '.', SUBSTRING(TE2_004, 5, 2), '-', SUBSTRING(TE2_004, 7, 4)) AS HS,
+				TE2_015 AS Exc_Gnm,
+				TE2_018 AS Con_Amt,
+				TE2_006 AS Sun_Wt,
+				TE2_010 AS Pack_Cnt,
+				TE2_027 AS Ori_st_mark1,
+				TE2_005 AS invoice,
+				'' AS Att_yn,
+				'' AS incorterms
+			FROM temp_export2bsnenc
 			WHERE TE2_001 = #{srch3}
 			
+			UNION
+				
+			SELECT 
+				TE2_001 AS RPT_NO,
+				TE2_002 AS RAN_NO,
+				CONCAT(SUBSTRING(TE2_004, 1, 4), '.', SUBSTRING(TE2_004, 5, 2), '-', SUBSTRING(TE2_004, 7, 4)) AS HS,
+				TE2_015 AS Exc_Gnm,
+				TE2_018 AS Con_Amt,
+				TE2_006 AS Sun_Wt,
+				TE2_010 AS Pack_Cnt,
+				TE2_027 AS Ori_st_mark1,
+				TE2_005 AS invoice,
+				'' AS Att_yn,
+				'' AS incorterms
+			FROM temp_export2gmienc
+			WHERE TE2_001 = #{srch3}
 			) A
 			WHERE 1=1
 			ORDER BY RPT_NO, RAN_NO;
@@ -1650,117 +1752,135 @@
 			Gnm4, 
 			Gnm5
 		FROM (
-		SELECT
-			RPT_NO,
-			RAN_NO, 
-			Sil,
-			Gnm1, 
-			Qty, 
-			Price, 
-			Amt,
-			Gnm2, 
-			Gnm3, 
-			Gnm4, 
-			Gnm5
-		FROM cusdec830c1selrdy
-		WHERE rpt_no = #{srch4}
-		AND RAN_NO = #{srch6}
-		AND rpt_seq = '00'
-		
-		UNION
-		
-		SELECT
-			RPT_NO,
-			RAN_NO, 
-			Sil,
-			Gnm1, 
-			Qty, 
-			Price, 
-			Amt,
-			Gnm2, 
-			Gnm3, 
-			Gnm4, 
-			Gnm5
-		FROM cusdec830c1icnrdy
-		WHERE rpt_no = #{srch4}
-		AND RAN_NO = #{srch6}
-		AND rpt_seq = '00'
-		
-		UNION
-		
-		SELECT
-			RPT_NO,
-			RAN_NO, 
-			Sil,
-			Gnm1, 
-			Qty, 
-			Price, 
-			Amt,
-			Gnm2, 
-			Gnm3, 
-			Gnm4, 
-			Gnm5
-		FROM cusdec830c1airrdy
-		WHERE rpt_no = #{srch4}
-		AND RAN_NO = #{srch6}
-		AND rpt_seq = '00'
-		
-		UNION
-		
-		SELECT
-			RPT_NO,
-			RAN_NO, 
-			Sil,
-			Gnm1, 
-			Qty, 
-			Price, 
-			Amt,
-			Gnm2, 
-			Gnm3, 
-			Gnm4, 
-			Gnm5
-		FROM cusdec830c1bsnrdy
-		WHERE rpt_no = #{srch4}
-		AND RAN_NO = #{srch6}
-		AND rpt_seq = '00'
-		
-		UNION
-		
-		SELECT
-			RPT_NO,
-			RAN_NO, 
-			Sil,
-			Gnm1, 
-			Qty, 
-			Price, 
-			Amt,
-			Gnm2, 
-			Gnm3, 
-			Gnm4, 
-			Gnm5
-		FROM cusdec830c1
-		WHERE rpt_no = #{srch4}
-		AND RAN_NO = #{srch6}
-		AND rpt_seq = '00'
-		AND branch = 'ioom'
-		
-		UNION
-		
-		SELECT
-		TE3_001 AS RPT_NO,  
-		TE3_002 AS RAN_NO,  
-		TE3_003 AS Sil,     
-		TE3_016 AS Gnm1,    
-		TE3_007 As Qty,    
-		TE3_015 AS Price,   
-		TE3_013 AS Amt,     
-		TE3_017 AS Gnm2,   
-		TE3_018 AS Gnm3,   
-		TE3_019 AS Gnm4,   
-		TE3_020 AS Gnm5    
-		FROM temp_export3bsnenc
-		WHERE TE3_001 = #{srch3}
-		AND TE3_002 = #{srch6}
+			SELECT
+				RPT_NO,
+				RAN_NO, 
+				Sil,
+				Gnm1, 
+				Qty, 
+				Price, 
+				Amt,
+				Gnm2, 
+				Gnm3, 
+				Gnm4, 
+				Gnm5
+			FROM cusdec830c1selrdy
+			WHERE rpt_no = #{srch4}
+			AND RAN_NO = #{srch6}
+			AND rpt_seq = '00'
+			
+			UNION
+			
+			SELECT
+				RPT_NO,
+				RAN_NO, 
+				Sil,
+				Gnm1, 
+				Qty, 
+				Price, 
+				Amt,
+				Gnm2, 
+				Gnm3, 
+				Gnm4, 
+				Gnm5
+			FROM cusdec830c1icnrdy
+			WHERE rpt_no = #{srch4}
+			AND RAN_NO = #{srch6}
+			AND rpt_seq = '00'
+			
+			UNION
+			
+			SELECT
+				RPT_NO,
+				RAN_NO, 
+				Sil,
+				Gnm1, 
+				Qty, 
+				Price, 
+				Amt,
+				Gnm2, 
+				Gnm3, 
+				Gnm4, 
+				Gnm5
+			FROM cusdec830c1airrdy
+			WHERE rpt_no = #{srch4}
+			AND RAN_NO = #{srch6}
+			AND rpt_seq = '00'
+			
+			UNION
+			
+			SELECT
+				RPT_NO,
+				RAN_NO, 
+				Sil,
+				Gnm1, 
+				Qty, 
+				Price, 
+				Amt,
+				Gnm2, 
+				Gnm3, 
+				Gnm4, 
+				Gnm5
+			FROM cusdec830c1bsnrdy
+			WHERE rpt_no = #{srch4}
+			AND RAN_NO = #{srch6}
+			AND rpt_seq = '00'
+			
+			UNION
+			
+			SELECT
+				RPT_NO,
+				RAN_NO, 
+				Sil,
+				Gnm1, 
+				Qty, 
+				Price, 
+				Amt,
+				Gnm2, 
+				Gnm3, 
+				Gnm4, 
+				Gnm5
+			FROM cusdec830c1
+			WHERE rpt_no = #{srch4}
+			AND RAN_NO = #{srch6}
+			AND rpt_seq = '00'
+			AND branch = 'ioom'
+			
+			UNION
+			
+			SELECT
+				TE3_001 AS RPT_NO,  
+				TE3_002 AS RAN_NO,  
+				TE3_003 AS Sil,     
+				TE3_016 AS Gnm1,    
+				TE3_007 As Qty,    
+				TE3_015 AS Price,   
+				TE3_013 AS Amt,     
+				TE3_017 AS Gnm2,   
+				TE3_018 AS Gnm3,   
+				TE3_019 AS Gnm4,   
+				TE3_020 AS Gnm5    
+			FROM temp_export3bsnenc
+			WHERE TE3_001 = #{srch3}
+			AND TE3_002 = #{srch6}
+			
+			UNION
+			
+			SELECT
+				TE3_001 AS RPT_NO,  
+				TE3_002 AS RAN_NO,  
+				TE3_003 AS Sil,     
+				TE3_016 AS Gnm1,    
+				TE3_007 As Qty,    
+				TE3_015 AS Price,   
+				TE3_013 AS Amt,     
+				TE3_017 AS Gnm2,   
+				TE3_018 AS Gnm3,   
+				TE3_019 AS Gnm4,   
+				TE3_020 AS Gnm5    
+			FROM temp_export3gmienc
+			WHERE TE3_001 = #{srch3}
+			AND TE3_002 = #{srch6}
 		) A
 		WHERE 1=1
 		ORDER BY RPT_NO, RAN_NO, SIL;
@@ -2876,6 +2996,24 @@
 	                #{id}
 	            </foreach>
         	</if>
+        	
+        	UNION
+	
+	    	SELECT 
+	    	
+	    	COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+		    COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS ingCnt,
+		    COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+		    COUNT(CASE WHEN CONVERT(a.TE1_098 USING utf8mb4) IN ('자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS cmpCnt,
+		    COUNT(CASE WHEN a.TE1_142 = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.TE1_032 = '00' THEN 1 ELSE 0 END) AS loadCmpCnt
+	    	FROM temp_export1gmienc a
+	   		WHERE a.TE1_034 BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+		 	<if test="list != null and list.size() > 0">
+	            AND a.TE1_126 IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
 		) AS EXPORT
 	</select>
 	
@@ -2939,6 +3077,20 @@
 	    	
 		    COUNT(CASE WHEN a.TE1_142 = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.TE1_032 = '00' THEN 1 ELSE NULL END) AS loadCmpCnt
 	    	FROM temp_export1bsnenc a
+	   		WHERE a.TE1_142 BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+		 	<if test="list != null and list.size() > 0">
+	            AND a.TE1_126 IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+        	
+        	UNION
+	
+	    	SELECT 
+	    	
+		    COUNT(CASE WHEN a.TE1_142 = DATE_FORMAT(CURDATE(), '%Y%m%d') AND a.TE1_032 = '00' THEN 1 ELSE NULL END) AS loadCmpCnt
+	    	FROM temp_export1gmienc a
 	   		WHERE a.TE1_142 BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
 		 	<if test="list != null and list.size() > 0">
 	            AND a.TE1_126 IN 

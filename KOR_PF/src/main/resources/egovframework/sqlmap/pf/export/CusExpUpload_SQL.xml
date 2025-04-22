@@ -2,8 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="egovframework.pf.exp.service.impl.CusExpUploadMapper">
 	
-	<select id="insertReadyExportDataA1Seq" resultType="map">
-		<!-- SELECT 
+	<!-- <select id="insertReadyExportDataA1Seq" resultType="map">
+		SELECT 
 		    CASE 
 		        WHEN COUNT(*) > 0 THEN (SELECT DISTINCT SN FROM cusdec830a1 WHERE RPT_NO = #{rptNo})
 		        ELSE NEXTVAL(seq_cusdec830a1)
@@ -15,7 +15,7 @@
 		FROM 
 		    cusdec830a1 
 		WHERE 
-		    RPT_NO = #{rptNo};	 -->
+		    RPT_NO = #{rptNo};	
 	    SELECT 
 	    CASE 
 	        WHEN (SELECT COUNT(*) FROM cusdec830a1 WHERE RPT_NO = #{rptNo} AND RPT_SEQ = '00') > 0 
@@ -30,7 +30,7 @@
 	</select>
 	
 	<select id="insertReadyExportDataB1Seq"  parameterType="map" resultType="map">
-		<!-- SELECT 
+		SELECT 
 		    CASE 
 		        WHEN COUNT(*) > 0 THEN (SELECT DISTINCT SN FROM CUSDEC830B1 WHERE RPT_NO = #{rptNo} AND RAN_NO = #{ranNo})
 		        ELSE NEXTVAL(SEQ_CUSDEC830B1)
@@ -43,7 +43,7 @@
 		    cusdec830b1 
 		WHERE 
 		    RPT_NO = #{rptNo}
-		    AND RAN_NO = #{ranNo};	  -->
+		    AND RAN_NO = #{ranNo};	 
 	    SELECT 
 	    CASE 
 	        WHEN (SELECT COUNT(*) FROM CUSDEC830B1 WHERE RPT_NO = #{rptNo} AND RPT_SEQ = '00'AND RAN_NO = #{ranNo}) > 0 
@@ -58,7 +58,7 @@
 	</select>
 	
 	<select id="insertReadyExportDataC1Seq"  parameterType="map" resultType="map">
-		<!-- SELECT 
+		SELECT 
 		    CASE 
 		        WHEN COUNT(*) > 0 THEN (SELECT DISTINCT SN FROM CUSDEC830C1 WHERE RPT_NO = #{rptNo} AND RAN_NO = #{ranNo} AND SIL = #{sil})
 		        ELSE NEXTVAL(SEQ_CUSDEC830C1)
@@ -72,7 +72,7 @@
 		WHERE 
 		    RPT_NO = #{rptNo}
 		    AND RAN_NO = #{ranNo}
-		    AND SIL = #{sil};	 -->
+		    AND SIL = #{sil};	
     	SELECT 
 	    CASE 
 	        WHEN (SELECT COUNT(*) FROM cusdec830C1 WHERE RPT_NO = #{rptNo} AND RPT_SEQ = '00'AND RAN_NO = #{ranNo} AND SIL = #{sil}) > 0 
@@ -85,7 +85,7 @@
 	        ELSE '신규' 
 	    END AS STATUS 
 	</select>
-	<!-- [레디 / 수출신고서 공통내역 - CUSDEC830A1] INSERT -->
+	[레디 / 수출신고서 공통내역 - CUSDEC830A1] INSERT
 	<insert id="insertReadyExportDataA1" parameterType="hashmap">
 	 INSERT INTO CUSDEC830A1
 	 (BRANCH,
@@ -416,7 +416,7 @@
 	 ,MOD_DATE = NOW()
 	</insert>
 	
-	<!-- [레디 / 수출신고서 란내역 - CUSDEC830B1] INSERT -->
+	[레디 / 수출신고서 란내역 - CUSDEC830B1] INSERT
 	<insert id="insertReadyExportDataB1" parameterType="hashmap">
 	 INSERT INTO CUSDEC830B1
 	 (  BRANCH,
@@ -539,7 +539,7 @@
 		,START_DAY  = #{fileName}
 	</insert>
 	
-	<!-- [레디 / 수출신고서 규격내역 - CUSDEC830B1] INSERT -->
+	[레디 / 수출신고서 규격내역 - CUSDEC830B1] INSERT
 	<insert id="insertReadyExportDataC1" parameterType="hashmap">
 	 INSERT INTO CUSDEC830C1
 		 (	BRANCH,
@@ -644,7 +644,7 @@
 			,Ref_No = #{fileName}
 	</insert>
 	
-	<!-- [엔컴 / 수출신고서 공통내역 - CUSDEC830A1] INSERT -->
+	[엔컴 / 수출신고서 공통내역 - CUSDEC830A1] INSERT`
 	<insert id="insertEncomExportDataA1" parameterType="hashmap">
 		INSERT INTO CUSDEC830A1
 		(
@@ -988,7 +988,7 @@
 				    
 	</insert>
 	
-	<!-- [엔컴 / 수출신고서 란내역 - CUSDEC830B1] INSERT -->
+	[엔컴 / 수출신고서 란내역 - CUSDEC830B1] INSERT
 	<insert id="insertEncomExportDataB1" parameterType="hashmap">
 	INSERT INTO CUSDEC830B1
 	 (  BRANCH,
@@ -1087,7 +1087,7 @@
 		,START_DAY = #{fileName}
 	</insert>
 	
-	<!-- [엔컴 / 수출신고서 규격내역 - CUSDEC830c1] INSERT -->
+	[엔컴 / 수출신고서 규격내역 - CUSDEC830c1] INSERT
 	<insert id="insertEncomExportDataC1" parameterType="hashmap">
 	 INSERT INTO CUSDEC830C1
 		 (	BRANCH,
@@ -1202,7 +1202,7 @@
 			,Ref_No = #{fileName}
 	</insert>
 	
-	<!-- 타관세사 업로드 목록 조회 -->
+	타관세사 업로드 목록 조회
 	<select id="selectCusFileList" parameterType="searchVO" resultType="egovMap">
 		SELECT 
 		    IFNULL(A.Rpt_usg10, '') AS fileName, 
@@ -1229,7 +1229,7 @@
 	    GROUP BY A.Rpt_usg10
 	</select>
 	
-	<!-- 수출신고 현황 목록 조회 -->
+	수출신고 현황 목록 조회
 	<select id="selectCusExpViewList" parameterType="searchVO" resultType="egovMap">
 		SELECT
 			COUNT(*) over() AS cnt,
@@ -1310,9 +1310,9 @@
 		on a.rpt_no = E.rpt_no
 		AND E.memo_type = 'exp'
 		WHERE 
-		   <!--  A.rpt_seq = '00' -->
+		    A.rpt_seq = '00'
 		     a.branch = 'iOOM'
-		    <!-- <choose>
+		    <choose>
 		    <when test="srch1 =='02'">
 		    AND A.rece = '수리'
 		    </when>
@@ -1322,7 +1322,7 @@
 		    <when test="srch1 =='04'">
 		    AND A.rece = '승인'
 		    </when>
-		    </choose> -->
+		    </choose>
 			<choose>
 		    <when test="srch8 =='01'">
 		    AND A.rpt_day BETWEEN REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
@@ -1355,7 +1355,7 @@
 			LIMIT #{recordCountPerPage} OFFSET #{startPage};
 	 </select>
 	 
-	  <!-- 수출신고 현황 상세 란 목록 조회 -->
+	  수출신고 현황 상세 란 목록 조회
 	 <select id="selectCusExpViewLanList" parameterType="searchVO" resultType="egovMap">
 		SELECT 
 			RPT_NO,
@@ -1370,12 +1370,12 @@
 			Att_yn
 		FROM cusdec830b1
 			WHERE rpt_no = #{srch4}
-			<!-- AND rpt_seq = '00' -->
+			AND rpt_seq = '00'
 			AND branch = 'iOOM'
 			ORDER BY RPT_NO, RAN_NO;
 	</select>
 	
-	 <!-- 엑셀 수출신고 현황 상세 란 목록 조회 -->
+	 엑셀 수출신고 현황 상세 란 목록 조회
 	 <select id="selectCusExpViewLanListExcel" parameterType="searchVO" resultType="egovMap">
 		SELECT 
 			RPT_NO,
@@ -1430,7 +1430,7 @@
 		ORDER BY rpt_no, ran_no;
 	</select>
 	
-	<!-- 수출신고 현황 상세 규격 목록 조회 -->
+	수출신고 현황 상세 규격 목록 조회
 	<select id="selectCusExpViewSpecList" parameterType="searchVO" resultType="egovMap">
 		SELECT
 			RPT_NO,
@@ -1447,12 +1447,12 @@
 		FROM cusdec830c1
 		WHERE rpt_no = #{srch4}
 		AND RAN_NO = #{srch6}
-		<!-- AND rpt_seq = '00' -->
+		AND rpt_seq = '00'
 		AND branch = 'iOOM'
 		ORDER BY RPT_NO, RAN_NO, SIL;
 	</select>
 	
-	<!-- 엑셀 수출신고 현황 상세 규격 목록 조회 -->
+	엑셀 수출신고 현황 상세 규격 목록 조회
 	<select id="selectCusExpViewSpecListExcel" parameterType="searchVO" resultType="egovMap">
 		SELECT
 			RPT_NO,
@@ -1536,7 +1536,7 @@
 	</delete>
 	
 	
-	<!-- [DHL / 수출신고서 공통내역 - CUSDEC830A1] INSERT -->
+	[DHL / 수출신고서 공통내역 - CUSDEC830A1] INSERT
 	<insert id="insertDHLExportDataA1" parameterType="hashmap">
 		INSERT INTO CUSDEC830A1
 		(
@@ -1892,7 +1892,7 @@
         
 	</insert>
 	
-	<!-- [DHL / 수출신고서 란내역 - CUSDEC830B1] INSERT -->
+	[DHL / 수출신고서 란내역 - CUSDEC830B1] INSERT
 	<insert id="insertDHLExportDataB1" parameterType="hashmap">
 	INSERT INTO CUSDEC830B1
 	 (  BRANCH,
@@ -2019,7 +2019,7 @@
 		,REG_DATE = now()
 		,START_DAY = #{fileName}
 		</insert>
-		<!-- [DHL / 수출신고서 규격내역 - CUSDEC830c1] INSERT -->
+		[DHL / 수출신고서 규격내역 - CUSDEC830c1] INSERT
 		<insert id="insertDHLExportDataC1" parameterType="hashmap">
 		 INSERT INTO CUSDEC830C1
 		 (	BRANCH,
@@ -2117,7 +2117,6 @@
 				,REG_ID = #{Id}
 				,REG_DATE = NOW()
 				,Ref_No = #{fileName}
-	         
-		</insert>
+		</insert> -->
 	
 </mapper>

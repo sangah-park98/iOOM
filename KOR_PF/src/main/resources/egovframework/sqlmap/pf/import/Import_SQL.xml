@@ -849,6 +849,108 @@
 				 AND a.TI1_127 Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 				</otherwise>
 			</choose>			
+			<if test="srch4 != null and srch4 != ''">
+			AND a.TI1_030 LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
+			</if>
+			<if test="list2 != null and list2.size() > 0">
+			    AND (
+			        <foreach item="blNo" collection="list2" open="(" separator="OR" close=")">
+			            a.TI1_053 LIKE CONCAT('%',UPPER(#{blNo}),'%')
+			        </foreach>
+			    )
+			</if>
+			<if test="list != null and list.size() > 0">
+	            AND a.TI1_022 IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+	       	</if>
+		       	
+	       	UNION
+       	
+        	SELECT 
+        	   a.TI1_001 AS sn,
+        	   s.order_state,
+			   a.TI1_135 AS rece,
+			   CONCAT(SUBSTRING(a.TI1_030, 1, 5), '-', SUBSTRING(a.TI1_030, 6, 2), '-', SUBSTRING(a.TI1_030, 8, 7)) AS rpt_no,
+			   a.TI1_053 AS blno,
+			   a.TI1_016 AS nab_firm,
+			   a.TI1_022 AS nab_sdno, 
+			   a.TI1_026 AS sup_firm,
+			   IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
+			   CASE WHEN a.TI1_055 != '' THEN DATE_FORMAT(a.TI1_055, '%Y-%m-%d') ELSE '' END AS Inc_Day,
+			   CASE WHEN a.TI1_033 != '' THEN DATE_FORMAT(a.TI1_033, '%Y-%m-%d') ELSE '' END AS Rpt_Day,
+			   CASE WHEN a.TI1_127 != '' THEN DATE_FORMAT(a.TI1_127, '%Y-%m-%d') ELSE '' END AS Lis_Day,
+			   '' AS BanChulDay,
+			   a.TI1_034 AS Exc_Cot,
+	   		    ''  AS Con_Ki_Cot,
+			   a.TI1_068, 
+			   FORMAT(a.TI1_079, 0) AS TI1_079,
+			   FORMAT(a.TI1_081, 0) AS TI1_081,
+			   CONCAT(a.TI1_100, ' (', a.TI1_101, ')') AS tot_pack_cnt, 
+			   CONCAT(a.TI1_102, ' (', a.TI1_103, ')') AS tot_wt,         
+			   a.TI1_069,
+			   FORMAT(a.TI1_070+TI1_098, 2) AS con_tot_amt,
+			   SUBSTR(a.TI1_060, 1, 11), 
+			   a.TI1_027, 
+			   a.TI1_051, 
+			   a.TI1_036,
+			   FORMAT(a.TI1_122, 2) AS TI1_122
+
+			FROM temp_import1gmienc a
+			LEFT JOIN (select cmmn_cd, cmmn_nm from cmmn_cd where grp_cd = 'IMPSHRPTCD') I
+			ON I.cmmn_cd = SUBSTRING(a.TI1_030, 1, 5)
+			LEFT JOIN shipping_order s ON s.rpt_no = a.TI1_030 AND s.bl_no = a.TI1_053
+
+			WHERE 1=1
+			<choose>
+				<when test="srch1 =='02'">
+				AND a.TI1_135 In ('수리', '자수')			
+				</when>
+				<when test="srch1 =='03'">
+				AND a.TI1_135 = '대기'			
+				</when>
+				<when test="srch1 =='04'">
+				AND a.TI1_135 = '결재'
+				</when>
+				<when test="srch1 =='05'">
+				AND a.TI1_135 = '미결'			
+				</when>
+				<when test="srch1 =='06'">
+				AND a.TI1_135 = ''			
+				</when>
+				<when test="srch1 =='07'">
+				AND a.TI1_135 != ''			
+				</when>
+				</choose>
+				<choose>
+				<when test="srch6 == 1">
+				AND TI1_135 IN ('의뢰', '')			
+				</when>
+				<when test="srch6 == 2">
+				AND TI1_135 NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료')
+				</when>
+				<when test="srch6 == 3">
+				AND TI1_135 = '미결'			
+				</when>
+				<when test="srch6 == 4">
+				AND TI1_135 = '대기'	
+				</when>
+				<when test="srch6 == 5">
+				AND TI1_135 = '결재'			
+				</when>
+				<when test="srch6 == 6">
+				AND TI1_135 IN ('자수', '수리', '승인', '완료')		
+				</when>
+				</choose>
+				<choose>
+				<when test="srch8 =='01'">
+				 AND a.TI1_033 Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+				</when>
+				<otherwise>
+				 AND a.TI1_127 Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+				</otherwise>
+			</choose>			
 				<if test="srch4 != null and srch4 != ''">
 				AND a.TI1_030 LIKE CONCAT('%',UPPER(REPLACE(#{srch4},'-','')),'%')
 				</if>
@@ -877,7 +979,6 @@
 			LIMIT #{recordCountPerPage} OFFSET #{startPage};
 	</select>
 	
-	<!-- 수입신고 현황 상세 란 목록 조회 -->
 	<select id="selectImportViewLanList" parameterType="searchVO" resultType="egovMap">
 		SELECT 
 			SNA1,
@@ -889,6 +990,7 @@
 			STD_GNAME1,
 			EXC_GNAME1,
 			TAX_KRW,
+			sun_wt,
 			gs,
 			vat,
 			cs_chk_cot,
@@ -904,6 +1006,7 @@
 				b.STD_GNAME1,
 				b.EXC_GNAME1,
 				b.TAX_KRW,
+				b.sun_wt,
 				b.gs,
 				b.vat,
 				b.cs_chk_cot,
@@ -924,6 +1027,7 @@
 				b.STD_GNAME1,
 				b.EXC_GNAME1,
 				b.TAX_KRW,
+				b.sun_wt,
 				b.gs,
 				b.vat,
 				b.cs_chk_cot,
@@ -944,6 +1048,7 @@
 				b.STD_GNAME1,
 				b.EXC_GNAME1,
 				b.TAX_KRW,
+				b.sun_wt,
 				b.gs,
 				b.vat,
 				b.cs_chk_cot,
@@ -964,6 +1069,7 @@
 				b.STD_GNAME1,
 				b.EXC_GNAME1,
 				b.TAX_KRW,
+				b.sun_wt,
 				b.gs,
 				b.vat,
 				b.cs_chk_cot,
@@ -984,6 +1090,7 @@
 				b.STD_GNAME1,
 				b.EXC_GNAME1,
 				b.TAX_KRW,
+				b.sun_wt,
 				b.gs,
 				b.vat,
 				b.cs_chk_cot,
@@ -1005,11 +1112,32 @@
 				'' AS STD_GNAME1,
 				b.TI2_008 AS EXC_GNAME1,
 				b.TI2_075 AS TAX_KRW,
+				'' AS sun_wt,
 				b.TI2_085 AS gs,
 				b.TI2_109 AS vat,
 				'' AS cs_chk_cot,
 				'N' AS rmv
 			FROM temp_import2bsnenc b
+			WHERE b.TI2_001 = #{srch1}
+			
+			UNION
+			
+				SELECT 
+				b.TI2_001 AS SNA1,
+				b.TI2_001 AS RPT_NO,
+				b.TI2_002 as RAN_NO,
+				b.TI2_003 AS HS,
+				b.TI2_005 AS na,
+				b.TI2_080 AS GS_RATE,
+				'' AS STD_GNAME1,
+				b.TI2_008 AS EXC_GNAME1,
+				b.TI2_075 AS TAX_KRW,
+				'' AS sun_wt,
+				b.TI2_085 AS gs,
+				b.TI2_109 AS vat,
+				'' AS cs_chk_cot,
+				'N' AS rmv
+			FROM temp_import2gmienc b
 			WHERE b.TI2_001 = #{srch1}
 			)b
 			WHERE 1=1
@@ -1112,7 +1240,8 @@
 			WHERE rpt_no = #{srch2}
 			AND RAN_NO = #{srch3}
 			
-		UNION
+			UNION
+			
 			SELECT
 				c.RPT_NO,
 				c.RAN_NO,
@@ -1129,7 +1258,8 @@
 			WHERE rpt_no = #{srch2}
 			AND RAN_NO = #{srch3}
 			
-		UNION
+			UNION
+			
 			SELECT
 				c.RPT_NO,
 				c.RAN_NO,
@@ -1146,7 +1276,8 @@
 			WHERE rpt_no = #{srch2}
 			AND RAN_NO = #{srch3}
 			
-		UNION
+			UNION
+			
 			SELECT
 				c.RPT_NO,
 				c.RAN_NO,
@@ -1163,8 +1294,8 @@
 			WHERE rpt_no = #{srch2}
 			AND RAN_NO = #{srch3}
 			
+			UNION
 			
-		UNION
 			SELECT
 				c.RPT_NO,
 				c.RAN_NO,
@@ -1182,7 +1313,8 @@
 			AND rpt_no = #{srch2}
 			AND RAN_NO = #{srch3}
 			
-		UNION
+			UNION
+			
 			SELECT
 				c.TI3_001 AS RPT_NO,
 				c.TI3_002 AS RAN_NO,
@@ -1198,25 +1330,42 @@
 			FROM temp_import3bsnenc c
 			WHERE TI3_001 = #{srch1}
 			AND TI3_002 = #{srch3}
-		
+			
+			UNION
+			
+			SELECT
+				c.TI3_001 AS RPT_NO,
+				c.TI3_002 AS RAN_NO,
+				c.TI3_003 AS Sil,
+				c.TI3_005 AS IMP_GNAME1,
+				c.TI3_011 AS Qty,
+				c.TI3_012 AS Ut,
+				c.TI3_013 AS Upi,
+				c.TI3_014 AS Amt,
+				c.TI3_006 AS IMP_GNAME2,
+				c.TI3_008 AS Compoent1,
+				c.TI3_009 AS Compoent2
+			FROM temp_import3gmienc c
+			WHERE TI3_001 = #{srch1}
+			AND TI3_002 = #{srch3}
 		)c
-			WHERE 1=1
-			ORDER BY rpt_no, ran_no, sil;
+		WHERE 1=1
+		ORDER BY rpt_no, ran_no, sil;
 	</select>
 	
 	<select id="selectImportViewSpecListExcel" parameterType="searchVO" resultType="egovMap">
 		SELECT
-		RPT_NO,
-		RAN_NO,
-		Sil,
-		IMP_GNAME1,
-		Qty,
-		Ut,
-		Upi,
-		Amt,
-		IMP_GNAME2,
-		Compoent1,
-		Compoent2
+			RPT_NO,
+			RAN_NO,
+			Sil,
+			IMP_GNAME1,
+			Qty,
+			Ut,
+			Upi,
+			Amt,
+			IMP_GNAME2,
+			Compoent1,
+			Compoent2
 		FROM cusdec929c1
 		WHERE rpt_no IN (
 		SELECT RPT_NO FROM
@@ -1583,6 +1732,26 @@
 		    COUNT(CASE WHEN CONVERT(a.TI1_135 USING utf8mb4) = '결재' THEN 1 ELSE NULL END) AS apvCnt,
 		    COUNT(CASE WHEN CONVERT(a.TI1_135 USING utf8mb4) IN ('자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS cmpCnt
 	    	FROM temp_import1bsnenc a
+	   		WHERE a.TI1_033 
+		 	BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
+		 	<if test="list != null and list.size() > 0">
+	            AND a.TI1_022 IN 
+	            <foreach item="id" collection="list" open="(" separator="," close=")">
+	                #{id}
+	            </foreach>
+        	</if>
+        	
+        	UNION
+	
+	    	SELECT 
+	    	
+	    	COUNT(CASE WHEN CONVERT(a.TI1_135 USING utf8mb4) IN ('의뢰', '') THEN 1 ELSE NULL END) AS reqCnt,
+		    COUNT(CASE WHEN TRIM(CONVERT(a.TI1_135 USING utf8mb4)) NOT IN ('의뢰', '대기', '결재', '자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS ingCnt,
+		    COUNT(CASE WHEN CONVERT(a.TI1_135 USING utf8mb4) = '미결' THEN 1 ELSE NULL END) AS failCnt,
+		    COUNT(CASE WHEN CONVERT(a.TI1_135 USING utf8mb4) = '대기' THEN 1 ELSE NULL END) AS stbCnt,
+		    COUNT(CASE WHEN CONVERT(a.TI1_135 USING utf8mb4) = '결재' THEN 1 ELSE NULL END) AS apvCnt,
+		    COUNT(CASE WHEN CONVERT(a.TI1_135 USING utf8mb4) IN ('자수', '수리', '승인', '완료') THEN 1 ELSE NULL END) AS cmpCnt
+	    	FROM temp_import1gmienc a
 	   		WHERE a.TI1_033 
 		 	BETWEEN REPLACE(CURDATE(), '-', '') AND REPLACE(CURDATE(), '-', '')
 		 	<if test="list != null and list.size() > 0">

@@ -898,7 +898,7 @@
 		LEFT JOIN item_info2 d
 		    ON b.hs = d.HS
 		    AND a.nab_sdno = d.cmpny_cd
-		    AND CONCAT_WS(' ', TRIM(c.IMP_GName1), TRIM(c.IMP_GName2), TRIM(c.IMP_GName3), TRIM(c.Compoent1), TRIM(c.Compoent2)) = d.ITEM_DESC
+		    AND CONCAT_WS(' ', (c.IMP_GName1), (c.IMP_GName2), (c.IMP_GName3), (c.Compoent1), (c.Compoent2)) = d.ITEM_DESC
 		    AND (CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END) = d.item_code
 		    WHERE 1=1
 	    <if test="list != null and list.size() > 0">
@@ -952,7 +952,7 @@
 		LEFT JOIN item_info2 d
 		    ON b.hs = d.HS
 		    AND a.exp_sdno = d.cmpny_cd
-		    AND CONCAT_WS(' ', TRIM(c.Gnm1), TRIM(c.Gnm2), TRIM(c.Gnm3), TRIM(c.Gnm4), TRIM(c.Gnm5), TRIM(c.Gnm6), TRIM(c.Comp1), TRIM(c.Comp2)) = d.ITEM_DESC
+		    AND CONCAT_WS(' ', (c.Gnm1), (c.Gnm2), (c.Gnm3), (c.Gnm4), (c.Gnm5), (c.Gnm6), (c.Comp1), (c.Comp2)) = d.ITEM_DESC
 		    AND (CASE WHEN c.Mg_Cd = '' THEN c.Gnm1 ELSE c.Mg_Cd END) = d.item_code
 		WHERE 1=1    
 		<if test="list != null and list.size() > 0">
@@ -1010,7 +1010,7 @@
        	AND a.Rpt_Seq = '00'
       	AND (CASE WHEN c.RG_code = '' THEN c.IMP_GName1 ELSE c.RG_code END) = #{srch1}
       	AND b.hs = REPLACE(REPLACE(#{srch4}, '-', ''), '.', '')
-      	AND CONCAT_WS(' ', TRIM(c.IMP_GName1), TRIM(c.IMP_GName2), TRIM(c.IMP_GName3), TRIM(c.Compoent1), TRIM(c.Compoent2)) = #{srch5}
+      	AND CONCAT_WS(' ', (c.IMP_GName1), (c.IMP_GName2), (c.IMP_GName3), (c.Compoent1), (c.Compoent2)) = #{srch5}
       	<choose>
 		    <when test="srch10 == '01'">
 		        AND lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
@@ -1054,7 +1054,7 @@
        	AND a.Rpt_Seq = '00' 
       	AND (CASE WHEN c.Mg_Cd = '' THEN c.Gnm1 ELSE c.Mg_Cd END)= #{srch1}
       	AND b.hs = REPLACE(REPLACE(#{srch4}, '-', ''), '.', '')
-      	AND CONCAT_WS(' ', TRIM(c.Gnm1), TRIM(c.Gnm2), TRIM(c.Gnm3), TRIM(c.Gnm4), TRIM(c.Gnm5), TRIM(c.Gnm6), TRIM(c.Comp1), TRIM(c.Comp2)) = #{srch5}
+      	AND CONCAT_WS(' ', (c.Gnm1), (c.Gnm2), (c.Gnm3), (c.Gnm4), (c.Gnm5), (c.Gnm6), (c.Comp1), (c.Comp2)) = #{srch5}
       	<choose>
 		    <when test="srch10 == '01'">
 		        AND exp_lis_day BETWEEN REPLACE(#{srch2}, '-', '') AND REPLACE(#{srch3}, '-', '')
@@ -1559,16 +1559,14 @@
 		        a.sup_firm,
 		        a.con_cur AS currency, 
 		        CASE 
-		            WHEN ROUND(a.Con_Rate_Usd, 1) * c.upi = FLOOR(ROUND(a.Con_Rate_Usd, 1) * c.upi) THEN 
-		                 ROUND(a.Con_Rate_Usd, 1) * c.upi
-		            ELSE 
-		                FORMAT(ROUND(a.Con_Rate_Usd, 1) * c.upi, 2)
+		            WHEN ROUND(a.Con_Rate_Usd, 1) * c.upi = FLOOR(ROUND(a.Con_Rate_Usd, 1) * c.upi) 
+		            THEN ROUND(a.Con_Rate_Usd, 1) * c.upi
+		            ELSE FORMAT(ROUND(a.Con_Rate_Usd, 1) * c.upi, 2)
 		        END AS wonPrice,
 		        CASE 
-		            WHEN ROUND(SUM(a.Con_Rate_Usd * c.upi * c.qty) OVER () / SUM(c.qty) OVER (), 4) = FLOOR(ROUND(SUM(a.Con_Rate_Usd * c.upi * c.qty) OVER () / SUM(c.qty) OVER (), 4)) THEN 
-		                 ROUND(SUM(a.Con_Rate_Usd * c.upi * c.qty) OVER () / SUM(c.qty) OVER (), 4)
-		            ELSE 
-		                FORMAT(ROUND(SUM(a.Con_Rate_Usd * c.upi * c.qty) OVER () / SUM(c.qty) OVER (), 4), 2)
+		            WHEN ROUND(SUM(a.Con_Rate_Usd * c.upi * c.qty) OVER () / SUM(c.qty) OVER (), 4) = FLOOR(ROUND(SUM(a.Con_Rate_Usd * c.upi * c.qty) OVER () / SUM(c.qty) OVER (), 4)) 
+		            THEN ROUND(SUM(a.Con_Rate_Usd * c.upi * c.qty) OVER () / SUM(c.qty) OVER (), 4)
+		            ELSE FORMAT(ROUND(SUM(a.Con_Rate_Usd * c.upi * c.qty) OVER () / SUM(c.qty) OVER (), 4), 2)
 		        END AS avgPrice,
 
 		        ROUND(((ROUND(a.Con_Rate_Usd, 1) * c.upi) - 
@@ -1625,7 +1623,11 @@
 				a.con_met,
 				a.buy_firm,
 				a.cur AS currency,
-				ROUND(a.exc_rate_usd, 1) * c.price AS wonPrice,
+				CASE WHEN 
+					ROUND(a.exc_rate_usd, 1) * c.price = FLOOR(ROUND(a.exc_rate_usd, 1) * c.price) 
+					THEN ROUND(a.exc_rate_usd, 1) * c.price 
+					ELSE FORMAT(ROUND(a.exc_rate_usd, 1) * c.price, 2) 
+				END AS wonPrice, 
 			   	ROUND(SUM(a.exc_rate_usd * c.price * c.qty) OVER () / SUM(c.qty) OVER (), 4) AS avgPrice,
 			   	ROUND(((ROUND(a.exc_rate_usd, 1) * c.price) - 
 			            (SUM(a.exc_rate_usd * c.price * c.qty) OVER () / SUM(c.qty) OVER ())) / 
@@ -1757,7 +1759,13 @@
 				a.con_met,
 				a.buy_firm,
 				a.cur AS currency,
-				ROUND(a.exc_rate_usd, 1) * c.price AS wonPrice,
+				
+				CASE WHEN 
+					ROUND(a.exc_rate_usd, 1) * c.price = FLOOR(ROUND(a.exc_rate_usd, 1) * c.price) 
+					THEN ROUND(a.exc_rate_usd, 1) * c.price 
+					ELSE FORMAT(ROUND(a.exc_rate_usd, 1) * c.price, 2) 
+				END AS wonPrice, 
+				
 			   	ROUND(SUM(a.exc_rate_usd * c.price * c.qty) OVER () / SUM(c.qty) OVER (), 4) AS avgPrice,
 			   	ROUND(((ROUND(a.exc_rate_usd, 1) * c.price) - 
 			            (SUM(a.exc_rate_usd * c.price * c.qty) OVER () / SUM(c.qty) OVER ())) / 

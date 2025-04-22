@@ -1315,7 +1315,7 @@
 	            #{id}
 	        </foreach>
 	    </if>
-	    GROUP BY C.Ref_No
+	    GROUP BY A.CUS9
 	</select>
 	
 	

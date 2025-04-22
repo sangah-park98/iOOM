@@ -1,0 +1,585 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.pf.rpt.service.impl.reportAnalysisMapper">
+
+	<select id="selectImportStatus" parameterType="searchVO" resultType="egovMap">
+			WITH CTE AS (
+			SELECT
+			    DATE_FORMAT(Lis_Day, '%Y-%m-%d')  AS LIS_DAY
+			  , COUNT(*) AS CNT
+			  , SUM(Tot_Tax_Krw) AS AMOUNT_KRW
+			  , SUM(CASE WHEN EXC_DIVI_MARK in ('11', '93') THEN 1 ELSE 0 END) AS TX_TYPE1
+			  , SUM(CASE WHEN EXC_DIVI_MARK ='83' THEN 1 ELSE 0 END) AS TX_TYPE2
+			  , SUM(CASE WHEN EXC_DIVI_MARK ='87' THEN 1 ELSE 0 END) AS TX_TYPE3
+			  , SUM(CASE WHEN EXC_DIVI_MARK ='94' THEN 1 ELSE 0 END) AS TX_TYPE4
+			  , SUM(CASE WHEN EXC_DIVI_MARK NOT IN ('11', '83', '87', '94', '93') THEN 1 ELSE 0 END) AS TX_TYPE5
+			  , SUM(CASE WHEN Rece_Result LIKE '%제출%' THEN 1 ELSE 0 END) AS TX_PRC2
+			  , SUM(CASE WHEN Rece_Result LIKE '%검사%' THEN 1 ELSE 0 END) AS TX_PRC3
+			    FROM CUSDEC929A1
+			    WHERE  LIS_DAY BETWEEN #{srch1} AND #{srch2}
+			    AND  RPT_SEQ = '00'
+			    AND  NAB_SDNO = #{corpNo}
+			    GROUP BY LIS_DAY
+			)
+			SELECT 	LIS_DAY,
+						CNT,
+						AMOUNT_KRW,
+						TX_TYPE1,
+						TX_TYPE2,
+						TX_TYPE3,
+						TX_TYPE4,
+						TX_TYPE5,
+						CNT - TX_PRC2 - TX_PRC3 AS TX_PRC1,
+						TX_PRC2,
+						TX_PRC3	
+			FROM CTE			
+				ORDER BY LIS_DAY
+	</select>
+	
+	<select id="selectTaxStatus" parameterType="searchVO" resultType="egovMap">
+			SELECT 
+			    DATE_FORMAT(Lis_Day, '%Y-%m-%d')  AS LIS_DAY,
+			    COUNT(*) AS Cnt_Imp,
+			    SUM(Tot_Gs) AS Tot_Gs,
+			    SUM(Tot_Vat) AS Tot_Vat,
+			    SUM(Tot_Ts) AS Tot_Ts,
+			    SUM(Tot_Gt) AS Tot_Gt,
+			    SUM(Tot_Hof) AS Tot_Hof,
+			    SUM(Tot_Ky) AS Tot_Ky,
+			    SUM(Tot_Nt) AS Tot_Nt,
+			    SUM(Tot_Dly_Tax) AS Tot_Dly_Tax,
+			    SUM(Tot_Add_Tax) AS Tot_Add_Tax,
+			    SUM(Tot_Tax_Sum) AS Tot_Tax_Sum
+			FROM CUSDEC929A1
+			WHERE Lis_Day BETWEEN #{srch1} AND #{srch2}
+			    AND RPT_SEQ = '00'
+			    AND NAB_SDNO = #{corpNo}
+			GROUP BY Lis_Day
+			ORDER BY Lis_Day;
+	</select>
+	
+	<select id="selectTaxCount" parameterType="searchVO" resultType="egovMap">
+			  SELECT		
+			    SUBSTRING(LIS_DAY,1,6)   AS LIS_DAY
+				 , COUNT(*) AS Cnt_Imp
+				 , SUM(Tot_Tax_Krw)  AS  Amount_Imp
+				FROM CUSDEC929A1
+			    WHERE  1=1	
+			      AND SUBSTRING(LIS_DAY,1,6) &gt;= #{srch3}	
+			      AND SUBSTRING(LIS_DAY,1,6) &lt;= #{srch4}	
+			      AND  RPT_SEQ = '00'	
+			      AND  NAB_SDNO = #{corpNo}	
+			    GROUP BY SUBSTRING(LIS_DAY,1,6) 	
+	</select>
+	
+	
+	<select id="selectHscodeList" parameterType="searchVO" resultType="egovMap">
+			 SELECT D.HS
+		        FROM CUSDEC929A1 C 
+		        LEFT OUTER JOIN CUSDEC929B1 D 
+		            ON C.SN = D.SNA1
+		            AND C.BRANCH = D.BRANCH
+						AND C.CUS_PRG = D.CUS_PRG
+						AND C.RPT_NO = D.RPT_NO
+		        WHERE  
+		            C.Lis_Day BETWEEN #{srch1} AND #{srch2}
+		            AND C.Rpt_Seq = '00'
+		            AND C.Nab_SdNo = #{corpNo}
+		           GROUP BY D.HS
+		        ORDER BY SUM(D.Tax_Krw) DESC
+		        LIMIT 10
+	</select>
+	
+	<select id="selectTaxList" parameterType="searchVO" resultType="egovMap">
+			 SELECT 
+				    ROW_NUMBER() OVER (ORDER BY SUM(B.Tax_Krw) DESC, B.HS, B.Gs_Divi) AS row_num,
+				    CONCAT(SUBSTRING(B.HS, 1, 4), '.', SUBSTRING(B.HS, 5, 2), '-', SUBSTRING(B.HS, 7, 4)) AS hs,
+				    RTRIM(B.Gs_Divi) AS Gs_Divi,
+				    MAX(CONCAT(B.Exc_GName1, B.Exc_GName2)) AS Exc_GName, 
+				    MAX(B.Gs_Rate) AS Gs_Rate,
+				    SUM(B.Tax_Krw) AS Tax_Krw,
+				    SUM(B.Gs) AS Gs
+				FROM CUSDEC929A1 A
+				LEFT OUTER JOIN CUSDEC929B1 B 
+				    ON A.SN = B.SNA1
+				    AND A.RPT_NO = B.RPT_NO
+				WHERE  
+				    A.Lis_Day BETWEEN #{srch1} AND #{srch2}
+				    AND A.Rpt_Seq = '00'
+				    AND A.Nab_SdNo = #{corpNo}
+				    <if test="list != null and list.size() > 0">
+			            AND B.HS IN 
+			            <foreach item="hscode" collection="list" open="(" separator="," close=")">
+			                #{hscode}
+			            </foreach>
+			        </if>
+				GROUP BY B.HS,B.Gs_Divi,B.Gs_Rate
+				ORDER BY 
+				    SUM(B.Tax_Krw) DESC, 
+				    B.HS, 
+				    B.Gs_Divi
+				LIMIT 10;
+	</select>
+	
+	<select id = "selectTaxRate" parameterType="searchVO" resultType="egovMap">
+		SELECT
+			  B.Gs_Divi AS Gs_Divi
+			, (SELECT Cont FROM CDSTD WHERE Divi = '관세율구분' AND Code = B.Gs_Divi LIMIT 1) AS Gs_Rate
+			, B.Ori_St_Mark1 as Ori_St_Mark1
+			, COUNT(*) AS Cnt_Ran
+			FROM CUSDEC929A1 A
+				LEFT OUTER JOIN CUSDEC929B1 B 
+				ON A.SN = B.SNA1
+				AND A.BRANCH = B.BRANCH
+				AND A.CUS_PRG = B.CUS_PRG
+				AND A.RPT_NO = B.RPT_NO
+			WHERE  A.Lis_Day BETWEEN #{srch1} AND #{srch2}
+				AND  A.Rpt_Seq = '00'
+				AND  A.Nab_SdNo = #{corpNo}
+				AND  ((B.Gs_Divi LIKE 'F%') OR (B.Gs_Divi = 'A') OR (B.Gs_Divi like 'C%') OR (B.Gs_Divi = 'R'))
+			GROUP BY B.Gs_Divi
+			ORDER BY 
+			 Gs_Divi,B.Ori_St_Mark1
+	</select>
+	
+	
+	<select id = "selectImportUpdateList" parameterType="searchVO" resultType="egovMap">
+		SELECT
+		    ROW_NUMBER() OVER (ORDER BY B.SN DESC) AS row_num,
+			 CASE WHEN A.Imp_Rpt_No != '' THEN 
+			 CONCAT_WS('-', 
+		        SUBSTRING(A.Imp_Rpt_No, 1, 5),
+		        SUBSTRING(A.Imp_Rpt_No, 6, 2),
+		        SUBSTRING(A.Imp_Rpt_No, 8)
+		        ) ELSE '' 
+		        END AS Imp_Rpt, -- 신고번호
+		    DATE_FORMAT(A.Rpt_Day, '%Y-%m-%d') AS Rpt_Day,
+			DATE_FORMAT(A.pet_day, '%Y-%m-%d') AS pet_day,
+			DATE_FORMAT(B.Rpt_Seq,' %Y-%m-%d') AS Rpt_Seq,
+		    CASE 
+		        WHEN A.reason_doc1 = '' THEN Rsult_Txt 
+		        ELSE A.Reason_Doc1 
+		    END AS reason_doc,
+			A.Rsult_Mark AS Rsult_Mark,
+			CASE WHEN A.Rsult_Mark IN ('99','01','02','03','04')
+			THEN '신고인'
+			ELSE ''
+			END AS reason 
+		FROM
+		    CUSDMR5FEA1 A
+		    INNER JOIN CUSDEC929A1 B 
+		    
+		    ON A.Imp_Rpt_No = B.Rpt_No 
+		    AND B.Rpt_Seq = '00'
+		WHERE
+		    A.rpt_day BETWEEN #{srch1} AND #{srch2}
+		    AND A.Reason_Code != '27'
+		    AND B.Nab_SdNo = #{corpNo}
+		ORDER BY 
+			B.SN DESC;
+	</select>
+	
+	<select id = "selectFtaAmoutList" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+			CASE WHEN B.RPT_NO != '' THEN CONCAT_WS('-', 
+		        SUBSTRING(B.RPT_NO, 1, 5),
+		        SUBSTRING(B.RPT_NO, 6, 2),
+		        SUBSTRING(B.RPT_NO, 8)) ELSE '' END AS rpt_no, -- 신고번호
+				CASE WHEN A.IMP_RPT_DAY != '' THEN DATE_FORMAT(A.IMP_RPT_DAY, '%Y-%m-%d') ELSE '' END AS imp_rpt_day, -- 신고일자
+				CASE WHEN A.RPT_DAY != '' THEN DATE_FORMAT(A.RPT_DAY, '%Y-%m-%d') ELSE '' END AS rpt_day, -- 정정신청일
+			    C.CMMN_NM AS CUS, -- 수입세관
+				A.Reason_Code, -- 정정사유코드
+				CASE WHEN A.Pet_Day != '' THEN DATE_FORMAT(A.Pet_Day, '%Y-%m-%d') ELSE '' END AS pet_day, -- 승인일자
+				A.Trans_Tax_Sum, -- 증감내역
+				SUM(CASE WHEN D.Edit_Tax_Cot = '관세' THEN D.TRANS_TAX ELSE 0 END) AS taxCot, -- 관세증감내역
+    			SUM(CASE WHEN D.Edit_Tax_Cot = '부가세' THEN D.TRANS_TAX ELSE 0 END) AS taxCotVat -- 부가세 증감내역 
+		FROM 
+			cusdmr5fea1 A
+			LEFT JOIN cusdec929a1 B
+			ON B.SN = A.CUSDEC929SN
+			AND A.IMP_RPT_NO = B.Rpt_No
+			AND B.Rpt_Seq = '00'
+			LEFT JOIN adjust_master C 
+			ON B.Cus = C.CMMN_CD AND GRP_CD = '세관'
+			LEFT JOIN cusdmr5feb2 D 
+			ON a.sn = d.sna1 AND a.branch = d.branch AND a.cus_prg = d.cus_prg
+		WHERE B.Nab_SdNo = #{corpNo}
+			 AND B.rpt_day BETWEEN #{srch1} AND #{srch2}
+		GROUP BY 
+    		B.RPT_NO, A.imp_rpt_day, A.rpt_day, C.CMMN_NM, A.Reason_Code, pet_day, A.Trans_Tax_Sum;
+	</select>
+	
+	
+	<select id = "selectNationSales" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+			Sup_Firm,
+			Sup_St_Sht,
+			COUNT(*) AS tot_imp,
+			sum(Con_Tot_Amt) as conTotAmt,
+			sum(Tot_Gs) AS totGs
+		FROM cusdec929a1 a
+		WHERE Nab_SdNo = #{corpNo}
+		AND rpt_day BETWEEN #{srch1} AND #{srch2}
+		GROUP BY Sup_Firm,Sup_St_Sht
+		ORDER BY COUNT(*) desc,sum(Con_Tot_Amt) desc
+		;
+	</select>
+	
+	<select id = "avgRate" parameterType="searchVO" resultType="String">
+			 	SELECT 
+				  CAST(ROUND(AVG(Gs_Rate), 2) AS CHAR) AS avgRate
+				FROM CUSDEC929A1 A
+				LEFT OUTER JOIN CUSDEC929B1 B 
+				    ON A.SN = B.SNA1
+				    AND A.Rpt_No = B.Rpt_No
+				WHERE  
+				    A.Lis_Day BETWEEN #{srch1} AND #{srch2}
+				    AND A.Rpt_Seq = '00'
+				    AND A.Nab_SdNo = #{corpNo}
+	</select>
+	
+		<select id = "topAvgRate" parameterType="searchVO" resultType="String">
+			 	SELECT 
+				CAST(ROUND(AVG(Gs_Rate), 2) AS CHAR) AS avgTopRate
+				FROM (
+				    SELECT B.Gs_Rate
+				    FROM CUSDEC929A1 A
+				    LEFT OUTER JOIN CUSDEC929B1 B 
+				        ON A.SN = B.SNA1
+				        AND A.Rpt_No = B.Rpt_No
+				    WHERE  
+				        A.Lis_Day BETWEEN #{srch1} AND #{srch2}
+				        AND A.Rpt_Seq = '00'
+				        AND A.Nab_SdNo = #{corpNo}
+				    GROUP BY B.HS, B.Gs_Divi, B.Gs_Rate
+				    ORDER BY 
+				        SUM(B.Tax_Krw) DESC, 
+				        B.HS, 
+				        B.Gs_Divi
+				    LIMIT 10
+				) AS topResults;
+	</select>
+	
+	<select id="selectExportStatus" parameterType="searchVO" resultType="egovMap">
+		WITH CTE AS (
+			SELECT
+			    DATE_FORMAT(Exp_Lis_Day, '%Y-%m-%d')  AS Exp_Lis_Day
+			  , COUNT(*) AS EXP_CNT
+			  , SUM(Tot_Rpt_Krw) AS EXP_AMOUNT_KRW
+			  , SUM(CASE WHEN Exc_Divi ='11' THEN 1 ELSE 0 END) AS EX_TYPE1
+			  , SUM(CASE WHEN Exc_Divi ='72' THEN 1 ELSE 0 END) AS EX_TYPE2
+			  , SUM(CASE WHEN Exc_Divi ='79' THEN 1 ELSE 0 END) AS EX_TYPE3
+			  , SUM(CASE WHEN Exc_Divi ='83' THEN 1 ELSE 0 END) AS EX_TYPE4
+			  , SUM(CASE WHEN Exc_Divi ='92' THEN 1 ELSE 0 END) AS EX_TYPE5
+			  , SUM(CASE WHEN Res961 = '' THEN 1 ELSE 0 END) AS EX_PRC1
+			  , SUM(CASE WHEN Res961 in ('15', '18') THEN 1 ELSE 0 END) AS EX_PRC3
+			    FROM CUSDEC830A1
+			    WHERE  Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
+			    AND  RPT_SEQ = '00'
+			    AND  Exp_SdNo = #{corpNo}
+			    GROUP BY Exp_Lis_Day
+			)
+			SELECT 	 Exp_Lis_Day AS LIS_DAY
+						, EXP_CNT as cnt
+						, EXP_AMOUNT_KRW AS AMOUNT_KRW
+						, EX_TYPE1
+						, EX_TYPE2
+						, EX_TYPE3
+						, EX_TYPE4
+						, EXP_CNT - EX_TYPE1 - EX_TYPE2 - EX_TYPE3 - EX_TYPE4 AS TX_TYPE5
+						, EX_PRC1
+						, EX_PRC3
+						, EXP_CNT - EX_PRC1 - EX_PRC3 AS EX_PRC2	
+			FROM CTE			
+				ORDER BY Exp_Lis_Day
+	</select>
+	
+	<select id="selectNationSalesExport" parameterType="searchVO" resultType="egovMap">
+		SELECT
+			Buy_Firm,
+			Ta_St_isoNm,
+			COUNT(*) AS cmtExp,
+			sum(Tot_Rpt_Krw) totRptKrw
+		FROM cusdec830a1
+			WHERE RPT_SEQ = '00'
+			AND EXP_SDNO = #{corpNo}
+			AND EXP_LIS_DAY BETWEEN #{srch1} AND #{srch2}
+		GROUP BY Ta_St_isoNm,Buy_Firm
+		ORDER BY COUNT(*) desc,sum(Tot_Rpt_Krw) desc
+	</select>
+	
+	<select id="selectUpdateCount" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+		     '수입' AS div1,
+			 '건수' AS div2,
+			 CAST(COUNT(CASE WHEN C.code = '01' THEN 1 END) AS CHAR) AS cunt1,
+			 CAST(COUNT(CASE WHEN C.code = '02' THEN 1 END) AS CHAR) AS cunt2,
+			 CAST(COUNT(CASE WHEN C.code = '03' THEN 1 END) AS CHAR) AS cunt3,
+			 CAST(COUNT(CASE WHEN C.code NOT IN ('01','02','03') THEN 1 END) AS CHAR) AS cunt4,
+			 CAST((
+			    COUNT(CASE WHEN C.code = '01' THEN 1 END) +
+			    COUNT(CASE WHEN C.code = '02' THEN 1 END) +
+			    COUNT(CASE WHEN C.code = '03' THEN 1 END) +
+			    COUNT(CASE WHEN C.code NOT IN ('01','02','03') THEN 1 END)
+ 			) AS CHAR) AS total
+		FROM (
+		    SELECT * 
+		    FROM CUSDEC929A1 
+		    WHERE RPT_SEQ = '00' 
+		      AND rece IN ('수리', '자수', '승인') 
+		      AND Nab_SdNo = #{corpNo}
+		) A
+		INNER JOIN CUSDMR5FEA1 B 
+		    ON A.SN = B.CUSDEC929SN 
+		   AND A.Rpt_No = B.Imp_Rpt_No 
+		   AND A.BRANCH = B.BRANCH 
+		   AND A.CUS_PRG = B.CUS_PRG
+		LEFT OUTER JOIN (
+		    SELECT code, Cont 
+		    FROM CDSTD 
+		    WHERE divi = '수입정정귀책4G'
+		) C 
+		    ON B.Rsult_Mark = C.code
+		WHERE B.pet_day BETWEEN #{srch1} AND #{srch2}
+		
+		UNION ALL
+		
+		SELECT 
+		    '수입' as div1,
+		    '비율' as div2,
+		    IFNULL(CONCAT(ROUND(100.0 * COUNT(CASE WHEN C.code = '01' THEN 1 END) / COUNT(*), 1), '%'),'0.0%') AS cunt1,
+		    IFNULL(CONCAT(ROUND(100.0 * COUNT(CASE WHEN C.code = '02' THEN 1 END) / COUNT(*), 1), '%'),'0.0%') AS cunt2,
+		    IFNULL(CONCAT(ROUND(100.0 * COUNT(CASE WHEN C.code = '03' THEN 1 END) / COUNT(*), 1), '%'),'0.0%') AS cunt3,
+		    IFNULL(CONCAT(ROUND(100.0 * COUNT(CASE WHEN C.code NOT IN ('01','02','03') THEN 1 END) / COUNT(*), 1), '%'),'0.0%') AS cunt4,
+		    '' AS total
+		FROM (
+		    SELECT * 
+		    FROM CUSDEC929A1 
+		    WHERE RPT_SEQ = '00' 
+		      AND rece IN ('수리', '자수', '승인') 
+		      AND Nab_SdNo = #{corpNo}
+		) A
+		INNER JOIN CUSDMR5FEA1 B 
+		    ON A.SN = B.CUSDEC929SN 
+		   AND A.Rpt_No = B.Imp_Rpt_No 
+		   AND A.BRANCH = B.BRANCH 
+		   AND A.CUS_PRG = B.CUS_PRG
+		LEFT OUTER JOIN (
+		    SELECT code, Cont 
+		    FROM CDSTD 
+		    WHERE divi = '수입정정귀책4G'
+		) C 
+		    ON B.Rsult_Mark = C.code
+		WHERE B.pet_day  BETWEEN #{srch1} AND #{srch2}
+		        
+		UNION ALL 
+		
+		SELECT 
+		     '수출' as div1,
+		     '건수' as div2,
+			 CAST(COUNT(CASE WHEN D.code = 'A' THEN 1 END) AS CHAR) AS cunt1,
+			 CAST(COUNT(CASE WHEN D.code = 'E' THEN 1 END) AS CHAR) AS cunt2,
+			 CAST(COUNT(CASE WHEN D.code = 'C' THEN 1 END) AS CHAR) AS cunt3,
+			 CAST(COUNT(CASE WHEN D.code NOT IN ('A','E','C') THEN 1 END) AS CHAR) AS cunt4,
+			 CAST((
+			    COUNT(CASE WHEN D.code = 'A' THEN 1 END) +
+			    COUNT(CASE WHEN D.code = 'E' THEN 1 END) +
+			    COUNT(CASE WHEN D.code = 'C' THEN 1 END) +
+			    COUNT(CASE WHEN D.code NOT IN ('A','E','C') THEN 1 END)
+ 			) AS CHAR) AS total
+			 FROM(
+			 SELECT 
+		            *
+		        FROM CUSDEC830A1 
+		        WHERE RPT_SEQ = '00' 
+		          AND rece IN ('수리', '승인')
+		    ) A
+		    INNER JOIN CUSDMR5ASA1 C 
+		        ON A.Rpt_no = C.Exp_Rpt_No 
+		       AND A.SN = C.CUSDEC830SN 
+		       AND A.BRANCH = C.BRANCH 
+		       AND A.CUS_PRG = C.CUS_PRG
+		    LEFT OUTER JOIN (
+		        SELECT code, Cont 
+		        FROM CDSTD 
+		        WHERE divi = '수출정정귀책사유'
+		    ) D ON C.Send_divi = D.code
+		    WHERE A.Exp_Sdno = #{corpNo}
+		   AND C.dpt_day  BETWEEN #{srch1} AND #{srch2}
+		        
+		UNION ALL 
+		
+		SELECT 
+		     '수출' as div1,
+		     '비율' as div2,
+		     IFNULL(CONCAT(ROUND(100.0 * COUNT(CASE WHEN D.code = 'A' THEN 1 END) / NULLIF(COUNT(*), 0), 1), '%'),'0.0%') AS cunt1,
+  			  IFNULL(CONCAT(ROUND(100.0 * COUNT(CASE WHEN D.code = 'E' THEN 1 END) / NULLIF(COUNT(*), 0), 1), '%'),'0.0%') AS cunt2,
+  			  IFNULL(CONCAT(ROUND(100.0 * COUNT(CASE WHEN D.code = 'C' THEN 1 END) / NULLIF(COUNT(*), 0), 1), '%'),'0.0%') AS cunt3,
+  			  IFNULL(CONCAT(ROUND(100.0 * COUNT(CASE WHEN D.code NOT IN ('A','E','C') THEN 1 END) / NULLIF(COUNT(*), 0), 1), '%'),'0.0%') AS cunt4,
+		     '' AS total     
+			 FROM(
+			 SELECT 
+		            *
+		        FROM CUSDEC830A1 
+		        WHERE RPT_SEQ = '00' 
+		          AND rece IN ('수리', '승인')
+		    ) A
+		    INNER JOIN CUSDMR5ASA1 C 
+		        ON A.Rpt_no = C.Exp_Rpt_No 
+		       AND A.SN = C.CUSDEC830SN 
+		       AND A.BRANCH = C.BRANCH 
+		       AND A.CUS_PRG = C.CUS_PRG
+		    LEFT OUTER JOIN (
+		        SELECT code, Cont 
+		        FROM CDSTD 
+		        WHERE divi = '수출정정귀책사유'
+		    ) D ON C.Send_divi = D.code
+		    WHERE A.Exp_Sdno = #{corpNo}
+		   AND C.dpt_day BETWEEN #{srch1} AND #{srch2};
+	</select>
+	
+	<select id="selectIncoterms" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+		  I.cod as incoterms,
+		  COALESCE(I.con, 0) AS impCnt,
+		  COALESCE(I.tot_usd, 0) AS impAmt,
+		  COALESCE(E.con, 0) AS expCnt,
+		  COALESCE(E.tot_usd, 0) AS expAmt
+		FROM (
+		  SELECT 
+		    con_cod AS cod,
+		    COUNT(*) AS con,
+		    SUM(COALESCE(Tot_Tax_Usd, 0)) AS tot_usd
+		  FROM cusdec929a1
+		  WHERE Nab_SdNo = #{corpNo}
+		    AND Lis_Day BETWEEN #{srch1} AND #{srch2}
+		  GROUP BY con_cod
+		) I
+		LEFT JOIN (
+		  SELECT 
+		    amt_cod AS cod,
+		    COUNT(*) AS con,
+		    SUM(COALESCE(Tot_Rpt_Usd, 0)) AS tot_usd
+		  FROM cusdec830a1
+		  WHERE exp_SdNo = #{corpNo}
+		    AND Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
+		  GROUP BY amt_cod
+		) E ON I.cod = E.cod
+		
+		UNION
+		
+		SELECT 
+		  E.cod as incoterms,
+		  COALESCE(I.con, 0) AS impCnt,
+		  COALESCE(I.tot_usd, 0) AS impAmt,
+		  COALESCE(E.con, 0) AS expCnt,
+		  COALESCE(E.tot_usd, 0) AS expAmt
+		FROM (
+		  SELECT 
+		    con_cod AS cod,
+		    COUNT(*) AS con,
+		    SUM(COALESCE(Tot_Tax_Usd, 0)) AS tot_usd
+		  FROM cusdec929a1
+		  WHERE Nab_SdNo = #{corpNo}
+		    AND Lis_Day BETWEEN #{srch1} AND #{srch2}
+		  GROUP BY con_cod
+		) I
+		RIGHT JOIN (
+		  SELECT 
+		    amt_cod AS cod,
+		    COUNT(*) AS con,
+		    SUM(COALESCE(Tot_Rpt_Usd, 0)) AS tot_usd
+		  FROM cusdec830a1
+		  WHERE exp_SdNo = #{corpNo}
+		    AND Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
+		  GROUP BY amt_cod
+		) E ON I.cod = E.cod;
+	</select>
+	
+	<select id="selectImpCus" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+		    '수입' AS al,
+		    A.Cus AS CUS,
+		    B.CMMN_NM AS CUSNM, 
+		    COUNT(*) AS cnt,
+		    SUM(A.Tot_Tax_Krw) AS taxKrw,
+		    SUM(A.Tot_Tax_Usd) AS taxUsd,
+		    SUM(A.Tot_Tax_Sum) AS taxSum,
+		    CONCAT(ROUND(SUM(A.Tot_Tax_Sum) / T.total_sum * 100, 2),'%') AS taxRate -- ✅ 비율(%)
+		FROM cusdec929a1 A
+		LEFT JOIN adjust_master B 
+		    ON A.Cus = B.CMMN_CD AND GRP_CD = '세관'
+		JOIN (
+		    SELECT SUM(Tot_Tax_Sum) AS total_sum
+		    FROM cusdec929a1
+		    WHERE Lis_Day BETWEEN #{srch1} AND #{srch2}
+		      AND RPT_SEQ = '00'
+		      AND NAB_SDNO = #{corpNo}
+		) T ON 1=1
+		WHERE A.Lis_Day BETWEEN #{srch1} AND #{srch2}
+		  AND A.RPT_SEQ = '00'
+		  AND A.NAB_SDNO = #{corpNo}
+		GROUP BY A.Cus, B.CMMN_NM, T.total_sum
+		
+		UNION ALL 
+		
+		SELECT 
+		     '합계' AS al,
+		     '' AS CUS,
+		     '' AS CUSNM, 
+		    COUNT(*) AS cnt,
+		    SUM(A.Tot_Tax_Krw) AS taxKrw,
+		    SUM(A.Tot_Tax_Usd) AS taxUsd,
+		    SUM(A.Tot_Tax_Sum) AS taxSum,
+		    '100%' AS taxRate
+		FROM cusdec929a1 A
+		WHERE A.Lis_Day BETWEEN #{srch1} AND #{srch2}
+		  AND A.RPT_SEQ = '00'
+		  AND A.NAB_SDNO = #{corpNo}
+		  
+		  UNION ALL 
+
+
+		SELECT 
+		    '수출' AS al,
+		    A.Rpt_Cus AS CUS,
+		    B.CMMN_NM AS CUSNM, 
+		    COUNT(*) AS cnt,
+		    SUM(A.Tot_Rpt_Krw) AS taxKrw,
+			 SUM(a.Tot_Rpt_Usd) AS taxUsd,
+			 SUM(a.Amt) AS taxSum,
+		    CONCAT(ROUND(SUM(A.Tot_Rpt_Krw) / T.total_sum * 100, 2),'%') AS taxRate -- ✅ 비율(%)
+		FROM cusdec830a1 A
+		LEFT JOIN adjust_master B 
+		    ON A.Rpt_Cus = B.CMMN_CD AND GRP_CD = '세관'
+		JOIN (
+		    SELECT SUM(Tot_Rpt_Krw) AS total_sum
+		    FROM cusdec830a1
+		    WHERE Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
+				AND  RPT_SEQ = '00'
+				AND  Exp_SdNo = #{corpNo}
+		) T ON 1=1
+		WHERE A.Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
+		  AND A.RPT_SEQ = '00'
+		  AND A.Exp_SdNo = #{corpNo}
+		GROUP BY A.Rpt_Cus, B.CMMN_NM, T.total_sum
+		
+		UNION ALL 
+		
+		SELECT 
+		    '합계' AS al,
+		    '' AS CUS,
+		    '' AS CUSNM, 
+		    COUNT(*) AS cnt,
+		    SUM(A.Tot_Rpt_Krw) AS taxKrw,
+		    SUM(A.Tot_Rpt_Usd) AS taxUsd,
+		    SUM(A.Amt) AS taxSum,
+		    '100%' AS taxRate
+		FROM cusdec830a1 A
+		WHERE A.Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
+		  AND A.RPT_SEQ = '00'
+		  AND A.Exp_SdNo = #{corpNo}
+	</select>
+	
+	
+</mapper>

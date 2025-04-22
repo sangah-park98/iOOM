@@ -1,0 +1,183 @@
+package egovframework.pf.rpt.service.web;
+
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import egovframework.pf.cmmn.service.CmmnService;
+import egovframework.pf.cmmn.service.SearchVO;
+import egovframework.pf.cmmn.service.UserSessionVO;
+import egovframework.pf.rpt.service.AnalysisExcelService;
+import egovframework.pf.rpt.service.AnalysisService;
+import egovframework.pf.util.ExcelUtil;
+import egovframework.rte.psl.dataaccess.util.EgovMap;
+import egovframework.pf.rpt.service.reportAnalysisService;
+
+/**
+ * @Class Name : reportAnalysisController.java
+ * @Description : 리포트 분석 컨트롤러
+ * @Modification Information
+ * @
+ * @  수정일          			 수정자              			 수정내용
+ * @ ---------        ----------     -------------------------------
+ * @ 2025.03.14			권예지              				 최초생성
+ *
+ * @author 권예지
+ * @since 2025.03.14
+ * @version 1.0
+ * @see
+ *
+ *  Copyright (C) by MOPAS All right reserved.
+ */
+
+@Controller
+public class reportAnalysisController {
+	private static final Logger log = LoggerFactory.getLogger(KPIController.class);
+
+	@Resource(name = "CmmnService")
+	private CmmnService CmmnService;
+	
+	@Resource(name = "reportAnalysisService")
+	private reportAnalysisService reportAnalysisService;
+	
+	
+
+	
+	
+	@RequestMapping(value = "/rpt/reportAnalysisPdf.do", method = RequestMethod.GET)
+	public @ResponseBody Map<String, Object> getFormReportList(HttpServletRequest request, HttpSession session,
+	        @ModelAttribute("searchVO") SearchVO vo,Model model,
+	        @RequestParam(value = "srch8", required = false) String srch8)throws Exception {
+		
+		HttpSession httpSession = request.getSession(true);
+		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		vo.setCorpNo(userVO.getCorpNo());
+		
+		String startDate = null;
+		String endDate = null;
+		int year = 0;
+		int month = 0;
+	    
+		DateTimeFormatter formatter;
+		LocalDate today = LocalDate.now();
+		String format = null;
+		formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+		format = formatter.format(today);
+		
+		if(srch8 != null && srch8.matches("\\d{4}-\\d{2}")) {
+			//년도 월 추출
+			String[] parts = srch8.split("-");
+			 year = Integer.parseInt(parts[0]);
+			 month = Integer.parseInt(parts[1]);
+			 System.out.println("parts"+parts);
+			 System.out.println("year"+year);
+			 System.out.println("month"+month);
+
+			 String minYear = String.format("%04d%02d", year-1, 1);
+			 String curYear = String.format("%04d%02d", year, month);
+			 
+			 System.out.println("minYear"+minYear);
+			 System.out.println("curYear"+curYear);
+			
+			// startDate
+			startDate = String.format("%04d%02d01", year,month);
+			
+			//lastDate
+			LocalDate lastDayOfMonth = LocalDate.of(year, month, 1).withDayOfMonth(LocalDate.of(year, month, 1).lengthOfMonth());
+			endDate = lastDayOfMonth.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+			
+			vo.setSrch1(startDate);
+			vo.setSrch2(endDate);
+			vo.setSrch3(minYear);
+			vo.setSrch4(curYear);
+		}
+		 // 수입통관현황
+	    List<?> results01 = reportAnalysisService.selectImportStatus(vo);
+	    //수입통관 세액현황
+	    List<?> results02 = reportAnalysisService.selectTaxStatus(vo);
+	    // 전년 동월 대비 건수 비교 
+	    List<?> results03 = reportAnalysisService.selectTaxCount(vo);
+	    // 수입물품 과세현황
+	    List<?> results04 = reportAnalysisService.selectTaxList(vo);
+	    //평균 관세율
+	    String avgRate = reportAnalysisService.avgRate(vo);
+	    System.out.println("avgRate"+avgRate);
+	    // 상위 10개 관세율
+	    String topAvgRate =  reportAnalysisService.topAvgRate(vo);
+	    System.out.println("topAvgRate"+topAvgRate);
+	    //수입물품 적용 세율 
+	    List<?> results05 = reportAnalysisService.selectTaxRate(vo);
+	   //수입정정현황 
+	    List<?> results06 = reportAnalysisService.selectImportUpdateList(vo);
+	    //FTA 사후적용금액
+	    List<?> results07 = reportAnalysisService.selectFtaAmoutList(vo);
+	    //주요 해외 거래처(수입)
+	    List<?> results08 = reportAnalysisService.selectNationSales(vo);
+	    // 수출통관현황
+	    List<?> results09 = reportAnalysisService.selectExportStatus(vo);
+	    //주요 해외 거래처(수출)
+	    List<?> results10 = reportAnalysisService.selectNationSalesExport(vo);
+	    //수출입 정정 귀책자별 비율
+	    List<?> results11 = reportAnalysisService.selectUpdateCount(vo);
+	    // 정형조건
+	    List<?> results12 = reportAnalysisService.selectIncoterms(vo);
+	    // 세관별 신고건수 및 금액(수입)
+	    List<?> results13 = reportAnalysisService.selectImpCus(vo);
+	    // 세관별 신고건수 및 금액(수출)
+	    List<?> results14 = reportAnalysisService.selectExpCus(vo);
+	    
+	    System.out.println("results11"+results11);
+	    
+	    Map<String, Object> response = new HashMap<>();
+		    response.put("reportData1", results01);
+		    response.put("reportData2", results02);
+		    response.put("reportData3", results03);
+		    response.put("reportData4", results04);
+		    response.put("reportData5", results05);
+		    response.put("reportData6", results06);
+		    response.put("reportData7", results07);
+		    response.put("reportData8", results08);
+		    response.put("reportData9", results09);
+		    response.put("reportData10", results10);
+		    response.put("reportData11", results11);
+		    response.put("reportData12", results12);
+		    response.put("reportData13", results13);
+		    response.put("reportData14", results14);
+		    response.put("avgRate", avgRate);
+		    response.put("topAvgRate", topAvgRate);
+		    response.put("rptDate1", year);
+		    response.put("rptDate2", month);
+		    response.put("cmpnyInfo", userVO.getCmpnyCd());
+		    response.put("today", format);
+
+		    return response; // JSON 응답 반환
+	}
+}

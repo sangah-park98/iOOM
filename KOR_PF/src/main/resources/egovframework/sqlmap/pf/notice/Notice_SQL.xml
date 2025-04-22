@@ -58,7 +58,7 @@
 		  , #{noticeType}
 		  , #{noticeDt}
 		  , #{userName}
-		  , ''
+		  , 'N'
 		  , #{regDt}
 		  , #{regId}
 		  , ''
@@ -76,6 +76,7 @@
 		CN_KR = #{srch4},
 		FILE_ORG_NM = '',
 		FILE_NM = '',
+		NOTICE_TYPE = #{srch7},
 		EDT_DT = #{srch6},
 		EDT_ID = #{id}
 		WHERE notice_seq = #{srch3};
