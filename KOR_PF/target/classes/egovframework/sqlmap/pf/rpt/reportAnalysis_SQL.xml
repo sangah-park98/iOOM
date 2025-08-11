@@ -8,11 +8,11 @@
 			    DATE_FORMAT(Lis_Day, '%Y-%m-%d')  AS LIS_DAY
 			  , COUNT(*) AS CNT
 			  , SUM(Tot_Tax_Krw) AS AMOUNT_KRW
-			  , SUM(CASE WHEN EXC_DIVI_MARK in ('11', '93') THEN 1 ELSE 0 END) AS TX_TYPE1
-			  , SUM(CASE WHEN EXC_DIVI_MARK ='83' THEN 1 ELSE 0 END) AS TX_TYPE2
-			  , SUM(CASE WHEN EXC_DIVI_MARK ='87' THEN 1 ELSE 0 END) AS TX_TYPE3
-			  , SUM(CASE WHEN EXC_DIVI_MARK ='94' THEN 1 ELSE 0 END) AS TX_TYPE4
-			  , SUM(CASE WHEN EXC_DIVI_MARK NOT IN ('11', '83', '87', '94', '93') THEN 1 ELSE 0 END) AS TX_TYPE5
+			  , SUM(CASE WHEN EXC_DIVI_MARK ='11' THEN 1 ELSE 0 END) AS TX_TYPE1 -- 일반형태수입
+			  , SUM(CASE WHEN EXC_DIVI_MARK ='94' THEN 1 ELSE 0 END) AS TX_TYPE2 -- 기타수입승인면제
+			  , SUM(CASE WHEN EXC_DIVI_MARK ='87' THEN 1 ELSE 0 END) AS TX_TYPE3 -- 견품및광고용품
+			  , SUM(CASE WHEN EXC_DIVI_MARK ='93' THEN 1 ELSE 0 END) AS TX_TYPE4 -- 수출물품대체용
+			  , SUM(CASE WHEN EXC_DIVI_MARK IN ('83', '29', '89', '84', '54','86','88','90','21','85','92','96') THEN 1 ELSE 0 END) AS TX_TYPE5 -- 기타
 			  , SUM(CASE WHEN Rece_Result LIKE '%제출%' THEN 1 ELSE 0 END) AS TX_PRC2
 			  , SUM(CASE WHEN Rece_Result LIKE '%검사%' THEN 1 ELSE 0 END) AS TX_PRC3
 			    FROM CUSDEC929A1
@@ -25,37 +25,83 @@
 		            </foreach>
 		        </if>
 			    GROUP BY LIS_DAY
-			)
-			SELECT 	LIS_DAY,
-						CNT,
-						AMOUNT_KRW,
-						TX_TYPE1,
-						TX_TYPE2,
-						TX_TYPE3,
-						TX_TYPE4,
-						TX_TYPE5,
-						CNT - TX_PRC2 - TX_PRC3 AS TX_PRC1,
-						TX_PRC2,
-						TX_PRC3	
-			FROM CTE			
-				ORDER BY LIS_DAY
+			),
+			SUMS AS (       
+	    SELECT
+	        SUM(CNT)        AS S_CNT,
+	        SUM(AMOUNT_KRW) AS S_AMOUNT_KRW,
+	        SUM(TX_TYPE1)   AS S_TYPE1,
+	        SUM(TX_TYPE2)   AS S_TYPE2,
+	        SUM(TX_TYPE3)   AS S_TYPE3,
+	        SUM(TX_TYPE4)   AS S_TYPE4,
+	        SUM(TX_TYPE5)   AS S_TYPE5,
+	        SUM(TX_PRC2)    AS S_PRC2,
+	        SUM(TX_PRC3)    AS S_PRC3
+	    FROM CTE
+		)
+		
+		SELECT
+		    LIS_DAY,
+		    CNT,
+		    AMOUNT_KRW,
+		    TX_TYPE1,
+		    TX_TYPE2,
+		    TX_TYPE3,
+		    TX_TYPE4,
+		    TX_TYPE5,
+		    CNT - TX_PRC2 - TX_PRC3 AS TX_PRC1,
+		    TX_PRC2,
+		    TX_PRC3
+		FROM CTE
+		
+		UNION ALL
+		-- ② “합계” 행
+		SELECT
+		    '합계',
+		    S_CNT,
+		    S_AMOUNT_KRW,
+		    S_TYPE1,
+		    S_TYPE2,
+		    S_TYPE3,
+		    S_TYPE4,
+		    S_TYPE5,
+		    S_CNT - S_PRC2 - S_PRC3,
+		    S_PRC2,
+		    S_PRC3
+		FROM SUMS
+		
+		UNION ALL
+		SELECT
+		    '비율(%)',                         
+		    '',                                
+		    '',                               
+		    CONCAT(ROUND(S_TYPE1 / NULLIF(S_TYPE1+S_TYPE2+S_TYPE3+S_TYPE4+S_TYPE5,0)*100, 2),'%'),
+		    CONCAT(ROUND(S_TYPE2 / NULLIF(S_TYPE1+S_TYPE2+S_TYPE3+S_TYPE4+S_TYPE5,0)*100, 2),'%'),
+		    CONCAT(ROUND(S_TYPE3 / NULLIF(S_TYPE1+S_TYPE2+S_TYPE3+S_TYPE4+S_TYPE5,0)*100, 2),'%'),
+		    CONCAT(ROUND(S_TYPE4 / NULLIF(S_TYPE1+S_TYPE2+S_TYPE3+S_TYPE4+S_TYPE5,0)*100, 2),'%'),
+		    CONCAT(ROUND(S_TYPE5 / NULLIF(S_TYPE1+S_TYPE2+S_TYPE3+S_TYPE4+S_TYPE5,0)*100, 2),'%'),
+		    CONCAT(ROUND((S_CNT-S_PRC2-S_PRC3) / NULLIF(S_CNT,0)*100, 2),'%'),
+		    CONCAT(ROUND(S_PRC2 / NULLIF(S_CNT,0)*100, 2),'%'),
+		    CONCAT(ROUND(S_PRC3 / NULLIF(S_CNT,0)*100, 2),'%')
+		FROM SUMS
+		;
 	</select>
 	
 	<select id="selectTaxStatus" parameterType="searchVO" resultType="egovMap">
-			SELECT 
-			    DATE_FORMAT(Lis_Day, '%Y-%m-%d')  AS LIS_DAY,
-			    COUNT(*) AS Cnt_Imp,
-			    SUM(Tot_Gs) AS Tot_Gs,
-			    SUM(Tot_Vat) AS Tot_Vat,
-			    SUM(Tot_Ts) AS Tot_Ts,
-			    SUM(Tot_Gt) AS Tot_Gt,
-			    SUM(Tot_Hof) AS Tot_Hof,
-			    SUM(Tot_Ky) AS Tot_Ky,
-			    SUM(Tot_Nt) AS Tot_Nt,
-			    SUM(Tot_Dly_Tax) AS Tot_Dly_Tax,
-			    SUM(Tot_Add_Tax) AS Tot_Add_Tax,
-			    SUM(Tot_Tax_Sum) AS Tot_Tax_Sum
-			FROM CUSDEC929A1
+			WITH TAX AS (               
+			    SELECT
+			        DATE_FORMAT(Lis_Day,'%Y-%m-%d') AS LIS_DAY,
+			        COUNT(*)                       AS Cnt_Imp,
+			        SUM(Tot_Gs)                    AS Tot_Gs,
+			        SUM(Tot_Vat)                   AS Tot_Vat,
+			        SUM(Tot_Ts)                    AS Tot_Ts, -- 개소세
+			        SUM(Tot_Gt)                    AS Tot_Gt, -- 교통세
+			        SUM(Tot_Hof)                   AS Tot_Hof, -- 주세
+			        SUM(Tot_Ky)                    AS Tot_Ky, -- 교육세
+			        SUM(Tot_Nt)                    AS Tot_Nt, -- 농특세
+			        SUM(Tot_Add_Tax + Tot_Dly_Tax) AS Tot_Add_Tax,
+			        SUM(Tot_Vat +Tot_Gs + Tot_Ts + Tot_Gt + Tot_Ky + Tot_Nt + Tot_Add_Tax + Tot_Dly_Tax)  AS Tot_Tax_Sum
+			    FROM cusdec929a1
 			WHERE Lis_Day BETWEEN #{srch1} AND #{srch2}
 			    AND RPT_SEQ = '00'
 		    <if test="list != null and list.size() > 0">
@@ -65,6 +111,38 @@
 	            </foreach>
 	        </if>
 			GROUP BY Lis_Day
+			)
+			SELECT
+			    LIS_DAY,
+			    Cnt_Imp,
+			    Tot_Gs,
+			    Tot_Vat,
+			    Tot_Ts,
+			    Tot_Gt,
+			    Tot_Hof,
+			    Tot_Ky,
+			    Tot_Nt,
+			    Tot_Add_Tax,
+			    Tot_Tax_Sum
+			FROM TAX
+			
+			UNION ALL 
+			
+			SELECT 
+			
+			'합계' AS LIS_DAY
+			,SUM(Cnt_Imp)
+			,SUM(Tot_Gs)
+			,SUM(Tot_vat)
+			,SUM(Tot_Ts)
+			,SUM(Tot_Gt)
+			,SUM(Tot_Hof)
+			,SUM(Tot_Ky)
+			,SUM(Tot_Nt)
+			,SUM(Tot_Add_Tax)
+			,SUM(Tot_Tax_Sum)
+			FROM TAX
+
 			ORDER BY Lis_Day;
 	</select>
 	
@@ -111,6 +189,7 @@
 	</select>
 	
 	<select id="selectTaxList" parameterType="searchVO" resultType="egovMap">
+		WITH HS AS (	 
 			 SELECT 
 				    ROW_NUMBER() OVER (ORDER BY SUM(B.Tax_Krw) DESC, B.HS, B.Gs_Divi) AS row_num,
 				    CONCAT(SUBSTRING(B.HS, 1, 4), '.', SUBSTRING(B.HS, 5, 2), '-', SUBSTRING(B.HS, 7, 4)) AS hs,
@@ -143,33 +222,84 @@
 				    SUM(B.Tax_Krw) DESC, 
 				    B.HS, 
 				    B.Gs_Divi
-				LIMIT 10;
+				LIMIT 10
+			)
+			SELECT 
+				row_num,
+				hs,
+				Gs_Divi,
+				Exc_GName,
+				Gs_Rate,
+				Tax_Krw,
+				Gs
+				FROM HS
+				
+				UNION ALL 
+				
+			SELECT
+				'합계'
+				,''
+				,''
+				,''
+				,''
+				,SUM(Tax_Krw)
+				,SUM(Gs)
+				FROM HS
 	</select>
 	
 	<select id = "selectTaxRate" parameterType="searchVO" resultType="egovMap">
-		SELECT
-			  B.Gs_Divi AS Gs_Divi
-			, (SELECT Cont FROM CDSTD WHERE Divi = '관세율구분' AND Code = B.Gs_Divi LIMIT 1) AS Gs_Rate
-			, B.Ori_St_Mark1 as Ori_St_Mark1
-			, COUNT(*) AS Cnt_Ran
-			FROM CUSDEC929A1 A
-				LEFT OUTER JOIN CUSDEC929B1 B 
-				ON A.SN = B.SNA1
-				AND A.BRANCH = B.BRANCH
-				AND A.CUS_PRG = B.CUS_PRG
-				AND A.RPT_NO = B.RPT_NO
-			WHERE  A.Lis_Day BETWEEN #{srch1} AND #{srch2}
-				AND  A.Rpt_Seq = '00'
-			    <if test="list != null and list.size() > 0">
+		
+		WITH GS AS (
+			SELECT
+				  B.Gs_Divi AS Gs_Divi
+				, (SELECT Cont FROM CDSTD WHERE Divi = '관세율구분' AND Code = B.Gs_Divi LIMIT 1) AS Gs_Rate
+				, B.Ori_St_Mark1 as Ori_St_Mark1
+				, COUNT(*) AS Cnt_Ran
+				FROM CUSDEC929A1 A
+					LEFT OUTER JOIN CUSDEC929B1 B 
+					ON A.SN = B.SNA1
+					AND A.BRANCH = B.BRANCH
+					AND A.CUS_PRG = B.CUS_PRG
+					AND A.RPT_NO = B.RPT_NO
+				WHERE  A.Lis_Day BETWEEN #{srch1} AND #{srch2}
+					AND  A.Rpt_Seq = '00'
+			      	<if test="list != null and list.size() > 0">
 		            AND A.Nab_SdNo IN 
 		            <foreach item="id" collection="list" open="(" separator="," close=")">
 		                #{id}
 		            </foreach>
-	        	</if>
-				AND  ((B.Gs_Divi LIKE 'F%') OR (B.Gs_Divi = 'A') OR (B.Gs_Divi like 'C%') OR (B.Gs_Divi = 'R'))
-			GROUP BY B.Gs_Divi
-			ORDER BY 
-			 Gs_Divi,B.Ori_St_Mark1
+	        		</if>
+					AND  ((B.Gs_Divi LIKE 'F%') OR (B.Gs_Divi = 'A') OR (B.Gs_Divi like 'C%') OR (B.Gs_Divi = 'R'))
+				GROUP BY B.Gs_Divi
+		)
+		SELECT *
+			FROM (
+			    SELECT
+			        Gs_Divi,
+			        Gs_Rate,
+			        Ori_St_Mark1,
+			        Cnt_Ran,
+			        CONCAT(ROUND(Cnt_Ran / SUM(Cnt_Ran) OVER() * 100 ,2), '%') AS Cnt_Rate,
+			        0 AS ord
+			    FROM GS
+			
+			    UNION ALL
+			
+			    SELECT
+			        '',
+			        '합계',
+			        '',
+			        SUM(Cnt_Ran),
+			        '100%',
+			        1
+			    FROM GS
+			) t
+			ORDER BY
+			  ord,                    
+			  Cnt_Ran DESC,
+			  Gs_Divi,
+			  Ori_St_Mark1;
+	
 	</select>
 	
 	
@@ -216,18 +346,19 @@
 	
 	<select id = "selectFtaAmoutList" parameterType="searchVO" resultType="egovMap">
 		SELECT 
+			ROW_NUMBER() OVER (ORDER BY B.RPT_NO) AS seq,
+			CONCAT(A.Reason_Code, '(FTA 사후적용)') AS reasonCode, -- 정정사유코드
 			CASE WHEN B.RPT_NO != '' THEN CONCAT_WS('-', 
-		        SUBSTRING(B.RPT_NO, 1, 5),
-		        SUBSTRING(B.RPT_NO, 6, 2),
-		        SUBSTRING(B.RPT_NO, 8)) ELSE '' END AS rpt_no, -- 신고번호
-				CASE WHEN A.IMP_RPT_DAY != '' THEN DATE_FORMAT(A.IMP_RPT_DAY, '%Y-%m-%d') ELSE '' END AS imp_rpt_day, -- 신고일자
-				CASE WHEN A.RPT_DAY != '' THEN DATE_FORMAT(A.RPT_DAY, '%Y-%m-%d') ELSE '' END AS rpt_day, -- 정정신청일
-			    C.CMMN_NM AS CUS, -- 수입세관
-				CONCAT(A.Reason_Code, '(FTA 사후적용)') AS reasonCode, -- 정정사유코드
-				CASE WHEN A.Pet_Day != '' THEN DATE_FORMAT(A.Pet_Day, '%Y-%m-%d') ELSE '' END AS pet_day, -- 승인일자
-				A.Trans_Tax_Sum, -- 증감내역
-				SUM(CASE WHEN D.Edit_Tax_Cot = '관세' THEN D.TRANS_TAX ELSE 0 END) AS taxCot, -- 관세증감내역
-    			SUM(CASE WHEN D.Edit_Tax_Cot = '부가세' THEN D.TRANS_TAX ELSE 0 END) AS taxCotVat -- 부가세 증감내역 
+	        SUBSTRING(B.RPT_NO, 1, 5),
+	        SUBSTRING(B.RPT_NO, 6, 2),
+	        SUBSTRING(B.RPT_NO, 8)) ELSE '' END AS rpt_no, -- 신고번호
+			CASE WHEN A.IMP_RPT_DAY != '' THEN DATE_FORMAT(A.IMP_RPT_DAY, '%Y-%m-%d') ELSE '' END AS imp_rpt_day, -- 신고일자
+			CASE WHEN A.RPT_DAY != '' THEN DATE_FORMAT(A.RPT_DAY, '%Y-%m-%d') ELSE '' END AS rpt_day, -- 정정신청일
+		   CASE WHEN A.Pet_Day != '' THEN DATE_FORMAT(A.Pet_Day, '%Y-%m-%d') ELSE '' END AS pet_day, -- 승인일자 
+			C.CMMN_NM AS CUS, -- 수입세관
+			ABS(A.Trans_Tax_Sum) AS Trans_Tax_Sum, -- 증감내역
+			ABS(SUM(CASE WHEN D.Edit_Tax_Cot = '관세' THEN D.TRANS_TAX ELSE 0 END)) AS taxCot, -- 관세증감내역
+   			ABS(SUM(CASE WHEN D.Edit_Tax_Cot = '부가세' THEN D.TRANS_TAX ELSE 0 END)) AS taxCotVat -- 부가세 증감내역 
 		FROM 
 			cusdmr5fea1 A
 			LEFT JOIN cusdec929a1 B
@@ -257,7 +388,7 @@
 			Sup_Firm,
 			Sup_St_Sht,
 			COUNT(*) AS tot_imp,
-			sum(Con_Tot_Amt) as conTotAmt,
+			sum(Tot_tax_krw) as conTotAmt,
 			sum(Tot_Gs) AS totGs
 		FROM cusdec929a1 a
 		WHERE 1=1
@@ -275,7 +406,7 @@
 	
 	<select id = "avgRate" parameterType="searchVO" resultType="String">
 			 	SELECT 
-				  CAST(ROUND(AVG(Gs_Rate), 2) AS CHAR) AS avgRate
+				  IFNULL(CAST(ROUND(AVG(Gs_Rate), 2) AS CHAR),0) AS avgRate
 				FROM CUSDEC929A1 A
 				LEFT OUTER JOIN CUSDEC929B1 B 
 				    ON A.SN = B.SNA1
@@ -293,7 +424,7 @@
 	
 		<select id = "topAvgRate" parameterType="searchVO" resultType="String">
 			 	SELECT 
-				CAST(ROUND(AVG(Gs_Rate), 2) AS CHAR) AS avgTopRate
+				IFNULL(CAST(ROUND(AVG(Gs_Rate), 2) AS CHAR),0) AS avgTopRate
 				FROM (
 				    SELECT B.Gs_Rate
 				    FROM CUSDEC929A1 A
@@ -319,42 +450,93 @@
 	</select>
 	
 	<select id="selectExportStatus" parameterType="searchVO" resultType="egovMap">
-		WITH CTE AS (
-			SELECT
-			    DATE_FORMAT(Exp_Lis_Day, '%Y-%m-%d')  AS Exp_Lis_Day
-			  , COUNT(*) AS EXP_CNT
-			  , SUM(Tot_Rpt_Krw) AS EXP_AMOUNT_KRW
-			  , SUM(CASE WHEN Exc_Divi ='11' THEN 1 ELSE 0 END) AS EX_TYPE1
-			  , SUM(CASE WHEN Exc_Divi ='72' THEN 1 ELSE 0 END) AS EX_TYPE2
-			  , SUM(CASE WHEN Exc_Divi ='79' THEN 1 ELSE 0 END) AS EX_TYPE3
-			  , SUM(CASE WHEN Exc_Divi ='83' THEN 1 ELSE 0 END) AS EX_TYPE4
-			  , SUM(CASE WHEN Exc_Divi ='92' THEN 1 ELSE 0 END) AS EX_TYPE5
-			  , SUM(CASE WHEN Res961 = '' THEN 1 ELSE 0 END) AS EX_PRC1
-			  , SUM(CASE WHEN Res961 in ('15', '18') THEN 1 ELSE 0 END) AS EX_PRC3
-			    FROM CUSDEC830A1
-			    WHERE  Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
-			    AND  RPT_SEQ = '00'
-   	   			<if test="list != null and list.size() > 0">
-	            AND Exp_SdNo IN 
-	            <foreach item="id" collection="list" open="(" separator="," close=")">
-	                #{id}
-	            </foreach>
-		       	</if>
-			    GROUP BY Exp_Lis_Day
-			)
-			SELECT 	 Exp_Lis_Day AS LIS_DAY
-						, EXP_CNT as cnt
-						, EXP_AMOUNT_KRW AS AMOUNT_KRW
-						, EX_TYPE1
-						, EX_TYPE2
-						, EX_TYPE3
-						, EX_TYPE4
-						, EXP_CNT - EX_TYPE1 - EX_TYPE2 - EX_TYPE3 - EX_TYPE4 AS TX_TYPE5
-						, EX_PRC1
-						, EX_PRC3
-						, EXP_CNT - EX_PRC1 - EX_PRC3 AS EX_PRC2	
-			FROM CTE			
-				ORDER BY Exp_Lis_Day
+		WITH CTX AS (
+				SELECT
+				    DATE_FORMAT(Exp_Lis_Day, '%Y-%m-%d')  AS Exp_Lis_Day
+				  , COUNT(*) AS EXP_CNT
+				  , SUM(Tot_Rpt_Krw) AS EXP_AMOUNT_KRW
+				  , SUM(CASE WHEN Exc_Divi ='11' THEN 1 ELSE 0 END) AS EX_TYPE1 -- 일반형태
+				  , SUM(CASE WHEN Exc_Divi ='29' THEN 1 ELSE 0 END) AS EX_TYPE2 -- 위탁가공원자재
+				  , SUM(CASE WHEN Exc_Divi ='94' THEN 1 ELSE 0 END) AS EX_TYPE3 -- 기타수출승인면제
+				  , SUM(CASE WHEN Exc_Divi ='92' THEN 1 ELSE 0 END) AS EX_TYPE4 -- 무상견품
+				  , SUM(CASE WHEN Exc_Divi IN ('83','72','86','79','78','84','90','93','40','85','89','39','21') THEN 1 ELSE 0 END) AS EX_TYPE5
+				  , SUM(CASE WHEN Res961 = '' THEN 1 ELSE 0 END) AS EX_PRC1
+				  , SUM(CASE WHEN Res961 in ('15', '18') THEN 1 ELSE 0 END) AS EX_PRC3
+				    FROM CUSDEC830A1
+				     WHERE  Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
+				    AND  RPT_SEQ = '00'
+	   	   			<if test="list != null and list.size() > 0">
+		            AND Exp_SdNo IN 
+		            <foreach item="id" collection="list" open="(" separator="," close=")">
+		                #{id}
+		            </foreach>
+			       	</if>
+				    GROUP BY Exp_Lis_Day
+				),
+				ESUM AS (
+				SELECT 
+					SUM(EXP_CNT) AS E_CNT,
+					SUM(EXP_AMOUNT_KRW) AS E_EXP_AMOUNT_KRW,
+					SUM(EX_TYPE1) AS E_TYPE1,
+					SUM(EX_TYPE2) AS E_TYPE2,
+					SUM(EX_TYPE3) AS E_TYPE3,
+					SUM(EX_TYPE4) AS E_TYPE4,
+					SUM(EX_TYPE5) AS E_TYPE5,
+					SUM(EX_PRC1) AS E_PRC1,
+					SUM(EXP_CNT) - SUM(EX_PRC1) - SUM(EX_PRC3) AS E_PRC2,
+					SUM(EX_PRC3) AS E_PRC3
+	
+				FROM CTX 
+				)
+				
+				SELECT 	  Exp_Lis_Day
+							, EXP_CNT
+							, EXP_AMOUNT_KRW
+							, EX_TYPE1
+							, EX_TYPE2
+							, EX_TYPE3
+							, EX_TYPE4
+							, EX_TYPE5
+							, EX_PRC1
+							, EX_PRC3
+							, EXP_CNT - EX_PRC1 - EX_PRC3 AS EX_PRC2
+							
+				FROM CTX			
+			
+			UNION ALL 
+			 -- 합계
+			 
+			 SELECT 
+			  '합계',
+			  E_CNT,
+			  E_EXP_AMOUNT_KRW,
+			  E_TYPE1,
+			  E_TYPE2,
+			  E_TYPE3,
+			  E_TYPE4,
+			  E_TYPE5,
+			  E_PRC1,
+			  E_PRC3,
+			  E_PRC2
+			FROM ESUM
+			
+			UNION ALL
+			-- 비율 
+			SELECT 
+			'비율(%)',
+			'',
+			'',
+			CONCAT(ROUND(E_TYPE1 / NULLIF(E_TYPE1+E_TYPE2+E_TYPE3+E_TYPE4+E_TYPE5,0)*100, 2),'%'),
+			CONCAT(ROUND(E_TYPE2 / NULLIF(E_TYPE1+E_TYPE2+E_TYPE3+E_TYPE4+E_TYPE5,0)*100, 2),'%'),
+			CONCAT(ROUND(E_TYPE3 / NULLIF(E_TYPE1+E_TYPE2+E_TYPE3+E_TYPE4+E_TYPE5,0)*100, 2),'%'),
+			CONCAT(ROUND(E_TYPE4 / NULLIF(E_TYPE1+E_TYPE2+E_TYPE3+E_TYPE4+E_TYPE5,0)*100, 2),'%'),
+			CONCAT(ROUND(E_TYPE5 / NULLIF(E_TYPE1+E_TYPE2+E_TYPE3+E_TYPE4+E_TYPE5,0)*100, 2),'%'),
+			CONCAT(ROUND(E_PRC1 / NULLIF(E_PRC1+E_PRC2+E_PRC3,0)*100, 2),'%'),
+			CONCAT(ROUND(E_PRC3 / NULLIF(E_PRC1+E_PRC2+E_PRC3,0)*100, 2),'%'),
+			CONCAT(ROUND(E_PRC2 / NULLIF(E_PRC1+E_PRC2+E_PRC3,0)*100, 2),'%')
+			
+			FROM ESUM			
+				
 	</select>
 	
 	
@@ -550,6 +732,7 @@
 	            </foreach>
 	       	</if>
 		    AND Lis_Day BETWEEN #{srch1} AND #{srch2}
+		    and con_cod != ''
 		  GROUP BY con_cod
 		  ORDER BY SUM(COALESCE(Tot_Tax_Usd, 0)) DESC 
 		) I
@@ -567,6 +750,7 @@
 	            </foreach>
 	       	</if>
 		    AND Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
+		    AND amt_cod != ''
 		  GROUP BY amt_cod
 		  ORDER BY SUM(COALESCE(Tot_Rpt_Usd, 0)) DESC
 		) E ON I.cod = E.cod
@@ -593,6 +777,7 @@
 	            </foreach>
 	       	</if>
 		    AND Lis_Day BETWEEN #{srch1} AND #{srch2}
+		    AND con_cod != ''
 		  GROUP BY con_cod
 		  ORDER BY SUM(COALESCE(Tot_Tax_Usd, 0))  DESC
 		) I
@@ -610,13 +795,13 @@
 	            </foreach>
 	       	</if>		  
 		    AND Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
+		    AND amt_cod != ''
 		  GROUP BY amt_cod
 		  ORDER BY  SUM(COALESCE(Tot_Rpt_Usd, 0)) DESC
 		) E ON I.cod = E.cod;
 	</select>
 	
 	<select id="selectImpCus" parameterType="searchVO" resultType="egovMap">
-	SELECT * FROM(
 		SELECT * FROM (
 			SELECT 
 			    '수입' AS al,
@@ -674,70 +859,8 @@
 	                #{id}
 	            </foreach>
 	       	</if>
+	       	HAVING SUM(A.Tot_Tax_Sum) > 0
 			 ) AS  import_data
-			 
-			  UNION ALL 
-	
-		SELECT * FROM(
-			SELECT 
-			    '수출' AS al,
-			    A.Rpt_Cus AS CUS,
-			    B.CMMN_NM AS CUSNM, 
-			    COUNT(*) AS cnt,
-			    SUM(A.Tot_Rpt_Krw) AS taxKrw,
-				 SUM(a.Tot_Rpt_Usd) AS taxUsd,
-				 SUM(a.Amt) AS taxSum,
-			    CONCAT(ROUND(SUM(A.Tot_Rpt_Krw) / T.total_sum * 100, 2),'%') AS taxRate, -- ✅ 비율(%)
-			    3 AS sort_order
-			FROM cusdec830a1 A
-			LEFT JOIN adjust_master B 
-			    ON A.Rpt_Cus = B.CMMN_CD AND GRP_CD = '세관'
-			JOIN (
-			    SELECT SUM(Tot_Rpt_Krw) AS total_sum
-			    FROM cusdec830a1
-			    WHERE Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
-					AND  RPT_SEQ = '00'
-					<if test="list != null and list.size() > 0">
-		            AND Exp_SdNo IN 
-		            <foreach item="id" collection="list" open="(" separator="," close=")">
-		                #{id}
-		            </foreach>
-		       	</if>
-			) T ON 1=1
-			WHERE A.Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
-			  AND A.RPT_SEQ = '00'
-			  <if test="list != null and list.size() > 0">
-	            AND A.Exp_SdNo IN 
-	            <foreach item="id" collection="list" open="(" separator="," close=")">
-	                #{id}
-	            </foreach>
-	       	</if>
-			GROUP BY A.Rpt_Cus, B.CMMN_NM, T.total_sum
-			
-			UNION ALL 
-			
-			SELECT 
-			    '합계' AS al,
-			    '' AS CUS,
-			    '' AS CUSNM, 
-			    COUNT(*) AS cnt,
-			    SUM(A.Tot_Rpt_Krw) AS taxKrw,
-			    SUM(A.Tot_Rpt_Usd) AS taxUsd,
-			    SUM(A.Amt) AS taxSum,
-			    '100%' AS taxRate,
-			    4 AS sort_order
-			FROM cusdec830a1 A
-			WHERE A.Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
-			  AND A.RPT_SEQ = '00'
-	  		  <if test="list != null and list.size() > 0">
-	            AND A.Exp_SdNo IN 
-	            <foreach item="id" collection="list" open="(" separator="," close=")">
-	                #{id}
-	            </foreach>
-	       	</if>
-	       	 ) AS export_data
-		) final_result
-		ORDER BY sort_order, taxSum DESC
 	</select>
 	
 	<select id="selectExpCus" parameterType="searchVO" resultType="egovMap">
@@ -746,9 +869,9 @@
 		    A.Rpt_Cus AS CUS,
 		    B.CMMN_NM AS CUSNM, 
 		    COUNT(*) AS cnt,
-		    SUM(A.Tot_Rpt_Krw) AS taxKrw,
-			 SUM(a.Tot_Rpt_Usd) AS taxUsd,
-			 SUM(a.Amt) AS taxSum,
+   			SUM(a.Tot_Rpt_Usd) AS taxUsd,	
+			SUM(a.Amt) AS taxSum,
+			'-' AS taxSd,
 		    CONCAT(ROUND(SUM(A.Tot_Rpt_Krw) / T.total_sum * 100, 2),'%') AS taxRate -- ✅ 비율(%)
 		FROM cusdec830a1 A
 		LEFT JOIN adjust_master B 
@@ -778,9 +901,9 @@
 		    '' AS CUS,
 		    '' AS CUSNM, 
 		    COUNT(*) AS cnt,
-		    SUM(A.Tot_Rpt_Krw) AS taxKrw,
 		    SUM(A.Tot_Rpt_Usd) AS taxUsd,
 		    SUM(A.Amt) AS taxSum,
+		    '-' AS taxSd,
 		    '100%' AS taxRate
 		FROM cusdec830a1 A
 		WHERE A.Exp_Lis_Day BETWEEN #{srch1} AND #{srch2}
@@ -791,6 +914,253 @@
                 #{id}
             </foreach>
        	</if>
-       	
+       	HAVING SUM(A.Tot_Rpt_Krw) > 0 
+	</select>
+	
+	
+	<select id="selectFtaSavingList" parameterType="searchVO" resultType="egovMap">
+		WITH base AS (
+			    SELECT
+			        (SELECT Cont FROM CDSTD WHERE Divi = '관세율구분' AND Code = B.Gs_Divi LIMIT 1) AS Gs_Rate,
+			        MAX(B.GS_DIVI) AS GS_DIVI,
+			        COUNT(DISTINCT A.RPT_NO) AS CNT,
+			        ROUND(SUM(B.TAX_KRW * C.DUTY_RATE)/100, 0) AS FTA_RATE,
+			        ROUND(SUM(B.GS),0) AS GS,
+			        ABS(ROUND(SUM(B.GS - ((B.TAX_KRW * C.DUTY_RATE) / 100)), 0)) AS DUTY
+			    FROM cusdec929b1 B 
+			    LEFT JOIN cusdec929a1 A
+			        ON A.SN = B.SNA1
+			        AND A.BRANCH = B.BRANCH
+			        AND A.CUS_PRG = B.CUS_PRG
+			        AND A.RPT_NO = B.RPT_NO
+			    LEFT JOIN origin_rates C
+			        ON B.HS = C.item_cd
+			    WHERE 
+			        B.GS_DIVI LIKE 'F%'
+		        AND A.Lis_Day BETWEEN #{srch1} AND #{srch2}
+		    	<if test="list != null and list.size() > 0">
+		            AND A.Nab_SdNo IN 
+		            <foreach item="id" collection="list" open="(" separator="," close=")">
+		                #{id}
+		            </foreach>
+		       	</if>
+		    GROUP BY B.GS_DIVI
+		)
+		SELECT * FROM base
+		UNION ALL
+			SELECT
+			    '합계',
+			    '',
+			    SUM(CNT),
+			    SUM(FTA_RATE),
+			    SUM(GS),
+			    ABS(SUM(DUTY)) AS TOTAL_DUTY
+			FROM base
+			ORDER BY 
+			     CASE WHEN GS_RATE = '합계' THEN 99999 ELSE 1 END,
+			    CNT DESC;
+	</select>
+	
+	<select id = "selectFtaSavingAddList" parameterType="searchVO" resultType="egovMap">
+		SELECT 
+			COUNT(DISTINCT G.RPT_NO) AS CNT 
+			,G.GSNAME
+			,G.GS_DIVI
+			,SUM(G.BEFORE_FTA) AS BEFORE_FTA
+			,SUM(G.AFTER_FTA) AS AFTER_FTA
+			,SUM(G.SAVING) AS SAVING
+			FROM
+			(SELECT A.RPT_NO
+				,A.Fod_Mark
+				,B.Ori_St_Mark1
+				,(SELECT Cont FROM CDSTD WHERE Divi = '관세율구분' AND Code = D.Gs_Divi LIMIT 1) AS GSNAME
+				,CONCAT(A.Fod_Mark,B.Ori_St_Mark1) AS 적출국원산지
+				,B.Gs_Rate AS 기본관세율
+				,D.GS_DIVI AS GS_DIVI
+				,Gs_Rmv_Mark AS 과세감면부호
+				,CONCAT(B.hs, D.GS_DIVI) AS 세번적용가능세종
+				,E.TARIFF_RATE AS 적용가능세율
+				,ROUND((B.TAX_KRW * B.Gs_Rate) / 100, 0) AS BEFORE_FTA
+				,ROUND((B.TAX_KRW * E.TARIFF_RATE)/100,0) AS AFTER_FTA
+				,ROUND(((B.Gs_Rate - E.TARIFF_RATE) * B.TAX_KRW)/100,0) AS SAVING
+				FROM cusdec929A1 A
+				LEFT JOIN cusdec929B1 B
+				 ON A.SN = B.SNA1
+				 AND A.BRANCH = B.BRANCH
+				 AND A.CUS_PRG = B.CUS_PRG
+				 AND A.RPT_NO = B.RPT_NO
+				 LEFT JOIN origin_tariffrates D
+				 ON CONCAT(ifnull(A.Fod_Mark,''),ifnull(B.Ori_St_Mark1,'')) = D.COUNTRY_ORIGIN
+				 LEFT JOIN fta_rates E
+				 ON CONCAT(B.hs, D.GS_DIVI) = E.ITEMCD_RATE
+				 WHERE 1=1
+				AND B.Gs_Divi IN ('A','C','F')
+				AND A.RPT_SEQ = '00'
+				<if test="list != null and list.size() > 0">
+		            AND A.Nab_SdNo IN 
+		            <foreach item="id" collection="list" open="(" separator="," close=")">
+		                #{id}
+		            </foreach>
+		       	</if>
+				AND B.Gs_Rmv_Mark = ''
+				AND DATE_ADD(STR_TO_DATE(A.Lis_Day, '%Y%m%d'), INTERVAL 364 DAY) >= CURDATE()
+				AND E.TARIFF_RATE  IS NOT NULL
+				)G 
+			  WHERE 
+			  (BEFORE_FTA !=0 || AFTER_FTA != 0 || SAVING != 0) 
+			  GROUP BY G.GS_DIVI
+			
+	</select>
+	
+	<select id="selectCmpnyManagerList" parameterType="searchVO" resultType="egovMap">
+		SELECT * FROM (
+		SELECT 
+			CMPNY_NM,
+        CASE 
+            WHEN #{lang} = 'en' THEN 
+                CASE chr_type1 
+                    WHEN '임원' THEN 'Executive' 
+                    WHEN '전담관세사' THEN 'Dedicated Customs Broker' 
+                    WHEN '통관담당자' THEN 'Customs Representative' 
+                   <!--  WHEN 'IT담당자' THEN 'IT Representative'  -->
+                    ELSE chr_type1 
+                END ELSE chr_type1 
+        	END AS usrType, 
+        	chr_name1 AS usrNm, 
+        	chr_email1 AS usrEmail, 
+        	chr_tel1 AS usrTel
+    	FROM cmpny_charge_info
+		WHERE 1=1
+		<if test="list != null and list.size() > 0">
+            AND tax_no IN 
+            <foreach item="id" collection="list" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+       	</if>
+		
+		    
+		UNION 
+		
+		SELECT 
+        CMPNY_NM,
+		  CASE 
+            WHEN #{lang} = 'en' THEN 
+                CASE chr_type2 
+                    WHEN '임원' THEN 'Executive' 
+                    WHEN '전담관세사' THEN 'Dedicated Customs Broker' 
+                    WHEN '통관담당자' THEN 'Customs Representative' 
+                    <!-- WHEN 'IT담당자' THEN 'IT Representative' --> 
+                    ELSE chr_type2 
+                END 
+            ELSE chr_type2 
+        END AS usrType, 
+        chr_name2 AS usrNm, 
+        chr_email2 AS usrEmail, 
+        chr_tel2 AS usrTel
+    	FROM cmpny_charge_info
+		WHERE 1=1
+		<if test="list != null and list.size() > 0">
+            AND tax_no IN 
+            <foreach item="id" collection="list" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+       	</if>
+			
+		UNION
+		
+		SELECT 
+        CMPNY_NM,
+		  CASE 
+            WHEN #{lang} = 'en' THEN 
+                CASE chr_type3 
+                    WHEN '임원' THEN 'Executive' 
+                    WHEN '전담관세사' THEN 'Dedicated Customs Broker' 
+                    WHEN '통관담당자' THEN 'Customs Representative' 
+                    <!-- WHEN 'IT담당자' THEN 'IT Representative'  -->
+                    ELSE chr_type3 
+                END 
+            ELSE chr_type3 
+        END AS usrType, 
+        chr_name3 AS usrNm, 
+        chr_email3 AS usrEmail, 
+        chr_tel3 AS usrTel
+    	FROM cmpny_charge_info
+		WHERE 1=1
+		<if test="list != null and list.size() > 0">
+            AND tax_no IN 
+            <foreach item="id" collection="list" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+       	</if>
+			
+		UNION
+		
+		SELECT 
+        CMPNY_NM,
+		  CASE 
+            WHEN #{lang} = 'en' THEN 
+                CASE chr_type4 
+                    WHEN '임원' THEN 'Executive' 
+                    WHEN '전담관세사' THEN 'Dedicated Customs Broker' 
+                    WHEN '통관담당자' THEN 'Customs Representative' 
+                   <!--  WHEN 'IT담당자' THEN 'IT Representative'  -->
+                    ELSE chr_type4 
+                END 
+            ELSE chr_type4 
+        END AS usrType, 
+        chr_name4 AS usrNm, 
+        chr_email4 AS usrEmail, 
+        chr_tel4 AS usrTel
+    	FROM cmpny_charge_info
+		WHERE 1=1
+		<if test="list != null and list.size() > 0">
+            AND tax_no IN 
+            <foreach item="id" collection="list" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+       	</if>
+		
+		<!-- UNION
+		
+    	SELECT 
+		    C.CMPNY_NM,
+		    CASE WHEN #{lang} = 'en' THEN 'IT Representative' ELSE 'IT 담당자' END AS usrType,
+		    CASE 
+		        WHEN C.tax_no IN ('2118180957','3128109408','3128103345','1298118421') THEN '권예지'
+		        ELSE '박상아'
+		    END AS usrNm,
+		    CASE 
+		        WHEN C.tax_no IN ('2118180957','3128109408','3128103345','1298118421') THEN 'yjkwon@customsservice.co.kr'
+		        ELSE 'sapark@customsservice.co.kr'
+		    END AS usrEmail,
+		    CASE 
+		        WHEN C.tax_no IN ('2118180957','3128109408','3128103345','1298118421') THEN '070-4343-7729'
+		        ELSE '070-4343-7732'
+		    END AS usrTel
+		FROM cmpny_charge_info C
+		WHERE 1=1
+		<if test="list != null and list.size() > 0">
+            AND  C.tax_no IN 
+            <foreach item="id" collection="list" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+       	</if> -->
+    	
+		) A 
+		WHERE usrNm != ''
+		ORDER BY CMPNY_NM
+		,
+		CASE usrType
+	    WHEN '임원' THEN 1
+	    WHEN 'Executive' THEN 1
+	    WHEN '전담관세사' THEN 2
+	    WHEN 'Dedicated Customs Broker' THEN 2
+	    WHEN '통관담당자' THEN 3
+	    WHEN 'Customs Representative' THEN 3
+	   <!--  WHEN 'IT담당자' THEN 4
+	    WHEN 'IT Representative' THEN 4 -->
+	    ELSE 4
+	  END,
+	  CMPNY_NM
 	</select>
 </mapper>

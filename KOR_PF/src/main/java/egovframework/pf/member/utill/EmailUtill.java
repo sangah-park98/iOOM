@@ -60,17 +60,18 @@ public class EmailUtill {
 	public static String sendEmail(String name, String id, String email, String Type, String text, String Lang) throws Exception {
 		// 이메일 발송 정보 설정
 		
-		String host = "smtp.worksmobile.com";             // 이메일 발송에 사용할 SMTP 서버 호스트
-		int port = 587;                             // 이메일 발송에 사용할 SMTP 서버 포트
-		String username = "ioom@kordsystems.com";     // 이메일 발송 계정 아이디
-		String password = "rdl8SWfngllP";         // 이메일 발송 계정 비밀번호
+		// 이메일 발송 정보 설정
+		String host = "office.customsservice.co.kr"; // 이메일 발송에 사용할 SMTP 서버 호스트
+		int port = 465; // 이메일 발송에 사용할 SMTP 서버 포트
+		String username = "ioom@customsservice.co.kr"; // 이메일 발송 계정 아이디
+		String password = "fiJs94XRyi8UJVpHaFarmDGs9Ma7XZWl";
 
 		Map<String, Object> contentMap = setEmailContent(name, id, email, Type, text, Lang);
 
 		// 이메일 발송에 필요한 설정 정보
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.ssl.enable", "true");
         props.put("mail.smtp.host", host);
         props.put("mail.smtp.port", port);
         props.put("mail.smtp.ssl.protocols", "TLSv1.2");
@@ -109,11 +110,10 @@ public class EmailUtill {
 		System.out.println("fileName : " + fileName);
 		
 		// 이메일 발송 정보 설정
-		
-		String host = "smtp.worksmobile.com";             // 이메일 발송에 사용할 SMTP 서버 호스트
-		int port = 587;                             // 이메일 발송에 사용할 SMTP 서버 포트
-		String username = "ioom@kordsystems.com";     // 이메일 발송 계정 아이디
-		String password = "rdl8SWfngllP";         // 이메일 발송 계정 비밀번호
+		String host = "office.customsservice.co.kr"; // 이메일 발송에 사용할 SMTP 서버 호스트
+		int port = 465; // 이메일 발송에 사용할 SMTP 서버 포트
+		String username = "ioom@customsservice.co.kr"; // 이메일 발송 계정 아이디
+		String password = "fiJs94XRyi8UJVpHaFarmDGs9Ma7XZWl";
 		
 		
 		/*File file = new File("/home/files/" + fileName);
@@ -135,7 +135,7 @@ public class EmailUtill {
 		// 이메일 발송에 필요한 설정 정보
 		Properties props = new Properties();
 		props.put("mail.smtp.auth", "true");
-		props.put("mail.smtp.starttls.enable", "true");
+		props.put("mail.smtp.ssl.enable", "true");
 		props.put("mail.smtp.host", host);
 		props.put("mail.smtp.port", port);
 		props.put("mail.smtp.ssl.protocols", "TLSv1.2");
@@ -211,7 +211,7 @@ public class EmailUtill {
 		returnData.put("recipient",email);
 		if(type.equals("JOIN1")) {
 			//관리자 이메일 수정
-			returnData.put("recipient", "ioom@kordsystems.com");
+			returnData.put("recipient", "ioom@customsservice.co.kr");
 		}
 		returnData.put("subject", "");
 		returnData.put("content","");

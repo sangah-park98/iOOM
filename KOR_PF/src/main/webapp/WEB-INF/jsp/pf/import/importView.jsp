@@ -18,6 +18,7 @@
  <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=87cd230a90cc4f535debc44be63d4245&libraries=services" defer></script>
  <script type="text/javascript">
  	var grpCd = "${grpCd}";
+ 	var lang = "${lang}";
  </script>
  <!-- Flatpickr CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -222,6 +223,7 @@
       <option value="sup_st">${overseasNationMark}</option> <!-- 해외공급자부호 -->
       <option value="fod_mark">${mark}</option> <!-- 적출국(부호) -->
       <option value="ori_st_prf_yn">${FtaStatus}</option> <!-- FTA적용여부 -->
+      <option value="poNumber">${poNumber}</option>
       <option value="reporter">${reporter}</option> <!-- 신고인 -->
     </select>
     <input type="text" id="importViewSrchText1" onkeyup="enterkey()" 
@@ -239,6 +241,7 @@
       <option value="sup_st">${overseasNationMark}</option> <!-- 해외공급자부호 -->
       <option value="fod_mark">${mark}</option> <!-- 적출국(부호) -->
       <option value="ori_st_prf_yn">${FtaStatus}</option> <!-- FTA적용여부 -->
+      <option value="poNumber">${poNumber}</option>
       <option value="reporter">${reporter}</option> <!-- 신고인 -->
     </select>
     <input type="text" id="importViewSrchText2" onkeyup="enterkey()"
@@ -335,8 +338,8 @@
 	</section>
 </div>
 
-<div id="transInfo-container" class="mx-auto p-3 border border-gray-300 w-full">
-	<p class="card-title inline">${impAndshipProgressInfo}</p> <!-- 수입신고 및 운송 진행정보  -->
+<div id="transInfo-container" class="mx-auto p-3 border border-gray-300 w-full" style="${lang eq 'en' ? 'display:none;' : ''}">
+	<p class="card-title inline">${impAndshipProgressInfo}</p>
 	<div id="impShipViewTable" class="grow bg-white shadow-sm rounded-lg border border-slate-200 z-0"></div>
 </div>
 
@@ -456,6 +459,7 @@
 	var overseasNationMark = "${overseasNationMark}"; /* 해외공급자국가부호 */
 	var mark = "${mark}"; /* 적출국부호 */
 	var FtaStatus = "${FtaStatus}"; /* FTA적용여부 */
+	var poNumber = "${poNumber}"; /* PO */
 	var reporter = "${reporter}"; /* 신고인 */
 	
 	var lanNo = "${lanNo}"; /* 란번호 */

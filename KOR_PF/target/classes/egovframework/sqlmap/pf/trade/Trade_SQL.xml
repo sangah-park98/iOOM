@@ -87,45 +87,37 @@
 		
 		SELECT
 		COUNT(*) OVER() as CNT,
-		A.DeclarationID,
-		A.CompanyCode,
-		A.CompanyName,
-		A.DeclarationNo as rptNo,
-		DATE_FORMAT(A.DeclarationDate, '%Y/%m/%d') as rptDay,
-		A.DeclarationKindCode as tradeType,
-		B.ItemName as itemName,
-		right(B.ItemName,10) as itemCode,
-		B.Quantity1 as qty,
-		B.QuantityUnitCode1 as unit,
-		A.InvoiceNo as invoiceNo,
-		DATE_FORMAT(A.InvoiceDate, '%Y/%m/%d') as invoiceDate,
-		A.CustomerCode,
-		A.CustomerName as buyFirm,
-		A.ContractNo,
+		A.cus_dlr_no AS rpt_no,
+		DATE_FORMAT(A.dlr_dt, '%Y/%m/%d') as rptDay,
+		A.trd_cd,
+		A.item_dlr_nm,
+		A.item_cd,
+		A.qty,
+		A.unit,
+		A.invoice_no,
+		A.partnr_cd,
 		C.TRADE_QTY,
 		C.TRADE_REMARK,
 		DATE_FORMAT(C.REG_DT, '%Y-%m-%d') as REG_DT,
 		C.REG_ID
-		FROM dbdeclaration A
-		LEFT JOIN dbgooditem B
-		ON A.DeclarationID = B.DeclarationID
+		from dbdecitm A
 		LEFT JOIN (
-    	SELECT 
-	        TRADE_NO,
-	        TRADE_ITEM_CD,
-	        MAX(SEQ) AS MAX_SEQ
-	    FROM trade_info
-	    WHERE TRADE_TYPE = '수입'
-	    GROUP BY TRADE_NO, TRADE_ITEM_CD
+		SELECT 
+		     TRADE_NO,
+		     TRADE_ITEM_CD,
+		     MAX(SEQ) AS MAX_SEQ
+		 FROM trade_info
+		 WHERE TRADE_TYPE = '수입'
+		 GROUP BY TRADE_NO, TRADE_ITEM_CD
 		) C_MAX
-	    ON A.invoiceNo = C_MAX.TRADE_NO
-	    AND right(B.ItemName,10) = C_MAX.TRADE_ITEM_CD
+		 ON A.invoice_no = C_MAX.TRADE_NO
+		 AND right(A.item_dlr_nm,10) = C_MAX.TRADE_ITEM_CD
 		LEFT JOIN trade_info C
 	    ON C.SEQ = C_MAX.MAX_SEQ
-		WHERE A.declarationType = 'N'
-		AND A.CompanyCode = '2300794371'
+		WHERE A.TRADE_KND = 'N'
+		AND A.Company = '2300794371'
 		<if test="list != null and list.size() > 0">
-            AND A.CustomerName IN
+            AND A.partnr_cd IN
             <foreach item="id" collection="list" open="(" separator="," close=")">
              <choose>
 				<when test="id == '2208121836'">
@@ -140,15 +132,15 @@
               </choose>
             </foreach>
        	</if>
-		AND A.DeclarationKindCode IN ('B11', 'E11', 'E15')
-		AND a.DeclarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
+		AND A.trd_cd IN ('B11', 'E11', 'E15')
+		AND a.dlr_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 		<if test="srch4 != null and srch4 != ''">
-		AND right(B.ItemName,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
+		AND right(A.item_dlr_nm,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>
 		<if test="srch5 != null and srch5 != ''">
-		AND A.InvoiceNo LIKE CONCAT('%',UPPER(#{srch5}),'%')
+		AND A.invoice_no LIKE CONCAT('%',UPPER(#{srch5}),'%')
 		</if>
-		ORDER BY A.DeclarationDate desc
+		ORDER BY A.dlr_dt desc
 		LIMIT #{recordCountPerPage} OFFSET #{startPage};
 
 	 </select>
@@ -194,6 +186,7 @@
 			ON B.SEQ = B_MAX.MAX_SEQ
 		 WHERE 1=1
 		 AND A.CMPNY_CD = 'Y2'
+		 AND A.DEL_YN = 'N'
 		 AND A.ENTRY_DT Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','')
 		 <if test="srch4 != null and srch4 != ''">
 		 AND A.ITEM_CD LIKE CONCAT('%',UPPER(#{srch4}),'%')
@@ -250,23 +243,17 @@
 		) A left JOIN 
 		(
 		SELECT 
-		right(B.ItemName,10) as itemCode,
-		SUM(B.Quantity1) as qty,
-		A.InvoiceNo as invoiceNo
-		FROM dbdeclaration A
-		LEFT JOIN dbgooditem B
-		ON A.DeclarationID = B.DeclarationID
-		WHERE A.declarationType = 'N'
-		AND A.CompanyCode = '2300794371'
-		AND A.CustomerName IN ('Y2 SOLUTION CO.,LTD')
-		<!-- AND A.declarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
+		right(A.item_dlr_nm,10) as itemCode,
+		SUM(A.qty) as qty,
+		A.Invoice_No as invoiceNo
+		FROM dbdecitm A
+		WHERE A.TRADE_KND = 'N'
+		AND A.Company = '2300794371'
+		AND A.partnr_cd IN ('Y2 SOLUTION CO.,LTD')
 		<if test="srch4 != null and srch4 != ''">
-		AND right(B.ItemName,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
+		AND right(A.item_dlr_nm,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>
-		<if test="srch5 != null and srch5 != ''">
-		AND A.InvoiceNo LIKE CONCAT('%',UPPER(#{srch5}),'%')
-		</if>
-		GROUP BY A.InvoiceNo, right(B.ItemName,10)
+		GROUP BY A.Invoice_No, right(A.item_dlr_nm,10)
 		) B
 		ON A.itemCode = B.itemCode AND REPLACE(A.Mg_Code,' ','') = REPLACE(B.invoiceNo,' ','')
 		LEFT JOIN (	
@@ -276,12 +263,10 @@
 		cd_no AS invoiceNo
 		FROM liq_entry_info A
 		WHERE 1=1
+		AND DEL_YN = 'N'
 		<!-- AND A.entry_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
 		<if test="srch4 != null and srch4 != ''">
 		AND item_cd LIKE CONCAT('%',UPPER(#{srch4}),'%')
-		</if>
-		<if test="srch5 != null and srch5 != ''">
-		AND cd_no LIKE CONCAT('%',UPPER(#{srch5}),'%')
 		</if>
 		GROUP BY cd_no, item_cd
 		) C
@@ -382,24 +367,18 @@
 		) A left JOIN 
 		(
 		SELECT 
-		right(B.ItemName,10) as itemCode,
-		SUM(B.Quantity1) as qty,
-		A.InvoiceNo as invoiceNo
-		FROM dbdeclaration A
-		LEFT JOIN dbgooditem B
-		ON A.DeclarationID = B.DeclarationID
-		WHERE A.declarationType = 'N'
-		AND A.CompanyCode = '2300794371'
-		AND A.DeclarationKindCode IN ('B11','E11','E15')
-		AND A.CustomerName = 'SEHYUN TECH CO.,LTD.'
-		<!-- AND A.declarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
+		right(A.item_dlr_nm,10) as itemCode,
+		SUM(A.qty) as qty,
+		A.Invoice_No as invoiceNo
+		FROM dbdecitm A
+		WHERE A.TRADE_KND = 'N'
+		AND A.Company = '2300794371'
+		AND A.trd_cd IN ('B11','E11','E15')
+		AND A.partnr_cd = 'SEHYUN TECH CO.,LTD.'
 		<if test="srch4 != null and srch4 != ''">
-		AND right(B.ItemName,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
+		AND right(A.item_dlr_nm,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>
-		<if test="srch5 != null and srch5 != ''">
-		AND A.InvoiceNo LIKE CONCAT('%',UPPER(#{srch5}),'%')
-		</if>
-		GROUP BY A.InvoiceNo, right(B.ItemName,10) 
+		GROUP BY A.Invoice_No, right(A.item_dlr_nm,10)
 		) B
 		ON A.itemCode = B.itemCode AND REPLACE(A.Mg_Code,' ','') = REPLACE(B.invoiceNo,' ','')
 		LEFT JOIN (	
@@ -409,12 +388,10 @@
 		cd_no AS invoiceNo
 		FROM liq_entry_info A
 		WHERE 1=1 
+		AND DEL_YN = 'N'
 		<!-- AND A.entry_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
 		<if test="srch4 != null and srch4 != ''">
 		AND item_cd LIKE CONCAT('%',UPPER(#{srch4}),'%')
-		</if>
-		<if test="srch5 != null and srch5 != ''">
-		AND cd_no LIKE CONCAT('%',UPPER(#{srch5}),'%')
 		</if>
 		GROUP BY  cd_no, item_cd
 		) C
@@ -506,24 +483,18 @@
 		) A left JOIN 
 		(
 		SELECT 
-		right(B.ItemName,10) as itemCode,
-		SUM(B.Quantity1) as qty,
-		A.InvoiceNo as invoiceNo
-		FROM dbdeclaration A
-		LEFT JOIN dbgooditem B
-		ON A.DeclarationID = B.DeclarationID
-		WHERE A.declarationType = 'N'
-		AND A.CompanyCode = '2300794371'
-		AND A.DeclarationKindCode IN ('B11', 'E11', 'E15')
-		AND A.CustomerName = 'SEHYUN TECH CO.,LTD.'
-		<!-- AND A.declarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
+		right(A.item_dlr_nm,10) as itemCode,
+		SUM(A.qty) as qty,
+		A.Invoice_No as invoiceNo
+		FROM dbdecitm A
+		WHERE A.TRADE_KND = 'N'
+		AND A.Company = '2300794371'
+		AND A.trd_cd IN ('B11','E11','E15')
+		AND A.partnr_cd = 'SEHYUN TECH CO.,LTD.'
 		<if test="srch4 != null and srch4 != ''">
-		AND right(B.ItemName,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
+		AND right(A.item_dlr_nm,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>
-		<if test="srch5 != null and srch5 != ''">
-		AND A.InvoiceNo LIKE CONCAT('%',UPPER(#{srch5}),'%')
-		</if>
-		GROUP BY right(B.ItemName,10), A.InvoiceNo
+		GROUP BY A.Invoice_No, right(A.item_dlr_nm,10)
 		) B
 		ON A.itemCode = B.itemCode AND REPLACE(A.invoice_no,' ','') = REPLACE(B.invoiceNo,' ','')
 		LEFT JOIN (	
@@ -533,12 +504,10 @@
 		cd_no AS invoiceNo
 		FROM liq_entry_info A
 		WHERE 1=1
+		AND DEL_YN = 'N'
 		<!-- AND A.entry_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
 		<if test="srch4 != null and srch4 != ''">
 		AND item_cd LIKE CONCAT('%',UPPER(#{srch4}),'%')
-		</if>
-		<if test="srch5 != null and srch5 != ''">
-		AND cd_no LIKE CONCAT('%',UPPER(#{srch5}),'%')
 		</if>
 		GROUP BY item_cd, cd_no
 		) C
@@ -659,24 +628,18 @@
 		) A left JOIN 
 		(
 		SELECT 
-		right(B.ItemName,10) as itemCode,
-		SUM(B.Quantity1) as qty,
-		A.InvoiceNo as invoiceNo
-		FROM dbdeclaration A
-		LEFT JOIN dbgooditem B
-		ON A.DeclarationID = B.DeclarationID
-		WHERE A.declarationType = 'N'
-		AND A.CompanyCode = '2300794371'
-		AND A.DeclarationKindCode IN ('B11', 'E11', 'E15')
-		AND A.CustomerName = 'SEHYUN TECH CO.,LTD.'
-		<!-- AND A.declarationDate Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
+		right(A.item_dlr_nm,10) as itemCode,
+		SUM(A.qty) as qty,
+		A.Invoice_No as invoiceNo
+		FROM dbdecitm A
+		WHERE A.TRADE_KND = 'N'
+		AND A.Company = '2300794371'
+		AND A.trd_cd IN ('B11','E11','E15')
+		AND A.partnr_cd = 'SEHYUN TECH CO.,LTD.'
 		<if test="srch4 != null and srch4 != ''">
-		AND right(B.ItemName,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
+		AND right(A.item_dlr_nm,10) LIKE CONCAT('%',UPPER(#{srch4}),'%')
 		</if>
-		<if test="srch5 != null and srch5 != ''">
-		AND A.InvoiceNo LIKE CONCAT('%',UPPER(#{srch5}),'%')
-		</if>
-		GROUP BY right(B.ItemName,10), A.InvoiceNo
+		GROUP BY A.Invoice_No, right(A.item_dlr_nm,10)
 		) B
 		ON A.itemCode = B.itemCode AND REPLACE(A.invoice_no,' ','') = REPLACE(B.invoiceNo,' ','')
 		LEFT JOIN (	
@@ -686,12 +649,10 @@
 		cd_no AS invoiceNo 
 		FROM liq_entry_info A
 		WHERE 1=1
+		and del_yn = 'N'
 		<!-- AND A.entry_dt Between REPLACE(#{srch2}, '-','') AND REPLACE(#{srch3}, '-','') -->
 		<if test="srch4 != null and srch4 != ''">
 		AND item_cd LIKE CONCAT('%',UPPER(#{srch4}),'%')
-		</if>
-		<if test="srch5 != null and srch5 != ''">
-		AND cd_no LIKE CONCAT('%',UPPER(#{srch5}),'%')
 		</if>
 		GROUP BY item_cd, cd_no
 		) C

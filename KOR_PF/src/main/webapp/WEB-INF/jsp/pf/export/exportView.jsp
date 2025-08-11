@@ -534,7 +534,7 @@
 	var description4 = "${description4}";
 	var description5 = "${description5}";
 	
-	var impDeclareAcDt = "${impDeclareAcDt}";
+	var expDeclareAcDt = "${expDeclareAcDt}";
 	var packingCnt = "${packingCnt}";
 	var customsWeight = "${customsWeight}";
 	var shipCmpStatus = "${shipCmpStatus}";

@@ -15,7 +15,7 @@ var kpiImportViewCol = [
 	{data : 'transTaxSum', className : "htRight", width: 200, wordWrap: false, readOnly:true},
 	{data : 'afterTaxSum', className : "htRight", width: 250, wordWrap: false, readOnly:true},
 	{data : 'addAmt', className : "htRight", width: 200, wordWrap: false, readOnly:true},
-	{data : 'cusNm', className : "htCenter", width: 100, wordWrap: false, readOnly:true},
+	{data : 'cusNm', className : "htCenter", width: 120, wordWrap: false, readOnly:true},
 	{data : 'petDay', className : "htCenter", width: lang === 'en' ? 140 : 100, wordWrap: false, readOnly:true},
 	{data : 'plant', className : "htLeft", width: 200, wordWrap: false, readOnly:true},
 	{data : 'po', className : "htLeft", width: 200, wordWrap: false, readOnly:true},];	
@@ -50,7 +50,7 @@ var kpiExportViewHead = [
 	shipper, invoiceNo, rptNo, applicationDt, approvalDt,
 	failReason, correctionReason, receiveStatus, customs, lisDay, factoryCd, so
 	/*"수출자", "Invoice", "신고번호", "신청일자", "승인일자",
-	"귀책사유", "정정사유","수신상태", "세관", "수리일자", "부서코드", "SO"*/
+	"귀책사유", "정정사유", "수신상태", "세관", "수리일자", "부서코드", "SO"*/
 ];
 
 var kpiLeadtimeTable;
@@ -64,8 +64,8 @@ var kpiLeadtimeViewCol = [
 	{data : 'rptNo', className : "htCenter", width: 150, wordWrap: false, readOnly:true},
 	{data : 'rptDay', className : "htCenter", width: 100, wordWrap: false, readOnly:true},
 	{data : 'lisDay1', className : "htCenter", width: 100, wordWrap: false, readOnly:true},
-	{data : 'receResult', className : "htCenter", width: 100, wordWrap: false, readOnly:true},
-	{data : 'tgCont', className : "htCenter", width: 150, wordWrap: false, readOnly:true},
+	{data : 'receResult', className : "htCenter", width: lang === 'en' ? 120 : 100, wordWrap: false, readOnly:true},
+	{data : 'tgCont', className : "htCenter", width: lang === 'en' ? 180 : 150, wordWrap: false, readOnly:true},
 	{data : 'levForm', className : "htCenter", width: 150, wordWrap: false, readOnly:true},
 	{data : 'arrDay', className : "htCenter", width: 130, wordWrap: false, readOnly:true},
 	{data : 'incDay', className : "htCenter", width: 130, wordWrap: false, readOnly:true},
@@ -99,48 +99,63 @@ $(document).ajaxStop(function () {
 });*/
 	   
 $( document ).ready(function() {
-	  //달력 사용시 반드시 넣어주세요.
-      $('.band-calendar').each(function(){ regCal(this) ;})
-	  //캘린더 포맷
-      $('.datepicker').datepicker("option","dateFormat",calFormat);
-      // default 1달
-      fn_kpiChgDate1();
+	$('.band-calendar').each(function(){ regCal(this) ;})
+	//캘린더 포맷
+    $('.datepicker').datepicker("option","dateFormat",calFormat);
+    // default 1달
+    fn_kpiChgDate1();
 	  
-      // 수출 정확성 관리 table
-      var kpiImportViewElement = document.querySelector('#kpiImportTable');
-      var kpiImportViewElementContainer = kpiImportViewElement.parentNode;
-      kpiImportViewSettings = fn_handsonGridKpiImportOption(kpiImportViewCol, kpiImportViewHead, false);
-      kpiImportTable = new Handsontable(kpiImportViewElement, kpiImportViewSettings);
+    // 수입 정확성 관리 table
+    let hiddenCols = false;
+  	if (lang === 'en') {
+  		hiddenCols = ['reaseonDoc', 'plant', 'po']
+  			.map(field => kpiImportViewCol.findIndex(col => col.data === field))
+  			.filter(idx => idx !== -1);
+  	}
+
+  	const kpiImportViewElement = document.querySelector('#kpiImportTable');
+  	kpiImportViewSettings = fn_handsonGridKpiImportOption(kpiImportViewCol, kpiImportViewHead, hiddenCols);
+  	kpiImportTable = new Handsontable(kpiImportViewElement, kpiImportViewSettings);
       
-      // 수입 정확성 관리 table
-	  var kpiExportViewElement = document.querySelector('#kpiExportTable');
-	  var kpiExportViewElementContainer = kpiExportViewElement.parentNode;
-	  kpiExportViewSettings = fn_handsonGridKpiExportOption(kpiExportViewCol, kpiExportViewHead, false);
-	  kpiExportTable = new Handsontable(kpiExportViewElement, kpiExportViewSettings);
+    // 수출 정확성 관리 table
+  	const expHiddenCols = [];
+  	['modiCot1', 'plant', 'so'].forEach(field => {
+  		const index = kpiExportViewCol.findIndex(col => col.data === field);
+  		if (index !== -1) expHiddenCols.push(index);
+  	});
+	var kpiExportViewElement = document.querySelector('#kpiExportTable');
+	var kpiExportViewElementContainer = kpiExportViewElement.parentNode;
+	kpiExportViewSettings = fn_handsonGridKpiExportOption(kpiExportViewCol, kpiExportViewHead, expHiddenCols);
+	kpiExportTable = new Handsontable(kpiExportViewElement, kpiExportViewSettings);
 	  
-	  // 수입 Lead time
-	  var kpiLeadtimeViewElement = document.querySelector('#kpiLeadtimeTable');
-	  var kpiLeadtimeViewElementContainer = kpiLeadtimeViewElement.parentNode;
-	  kpiLeadtimeViewSettings = fn_handsonGridKpiLeadtimeOption(kpiLeadtimeViewCol, kpiLeadtimeViewHead, false);
-      kpiLeadtimeTable = new Handsontable(kpiLeadtimeViewElement, kpiLeadtimeViewSettings);
+	// 수입 Lead time
+	const leadHiddenCols = [];
+    ['plant', 'po'].forEach(field => {
+    	const index = kpiLeadtimeViewCol.findIndex(col => col.data === field);
+      	if (index !== -1) leadHiddenCols.push(index);
+    });
+	var kpiLeadtimeViewElement = document.querySelector('#kpiLeadtimeTable');
+	var kpiLeadtimeViewElementContainer = kpiLeadtimeViewElement.parentNode;
+	kpiLeadtimeViewSettings = fn_handsonGridKpiLeadtimeOption(kpiLeadtimeViewCol, kpiLeadtimeViewHead, leadHiddenCols);
+    kpiLeadtimeTable = new Handsontable(kpiLeadtimeViewElement, kpiLeadtimeViewSettings);
 	  
-      fn_kpiClearTableData();
+    fn_kpiClearTableData();
       
-	  $("#importTableDiv").show();
-	  $("#exportTableDiv").hide();
-	  $("#leadTimeTableDiv").hide();
+	$("#importTableDiv").show();
+	$("#exportTableDiv").hide();
+	$("#leadTimeTableDiv").hide();
 	  
-	  //scroll 이벤트
-	  fn_kpiScrollEventReg();
+	//scroll 이벤트
+	fn_kpiScrollEventReg();
 //	  
 //	  
 //
 //	  $(document).on("click", '.itemCdClass', function(){
 //		  alert($(this).index());
 //	  });
-	  fn_searchImport(function(){
-		  fn_setSummary(kpiImportTable, kpiImportViewCol, null, [7, 8, 9, 10]);
-	  });
+	fn_searchImport(function(){
+		fn_setSummary(kpiImportTable, kpiImportViewCol, null, [7, 8, 9, 10]);
+	});
 	  
 	  
 	$("#kpiViewSrchType1 option").remove();
@@ -548,8 +563,9 @@ function fn_handsonGridKpiImportOption(col, header, hidden){
 			  hiddenColumns : {
 		    	  copyPasteEnabled : false,
 		    	  indicators : false,
-		    	  columns : hidden
+		    	  columns : hidden || []
 		      },
+		      plugins: ['hiddenColumns'],
 			  stretchH : 'all',
 			  width : '100%',
 			  autoWrapRow : true,
@@ -581,7 +597,6 @@ function fn_handsonGridKpiImportOption(col, header, hidden){
 }
 
 function fn_handsonGridKpiExportOption(col, header, hidden){
-	
 	kpiExportViewSettings = {
 	  columns : col,
 	  colHeaders : header,
@@ -591,6 +606,7 @@ function fn_handsonGridKpiExportOption(col, header, hidden){
     	  indicators : false,
     	  columns : hidden
       },
+      plugins: ['hiddenColumns'],
 	  stretchH : 'all',
 	  width : '100%',
 	  autoWrapRow : true,
@@ -632,6 +648,7 @@ function fn_handsonGridKpiLeadtimeOption(col, header, hidden){
     	  indicators : false,
     	  columns : hidden
       },
+      plugins: ['hiddenColumns'],
 	  stretchH : 'all',
 	  width : '100%',
 	  autoWrapRow : true,

@@ -155,17 +155,27 @@ function fn_changeDeadLineView(){
 
 //검색구분 변경
 function fn_changedeadLineType(type){
-	 deadLineViewCol = new fn_deadLineViewTableCol();
-	 deadLineViewHeader = new fn_deadLineViewTableHeader();
-	 deadLineViewHidden = new fn_deadLineViewTableHidden();
-	
+	deadLineViewCol = new fn_deadLineViewTableCol();
+	deadLineViewHeader = new fn_deadLineViewTableHeader();
+	deadLineViewHidden = new fn_deadLineViewTableHidden();
 	var col, header, hidden;
-
+	
 	fn_searchGridPurchOption(true);
+	
 	col =   deadLineViewCol.deadLineViewCol;
 	header = deadLineViewHeader.deadLineViewHeader;
 	hidden = deadLineViewHidden.deadLineViewHidden;
-		
+	
+	if (lang === 'en') {
+		const hideFields = ['plantCd', 'po'];
+
+		hideFields.forEach(field => {
+			const index = col.findIndex(c => c.data === field);
+			if (index !== -1 && !hidden.includes(index)) {
+				hidden.push(index);
+			}
+		});
+	}
 	deadLineViewHot.updateSettings(fn_handsonGridDeadOption(col, header, hidden));
 	fn_searchdeadLine();
 };
@@ -475,7 +485,7 @@ function fn_deadLineViewTableCol(){
 		{data : 'date5', className : "htCenter", wordWrap: false, width: 90, readOnly:true}, //반출기한
 		{data : 'date1', className : "htCenter", wordWrap: false,width: 90,  readOnly:true},   //납부기한
 		{data : 'date2', className : "htCenter", wordWrap: false ,width: 90,  readOnly:true},  //납부일자
-		{data : 'levForm', className : "htCenter", wordWrap: false,width: 100, readOnly:true},  //납부형태
+		{data : 'levForm', className : "htCenter", wordWrap: false,width: 130, readOnly:true},  //납부형태
 		{data : 'fta', className : "htCenter", wordWrap: false, width: 130,readOnly:true},    //fta 사후적용기한
 		{data : 'date3', className : "htCenter", wordWrap: false,width: 120, readOnly:true},  //재수출 이행일자
 		{data : 'date6', className : "htCenter", wordWrap: false, width: 90, readOnly:true}, //보정기한
@@ -484,7 +494,7 @@ function fn_deadLineViewTableCol(){
 		/*{data : 'date7', className : "htCenter", wordWrap: false, width: 90,readOnly:true}, //가격확정예정시기
 */		{data : 'plantCd', className : "htCenter", wordWrap: false,width: 110,  readOnly:true},  //공장코드
 		{data : 'po', className : "htCenter", wordWrap: false, width: 110, readOnly:true},      //po
-		{data : 'reporter', className : "htCenter", wordWrap: false,width: 120, readOnly:true}  	//신고인
+		{data : 'reporter', className : "htCenter", wordWrap: false,width: 130, readOnly:true}  	//신고인
 	]: (tableType == "01" && checkBox == undefined) ? [
 		/*{data : 'checkBox', type : 'text', className : "htCenter", width: 40,type: 'checkbox', checkedTemplate: 'yes', uncheckedTemplate: 'no', readOnly:false},*/
 		{data : 'nabFirm', className : "htCenter",width: 150, wordWrap: false, className : "htCenter", readOnly:true},
@@ -497,7 +507,7 @@ function fn_deadLineViewTableCol(){
 		{data : 'date5', className : "htCenter", wordWrap: false, width: lang === 'en' ? 150 : 90, readOnly:true}, //반출기한
 		{data : 'date1', className : "htCenter", wordWrap: false,width: lang === 'en' ? 150 : 90,  readOnly:true},   //납부기한
 		{data : 'date2', className : "htCenter", wordWrap: false ,width: lang === 'en' ? 120 : 90,  readOnly:true},  //납부일자
-		{data : 'levForm', className : "htCenter", wordWrap: false,width: lang === 'en' ? 130 : 100, readOnly:true},  //납부형태
+		{data : 'levForm', className : "htCenter", wordWrap: false,width: lang === 'en' ? 140 : 100, readOnly:true},  //납부형태
 		{data : 'fta', className : "htCenter", wordWrap: false, width: lang === 'en' ? 220 : 130,readOnly:true},    //fta 사후적용기한
 		{data : 'date3', className : "htCenter", wordWrap: false,width: lang === 'en' ? 230 : 120, readOnly:true},  //재수출 이행일자
 		{data : 'date6', className : "htCenter", wordWrap: false, width: lang === 'en' ? 160 : 90, readOnly:true}, //보정기한
@@ -506,7 +516,7 @@ function fn_deadLineViewTableCol(){
 		/*{data : 'date7', className : "htCenter", wordWrap: false, width: 90,readOnly:true}, //가격확정예정시기
 */		{data : 'plantCd', className : "htCenter", wordWrap: false,width: lang === 'en' ? 150 : 110,  readOnly:true},  //공장코드
 		{data : 'po', className : "htCenter", wordWrap: false, width: 110, readOnly:true},      //po
-		{data : 'reporter', className : "htCenter", wordWrap: false,width: 120, readOnly:true}  	//신고인
+		{data : 'reporter', className : "htCenter", wordWrap: false,width: 140, readOnly:true}  	//신고인
 	]:  [
 		/*{data : 'checkBox', type : 'text', className : "htCenter", width: 40,type: 'checkbox', checkedTemplate: 'yes', uncheckedTemplate: 'no', readOnly:false},*/
 		{data : 'expFirm', className : "htCenter", wordWrap: false, width: 150, className : "htCenter", readOnly:true},
@@ -520,7 +530,7 @@ function fn_deadLineViewTableCol(){
 		{data : 'plantCd', className : "htCenter", wordWrap: false,width: 100, readOnly:true}, // 공장코드
 		{data : 'so', className : "htCenter", wordWrap: false,width: 100, readOnly:true}, //so
 		{data : 'mgCode', className : "htCenter", wordWrap: false,width: 100, readOnly:true}, //lnvoice
-		{data : 'reporter', className : "htCenter", wordWrap: false,width: 120, readOnly:true}  	//신고인
+		{data : 'reporter', className : "htCenter", wordWrap: false,width: 140, readOnly:true}  	//신고인
 	];
 }
 //테이블 헤더

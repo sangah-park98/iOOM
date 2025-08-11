@@ -1155,7 +1155,7 @@ function addShipInfo2() {
 		        </div>
 		        <div class="flex col-span-8 items-center">
 		            <label class="font-medium text-gray-900 text-base mr-2">* 주소</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		            <input id="toAddr${rowCount}" type="text" class="border border-gray-300 rounded-lg text-sm p-1 flex-1" style="height: 2rem; font-size: 0.875rem;">
+		            <input id="toAddr${rowCount}" type="text" maxlength="100" class="border border-gray-300 rounded-lg text-sm p-1 flex-1" style="height: 2rem; font-size: 0.875rem;">
 		        </div>
 		        <div class="flex col-span-8 items-center justify-between">
 		            <div class="flex items-center">

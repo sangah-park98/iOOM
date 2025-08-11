@@ -57,17 +57,17 @@ public class ShippingEmailUtill {
 	    String taxInvoice = svo.getTaxInvoice();
 	    
 	    // 이메일 발송 정보 설정
-	    String host = "smtp.worksmobile.com"; // 이메일 발송에 사용할 SMTP 서버 호스트
-	    int port = 587; // 이메일 발송에 사용할 SMTP 서버 포트
-	    String username = "ioom@kordsystems.com"; // 이메일 발송 계정 아이디
-	    String password = "rdl8SWfngllP"; // 이메일 발송 계정 비밀번호
+	    String host = "office.customsservice.co.kr"; // 이메일 발송에 사용할 SMTP 서버 호스트
+	    int port = 465; // 이메일 발송에 사용할 SMTP 서버 포트
+	    String username = "ioom@customsservice.co.kr"; // 이메일 발송 계정 아이디
+	    String password = "fiJs94XRyi8UJVpHaFarmDGs9Ma7XZWl"; // 이메일 발송 계정 비밀번호
 	    
 	    Map<String, Object> contentMap =
 	            setEmailContent(blNo, cmpnyCd, managerNm, billEmail, shipperManager, shipperMail, transDetails, taxInvoice, email, isModified);
 	    
 	    Properties props = new Properties();
 	    props.put("mail.smtp.auth", "true");
-	    props.put("mail.smtp.starttls.enable", "true");
+	    props.put("mail.smtp.ssl.enable", "true");
 	    props.put("mail.smtp.host", host);
 	    props.put("mail.smtp.port", port);
 	    props.put("mail.smtp.ssl.protocols", "TLSv1.2");
@@ -143,18 +143,18 @@ public class ShippingEmailUtill {
 	
 	public static String sendEmailStatus(String rptNo, String blNo, String cmpnyNm, String email, String Status) throws Exception {
 	    
-	    // 이메일 발송 정보 설정
-	    String host = "smtp.worksmobile.com"; // 이메일 발송에 사용할 SMTP 서버 호스트
-	    int port = 587; // 이메일 발송에 사용할 SMTP 서버 포트
-	    String username = "ioom@kordsystems.com"; // 이메일 발송 계정 아이디
-	    String password = "rdl8SWfngllP"; // 이메일 발송 계정 비밀번호
+		// 이메일 발송 정보 설정
+		String host = "office.customsservice.co.kr"; // 이메일 발송에 사용할 SMTP 서버 호스트
+		int port = 465; // 이메일 발송에 사용할 SMTP 서버 포트
+		String username = "ioom@customsservice.co.kr"; // 이메일 발송 계정 아이디
+		String password = "fiJs94XRyi8UJVpHaFarmDGs9Ma7XZWl";
 	    
 	    Map<String, Object> contentMap =
 	    		setEmailStatus(rptNo, blNo, cmpnyNm, email, Status);
 	    
 	    Properties props = new Properties();
 	    props.put("mail.smtp.auth", "true");
-	    props.put("mail.smtp.starttls.enable", "true");
+	    props.put("mail.smtp.ssl.enable", "true");
 	    props.put("mail.smtp.host", host);
 	    props.put("mail.smtp.port", port);
 	    props.put("mail.smtp.ssl.protocols", "TLSv1.2");
@@ -208,10 +208,10 @@ public class ShippingEmailUtill {
 	public static String sendEmailAlloc(String rptNo, String blNo, String cmpnyNm, String email, String Status, String ctNo, String shipperMail, String carNo, String carNm, String carPhnNo) throws Exception {
 		
 		// 이메일 발송 정보 설정
-		String host = "smtp.worksmobile.com"; // 이메일 발송에 사용할 SMTP 서버 호스트
-		int port = 587; // 이메일 발송에 사용할 SMTP 서버 포트
-		String username = "ioom@kordsystems.com"; // 이메일 발송 계정 아이디
-		String password = "rdl8SWfngllP"; // 이메일 발송 계정 비밀번호
+		String host = "office.customsservice.co.kr"; // 이메일 발송에 사용할 SMTP 서버 호스트
+		int port = 465; // 이메일 발송에 사용할 SMTP 서버 포트
+		String username = "ioom@customsservice.co.kr"; // 이메일 발송 계정 아이디
+		String password = "fiJs94XRyi8UJVpHaFarmDGs9Ma7XZWl";
 		
 		List<String> emails  = Arrays.asList(email, shipperMail);
 		
@@ -220,7 +220,7 @@ public class ShippingEmailUtill {
 		
 		Properties props = new Properties();
 		props.put("mail.smtp.auth", "true");
-		props.put("mail.smtp.starttls.enable", "true");
+		props.put("mail.smtp.ssl.enable", "true");
 		props.put("mail.smtp.host", host);
 		props.put("mail.smtp.port", port);
 		props.put("mail.smtp.ssl.protocols", "TLSv1.2");

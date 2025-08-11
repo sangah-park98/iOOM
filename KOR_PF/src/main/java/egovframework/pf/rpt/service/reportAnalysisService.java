@@ -57,5 +57,11 @@ public interface reportAnalysisService {
 	List<?> selectImpCus(SearchVO vo)throws Exception;
 	//세관별 신고건수 및 금액(수출)
 	List<?> selectExpCus(SearchVO vo)throws Exception;
+	// FTA 관세 절감효과
+	List<?> selectFtaSavingList(SearchVO vo)throws Exception;
+	// FTA 적용으로 SAVING추가가능한 금액 
+	List<?> selectFtaSavingAddList(SearchVO vo)throws Exception;
+	// 전담 관세사
+	List<?> selectCmpnyManagerList(SearchVO vo)throws Exception;
 	
 }

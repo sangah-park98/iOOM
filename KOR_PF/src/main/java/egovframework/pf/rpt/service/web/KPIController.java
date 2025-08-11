@@ -132,7 +132,7 @@ public class KPIController {
 	public ModelAndView selectKpiLeadtimeList(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
-		vo.setLang(userVO.getLang());      
+		vo.setLang(userVO.getLang());
 	    vo.setList(userVO.getCorpNos());
 		List<?> resultList = null;
 	    int totCnt = 0;
@@ -246,13 +246,13 @@ public class KPIController {
     				map.put("rcDay", dateFormat(rcDay));
     				map.put("lisDay2", dateFormat(lisDay2));
     				
-    				map.put("diff1", diffDate(incDay, arrDay));
-    				map.put("diff2", diffDate(bosuPetDay, incDay));
-    				map.put("diff3", diffDate(bosuComDay, bosuPetDay));
-    				map.put("diff4", diffDate(rcDay, bosuComDay));
-    				map.put("diff5", diffDate(lisDay2, rcDay));
-    				map.put("diff6", diffDate(banChulDay, lisDay2));
-    				map.put("diff7", diffDate(rcDay, incDay));
+    				map.put("diff1", diffDate(incDay, arrDay, vo.getLang()));
+    				map.put("diff2", diffDate(bosuPetDay, incDay, vo.getLang()));
+    				map.put("diff3", diffDate(bosuComDay, bosuPetDay, vo.getLang()));
+    				map.put("diff4", diffDate(rcDay, bosuComDay, vo.getLang()));
+    				map.put("diff5", diffDate(lisDay2, rcDay, vo.getLang()));
+    				map.put("diff6", diffDate(banChulDay, lisDay2, vo.getLang()));
+    				map.put("diff7", diffDate(rcDay, incDay, vo.getLang()));
     				
     			}
 			} catch (Exception e) {
@@ -407,7 +407,7 @@ public class KPIController {
 		}
 	}
 	
-	private String diffDate(String dStr1, String dStr2) {
+	private String diffDate(String dStr1, String dStr2, String lang) {
 		if(StringUtils.isEmpty(dStr1) || StringUtils.isEmpty(dStr2)) {
 			return "-";
 		}
@@ -421,9 +421,14 @@ public class KPIController {
 	 	    long diffHor = ((date1.getTime() - date2.getTime())) / (60 * 60 * 1000L) % 24; //시 차이
 	 	    long diffDays = ((date1.getTime() - date2.getTime())) / (24 * 60 * 60 * 1000L) % 24; //일 차이
 	 	    
-	 	    String formatString = String.format("%d일 %d시 %d분", diffDays, diffHor, diffMin);
-//	 	    return "0일 0시 0분".equals(formatString) ? "-" : formatString;
-	 	    return formatString;
+	 	    boolean isEnglish = lang != null && lang.toLowerCase().startsWith("en");
+	        if (isEnglish) {
+	        	String formatString = String.format("%dd %dh %dm", diffDays, diffHor, diffMin);
+	        	return formatString;
+	        } else {
+	        	String formatString = String.format("%d일 %d시 %d분", diffDays, diffHor, diffMin);
+		 	    return formatString;
+	        }
 		} catch (Exception e) {
 			return "ERROR";
 		}

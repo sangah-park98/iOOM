@@ -377,6 +377,10 @@
 	var declarationCert = "${declarationCert}"; /* 신고필증 */
 	var docuTotal = "${docuTotal}"; /* 통합 */
 	var docuCorrectionTotal = "${docuCorrectionTotal}"; /* 정정통합 */
+	var mthTaxBill = "${mthTaxBill}"
+	var paymentBill = "${paymentBill}"
+	var indivTaxBill = "${indivTaxBill}"
+	var print = "${print}"
 	var invoiceNo = "${invoiceNo}"; /* INVOICE 번호 */
 	var pl = "${pl}"; /* P/L */
 	var bl = "${bl}"; /* B/L */
@@ -406,7 +410,8 @@
 	var msgInputBlNo = "${msgInputBlNo}"
 	var msgInputPo = "${msgInputPo}"
 	var msgInputInvoiceNo = "${msgInputInvoiceNo}"
-	var msgInputSo = "${msgInputSo}";
+	var msgInputSo = "${msgInputSo}"
+	var msgNoTaxBill = "${msgNoTaxBill}";
 </script>
 </body>
 </html>

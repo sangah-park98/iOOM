@@ -102,6 +102,7 @@ public class deadLineController {
 	    HttpSession httpSession = request.getSession(true);
 	    UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
 	    vo.setList(userVO.getCorpNos());
+	    vo.setLang(userVO.getLang());
 	    List<?> resultList = null;
 
 	    System.out.println(vo.getSrch13());

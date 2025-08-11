@@ -467,6 +467,15 @@ function fn_changeExportUpdateType(type){
 	col = expUpdateViewCol.expUpdateViewCol;
 	header = expUpdateViewHeader.expUpdateViewHeader;
 	hidden = expUpdateViewHidden.expUpdateViewHidden;
+	if (lang === 'en') {
+		const fields = ['modiCot1', 'plant', 'so'];
+		fields.forEach(field => {
+			const index = col.findIndex(c => c.data === field);
+			if (index !== -1 && !hidden.includes(index)) {
+				hidden.push(index);
+			}
+		});
+	}
 	
 	col2 = expDtlUpdCol.expDtlUpdCol;
 	header2 = expDtlUpdViewHeader.expDtlUpdViewHeader;

@@ -2,6 +2,8 @@ package egovframework.pf.rpt.service.impl;
 
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -100,9 +102,9 @@ public class reportAnalysisServiceImp extends EgovAbstractServiceImpl implements
 		    }
 		}
 
-		vo.setList(hsList);
+		vo.setList2(hsList);
 		
-		System.out.println("vo.getList(): " + vo.getList());
+		System.out.println("vo.getList(): " + vo.getList2());
 		
 		return reportAnalysisMapper.selectTaxList(vo);
 	}
@@ -176,6 +178,35 @@ public class reportAnalysisServiceImp extends EgovAbstractServiceImpl implements
 	public List<?> selectExpCus(SearchVO vo) throws Exception {
 		// TODO Auto-generated method stub
 		return reportAnalysisMapper.selectExpCus(vo);
+	}
+	// FTA 관세 절감효과
+	@Override
+	public List<?> selectFtaSavingList(SearchVO vo) throws Exception {
+			
+		    /* LocalDate today = LocalDate.now();
+			
+			 LocalDate before364 = today.minusDays(364);
+			
+			 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+			    String todayStr = today.format(formatter);         
+			    String beforeStr = before364.format(formatter);   
+			
+			    vo.setSrch20(todayStr);
+			    vo.setSrch21(beforeStr);*/
+			
+		return reportAnalysisMapper.selectFtaSavingList(vo);
+	}
+	// // FTA 적용으로 SAVING추가가능한 금액 
+	@Override
+	public List<?> selectFtaSavingAddList(SearchVO vo) throws Exception {
+		// TODO Auto-generated method stub
+		return reportAnalysisMapper.selectFtaSavingAddList(vo);
+	}
+	// 전담 관세사 
+	@Override
+	public List<?> selectCmpnyManagerList(SearchVO vo) throws Exception {
+		// TODO Auto-generated method stub
+		return reportAnalysisMapper.selectCmpnyManagerList(vo);
 	}
 
 }

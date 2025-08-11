@@ -87,7 +87,7 @@
     <form id="myPageFrm" name="myPageFrm" method="post" action="/member/myPageJoin.do" class="text-lg grid grid-cols-[1fr_2.4fr_1fr] gap-x-2 gap-y-1 items-center py-3">
       <!-- Account Information -->
        <input type="hidden" value="${MEMBER_PASSWORD}" name="MEMBER_CURRENTPWD" id="MEMBER_CURRENTPWD">
-      <h2 class="text-primary-800 pb-1 font-bold flex items-center gap-2 text-2xl px-2 col-span-3"><i class="fa-duotone fa-feather"></i>계정정보</h2>
+      <h2 class="text-primary-800 pb-1 font-bold flex items-center gap-2 text-2xl px-2 col-span-3"><i class="fa-duotone fa-feather"></i>계정 정보</h2>
       <label for="account_id" class="text-primary-700 font-semibold px-2 text-left">아이디</label>
       <div>
         ${MEMBER_ID}
@@ -101,7 +101,7 @@
         id="MEMBER_PASSWORD"
         name = "MEMBER_PASSWORD"
         class="font-['Pretendard'] bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-500 focus:border-primary-500 block py-1 px-2.5 text-lg"
-        placeholder="현재비밀번호를 입력해주세요."
+        placeholder="현재 비밀번호를 입력해 주세요."
       >
       <button 
 	    type="button"
@@ -116,12 +116,12 @@
         name = "MEMBER_PASS"
         readonly
         class="font-['Pretendard'] bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-500 focus:border-primary-500 block py-1 px-2.5 text-lg"
-        placeholder="새로운 비밀번호를 입력해주세요."
+        placeholder="새로운 비밀번호를 입력해 주세요."
       >
        <p class="block text-green-500 text-2xl" id="passwordIndicator">
        <!-- <i class="fa-duotone fa-check bg-primary-200 rounded-full flex items-center justify-center p-1"></i></p> -->
       <p class="passCheck1 text-primary-500 pb-1 flex items-center gap-2 text-1 px-2 col-span-3" style="color:red;">
-                  ● 비밀번호(대문자, 소문자, 특수기호, 숫자 포함, 5~20자리)를 입력해주세요</p>
+                  ● 비밀번호(대문자, 소문자, 특수기호, 숫자 포함, 5~20자리)를 입력해 주세요.</p>
 	  <label for="account_password" class="text-primary-700 font-semibold px-2 text-left">비밀번호 확인</label>
       <input
         type="password"
@@ -130,19 +130,19 @@
         onkeyup="memberPassChk('pw_re')"
         readonly
         class="font-['Pretendard'] bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-500 focus:border-primary-500 block py-1 px-2.5 text-lg"
-        placeholder="비밀번호를 한번 더 입력해주세요."
+        placeholder="비밀번호를 한 번 더 입력해 주세요."
       >
 	
       <!-- Checking Password indicator -->
       <p class="block text-green-500 text-2xl" id="passwordIndicator">
       <p class="passCheck2 text-primary-500 pb-1 flex items-center gap-2 text-1 px-2 col-span-3" style="color:red;">
-● 비밀번호를 획인해주세요</p>
+● 비밀번호를 확인해 주세요.</p>
       <!-- Checking Password indicator -->
      
       <!-- <p class="text-sm text-red-700 px-2">비밀번호를 확인해주세요</p> -->
       <!-- line -->
       <div class="col-span-3 my-3 h-[1px] bg-gray-200 mx-10"></div>
-      <h2 class="text-primary-800 pt-4 pb-1 font-bold flex items-center gap-2 text-2xl px-2 col-span-3"><i class="fa-duotone fa-user"></i>개인정보</h2>
+      <h2 class="text-primary-800 pt-4 pb-1 font-bold flex items-center gap-2 text-2xl px-2 col-span-3"><i class="fa-duotone fa-user"></i>개인 정보</h2>
       <label for="user_name" class="text-primary-700 font-semibold px-2 text-left">이름</label>
       <input
         type="text"
@@ -150,7 +150,7 @@
         id="MEMBER_NAME"
         value="${MEMBER_NAME}" 
         class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-500 focus:border-primary-500 block py-1 px-2.5 text-lg"
-        placeholder="이름을 입력해주세요."
+        placeholder="이름을 입력해 주세요."
       >
       <!-- Blank -->
       <p></p>
@@ -163,7 +163,7 @@
         value="${MEMBER_TEL}"
         oninput="removeHyphen(event)"
         class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-500 focus:border-primary-500 block py-1 px-2.5 text-lg"
-        placeholder="전화번호를 입력해주세요."
+        placeholder="전화번호를 입력해 주세요."
       >
       <!-- Blank -->
       <p></p>
@@ -176,7 +176,7 @@
         value="${MEMBER_EMAIL}"
         readonly 
         class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-500 focus:border-primary-500 block py-1 px-2.5 text-lg"
-        placeholder="이메일을 입력해주세요."
+        placeholder="이메일을 입력해 주세요."
       >
       <button 
 	    type="button"
@@ -190,7 +190,7 @@
         name="CERT_NUM" 
         id="CERT_NUM"
         class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-500 focus:border-primary-500 block py-1 px-2.5 text-lg"
-        placeholder="인증번호를 입력해주세요."
+        placeholder="인증번호를 입력해 주세요."
       >
       <input type="hidden" id="CERT_CHECK" name="CERT_CHECK" value="N"/>
       <button 
@@ -221,7 +221,7 @@
       >인증하기</button> -->
       <!-- line -->
       <div class="col-span-3 my-3 h-[1px] bg-gray-200 mx-10"></div>
-      <h2 class="text-primary-800 pt-4 pb-1 font-bold flex items-center gap-2 text-2xl px-2 col-span-3"><i class="fa-duotone fa-building"></i>업체정보</h2>
+      <h2 class="text-primary-800 pt-4 pb-1 font-bold flex items-center gap-2 text-2xl px-2 col-span-3"><i class="fa-duotone fa-building"></i>고객사 정보</h2>
       <!-- 사업자 1세트 -->
      <!--  <label for="company_name" class="text-primary-700 font-semibold px-2 text-left">사업자 명</label>
       <input

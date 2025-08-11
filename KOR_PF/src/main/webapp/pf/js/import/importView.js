@@ -545,12 +545,12 @@ function fn_impViewTableCol(){
 		{data : 'oriStPrfYn', className : "htCenter", width: lang === 'en' ? 150 : 120, wordWrap: false, className : "htCenter", readOnly:true,renderer : chipRenderer},
 		/*{data : 'rmv', className : "htCenter", width: 90,wordWrap: false, className : "htCenter", readOnly:true,renderer : chipRenderer},*/
 		/*{data : 'rptYn', className : "htCenter",width: 110, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'plntCd', className : "htCenter",width: 90, wordWrap: false, className : "htCenter", readOnly:true},
-		{data : 'prOrdr', className : "htCenter", width: 90,wordWrap: false, className : "htCenter", readOnly:true},*/
+		{data : 'plntCd', className : "htCenter",width: 90, wordWrap: false, className : "htCenter", readOnly:true},*/
 		/*{data : 'userMemo', className : "htCenter", width: 250,wordWrap: false, className : "htCenter", readOnly:true, renderer : unreMemoRenderer},*/
-		{data : 'reporter', className : "htCenter", width: 120, wordWrap: false, className : "htCenter", readOnly:true},
-	] ;
-
+		{data : 'poNumber', className : "htCenter", width: 130, wordWrap: false, className : "htCenter", readOnly:true},
+		{data : 'reporter', className : "htCenter", width: lang === 'en' ? 150 : 120, wordWrap: false, className : "htCenter", readOnly:true},
+	];
+	
 	//판정 사용 내역 컬럼
 	//Handsontable.renderers.registerRenderer('chip', chipRenderer);
 	//Handsontable.renderers.registerRenderer('save', saveRenderer);
@@ -562,11 +562,11 @@ function fn_impViewTableHeader(){
 	this.impViewHeader = [
 		"", state, shipState, rptNo, blNo, nabFirm, tradePartner, entryDt, rptday, lisDay, tradeType,
 		 payment, incoterms, freight, insurance, totWeight, totPackCnt, currency, declarePrice, taxPaid, 
-		 overseasNationMark, mark, FtaStatus, reporter
+		 overseasNationMark, mark, FtaStatus, poNumber, reporter
 
 /*		"", "상태(신고)", "상태(운송)",  "C/S검사", "신고번호", "B/L번호", "납세의무자", "무역거래처", "반입일자", "신고일자", "수리일자", "거래구분",
 		"결제방법", "인도조건", "운임", "보험료", "총중량", "총포장개수", "통화단위", "신고금액", "납부세액", "요건승인", 
-		"해외공급자국가부호", "적출국(부호)", "FTA적용여부", "감면여부", "확정신고대상여부", "부서코드", "PO", "신고인"
+		"해외공급자국가부호", "적출국(부호)", "FTA적용여부", "감면여부", "확정신고대상여부", "부서코드", "PO 번호", "신고인"
 */	 ] ;
 }
 
@@ -677,6 +677,12 @@ function fn_changeImportViewType(type){
 	col = impViewCol.impViewCol;
 	header = impViewHeader.impViewHeader;
 	hidden = impViewHidden.impViewHidden;
+	if (lang === 'en') {
+		const poIndex = col.findIndex(c => c.data === 'poNumber');
+		if (poIndex !== -1 && !hidden.includes(poIndex)) {
+			hidden.push(poIndex);
+		}
+	}
 	
 	col2 = impShipViewCol.impShipViewCol;
 	header2 = impShipViewHeader.impShipViewHeader;

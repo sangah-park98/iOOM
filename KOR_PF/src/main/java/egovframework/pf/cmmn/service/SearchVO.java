@@ -73,6 +73,7 @@ public class SearchVO extends UserSessionVO{
 	private int tExcelBuffer;
 	private List<String> list;
 	private List<String> list2;
+	private List<String> list3;
 	/*================================ 페이징정보 ================================*/
 
 	public List<String> getList() {
@@ -86,6 +87,14 @@ public class SearchVO extends UserSessionVO{
 	}
 	public void setList2(List<String> list2) {
 		this.list2 = list2;
+	}
+	
+	
+	public List<String> getList3() {
+		return list3;
+	}
+	public void setList3(List<String> list3) {
+		this.list3 = list3;
 	}
 
 

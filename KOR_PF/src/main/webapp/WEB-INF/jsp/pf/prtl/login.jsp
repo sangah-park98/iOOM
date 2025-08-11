@@ -165,7 +165,7 @@
   	<div class="footer-content">
 		<div class="copyright">Copyright 2020 KORD Systems Inc. All rights reserved.</div>
 		<!--  <div>Tel: [KR] +82-2-3448-1181 [VN] +84-24-7300-8630</div>-->
-		<div><a></a>e-mail : <a href="mailto:ioom@kordsystems.com" target="_top">ioom@kordsystems.com</a></div>  		
+		<div><a></a>e-mail : <a href="mailto:ioom@customsservice.co.kr" target="_top">ioom@customsservice.co.kr</a></div>  		
   	</div>
   	  	
   	

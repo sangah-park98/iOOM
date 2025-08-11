@@ -112,6 +112,7 @@ public class ImportController {
 			EgovMap map = (EgovMap)msgList.get(i);
 			model.addAttribute((String)map.get("msgId"), map.get("msgNm"));
 		}
+		model.addAttribute("lang", userVO.getLang());
 		return "import/importView";
 	}
 	
@@ -172,6 +173,7 @@ public class ImportController {
 	public ModelAndView selectImportViewList(@RequestBody SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		vo.setLang(userVO.getLang());
 		if(!userVO.getCorpNo().equals("00000000000")) {
 			vo.setList(userVO.getCorpNos());
 		}
@@ -298,6 +300,9 @@ public class ImportController {
 	
 	@RequestMapping(value = "/import/selectImportViewLanList.do")
 	public ModelAndView selectImportViewLanList(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
+		HttpSession httpSession = request.getSession(true);
+		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		vo.setLang(userVO.getLang());
 		List<?> resultList = importService.selectImportViewLanList(vo);
 		model.addAttribute("resultList", resultList);
 		ModelAndView mav = new ModelAndView("jsonView", model);
@@ -330,6 +335,7 @@ public class ImportController {
 	public ModelAndView selectImportUpdateList(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		vo.setLang(userVO.getLang());
 		if(!userVO.getCorpNo().equals("00000000000")) {
 			vo.setList(userVO.getCorpNos());
 		}
@@ -343,6 +349,7 @@ public class ImportController {
 	public ModelAndView selectImpDtlUpdViewList(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		vo.setLang(userVO.getLang());
 		if(!userVO.getCorpNo().equals("00000000000")) {
 			vo.setList(userVO.getCorpNos());
 		}
@@ -674,7 +681,7 @@ public class ImportController {
 			e.printStackTrace();
 		} finally {}
   		 
-  		EmailUtill.sendEmailWithFile(sendBlNo, sendCmpnyCd, "ioom@kordsystems.com", "IMPORT", null, "kr", zipFileName);
+  		EmailUtill.sendEmailWithFile(sendBlNo, sendCmpnyCd, "ioom@customsservice.co.kr", "IMPORT", null, "kr", zipFileName);
   	}
 	
 	@RequestMapping(value = "/import/saveImportMemo.do", method = RequestMethod.POST)

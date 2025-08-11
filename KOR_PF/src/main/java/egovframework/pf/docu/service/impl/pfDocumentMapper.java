@@ -1,15 +1,14 @@
 package egovframework.pf.docu.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import egovframework.pf.cmmn.service.SearchVO;
 import egovframework.pf.docu.service.SaveDocuFileVO;
-import egovframework.pf.exp.service.SaveExpFileVO;
 import egovframework.rte.psl.dataaccess.mapper.Mapper;
 
 /**
  * 서류관리 매퍼 클래스
- *
  * @author  박상아
  * @since 2024.02.26
  * @version 1.0
@@ -41,6 +40,8 @@ public interface pfDocumentMapper {
 	int selectDocuViewExpTotCnt(SearchVO vo) throws Exception;
 
 	List<?> selectDocumentExpViewList(SearchVO vo) throws Exception;
+	
+	int selectMthTaxBillCnt(String rptNo) throws Exception;
 
 	void insertImpDocuFilesInfo(SaveDocuFileVO vo) throws Exception;
 	
@@ -49,5 +50,13 @@ public interface pfDocumentMapper {
 	List<?> selectDownloadFileList(Object paramMap) throws Exception;
 
 	void deleteDocuFile(SearchVO vo) throws Exception;
+
+	Map<String, Object> selectMthTaxBill(String rptNo) throws Exception;
+
+	List<Map<String, Object>> selectMthTaxBillSub(String rptNo) throws Exception;
+
+	int selectIndivTaxBillCnt(String rptNo) throws Exception;
+
+	List<?> selectVatType(String rptNo) throws Exception;
 
 }

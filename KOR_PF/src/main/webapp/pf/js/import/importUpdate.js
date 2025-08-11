@@ -361,7 +361,7 @@ function fn_impUpTableCol(){
 	};
 
 	this.impUpCol = [
-		{data : 'rece', className : "htCenter", width:50, wordWrap:false, readOnly:true, renderer:chipRenderer},
+		{data : 'rece', className : "htCenter", width: lang === 'en' ? 160 : 50, wordWrap:false, readOnly:true, renderer:chipRenderer},
 		{data : 'nabFirm', className : "htCenter", width: 180, wordWrap: false, readOnly:true},
 		{data : 'blno', className : "htCenter", width: 140, wordWrap: false, readOnly:true},
 		{data : 'rptNo', className : "htCenter", width: 160, wordWrap: false, readOnly:true},
@@ -530,6 +530,16 @@ function fn_changeImportUpType(type){
 	col = impUpCol.impUpCol;
 	header = impUpHeader.impUpHeader;
 	hidden = impUpHidden.impUpHidden;
+	if (lang === 'en') {
+		const fields = ['reasonDoc1', 'plntCd', 'prOrdr'];
+
+		fields.forEach(field => {
+			const index = col.findIndex(c => c.data === field);
+			if (index !== -1 && !hidden.includes(index)) {
+				hidden.push(index);
+			}
+		});
+	}
 	
 	col2 = impDtlUpdCol.impDtlUpdCol;
 	header2 = impDtlUpdViewHeader.impDtlUpdViewHeader;
@@ -585,7 +595,7 @@ function fn_impDtlUpdTableCol(){
 		{data : 'rptNo', className : "htCenter", width: 150, wordWrap: false, readOnly:true},
 		{data : 'impRanNo', className : "htCenter", width: 60, wordWrap: false, readOnly:true},
 		{data : 'sizeNo', className : "htCenter", width: lang === 'en' ? 110 : 60, wordWrap: false, readOnly:true},
-		{data : 'itemDoc', className : "htCenter", width: 100, wordWrap: false, readOnly:true},
+		{data : 'itemDoc', className : "htCenter", width: lang === 'en' ? 150 : 100, wordWrap: false, readOnly:true},
 		{data : 'beforeEdit', className : "htCenter", width: 150, wordWrap: false, readOnly:true},
 		{data : 'afterEdit', className : "htCenter", width: 150, wordWrap: false, readOnly:true},
 		{data : 'vitKeyNo', className : "htCenter", width: lang === 'en' ? 180 : 100, wordWrap: false, readOnly:true},

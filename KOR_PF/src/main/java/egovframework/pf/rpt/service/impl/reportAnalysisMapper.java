@@ -66,5 +66,11 @@ public interface reportAnalysisMapper {
 	List<?> selectImpCus(SearchVO vo);
 
 	List<?> selectExpCus(SearchVO vo);
+
+	List<?> selectFtaSavingList(SearchVO vo);
+
+	List<?> selectFtaSavingAddList(SearchVO vo);
+
+	List<?> selectCmpnyManagerList(SearchVO vo);
 	
 }

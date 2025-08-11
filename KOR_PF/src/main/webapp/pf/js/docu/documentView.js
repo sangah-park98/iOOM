@@ -369,6 +369,7 @@ function fn_documentViewTableCol(){
 	var searchType = $("input:radio[name=documentView_srch1]:checked").val();
 	var tableType = $("input:radio[name=documentViewType]:checked").val();
 	var documentView_srch20 = $("input:radio[name=documentView_srch20]:checked").val(); // 사용여부
+	
 	var docuFileLoadRenderer = function(instance, td, row, col, prop, value, cellProperties) {
         var $fileButton;
         if (value != '' && value != null) {
@@ -376,11 +377,73 @@ function fn_documentViewTableCol(){
         }
         $(td).empty().append($fileButton).append("  " + value);
 	};
-
+	
+	var paymentBillRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+		$(td).empty();
+		var levForm = documentViewHot.getSourceDataAtRow(row)['levForm']; // 건별납부고지서 징수형태
+		if (levForm != '43') {
+			var $mthTaxBillBtn = $('<button type="button">' + print +'</button>').addClass(
+					'save-button p-0.5 mt-0.5 text-sm rounded text-white hover:opacity-50 duration-150'
+			).css({
+				'font-family': '맑은 고딕',
+				'font-size': '13px',
+				'background-color': '#1e73be'
+			}).on('click', function () {
+				fn_createPaymentBill(row, col);
+			});
+			$(td).css({
+				"text-align": "center",
+				"white-space": "nowrap"
+			}).append($mthTaxBillBtn).append("  " + (value || ''));
+		}
+	};
+	
+	var indivTaxBillRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+		$(td).empty();
+		var levForm = documentViewHot.getSourceDataAtRow(row)['levForm']; 
+		if (levForm == '11' || levForm == '14') {
+			var $mthTaxBillBtn = $('<button type="button">' + print +'</button>').addClass(
+					'save-button p-0.5 mt-0.5 text-sm rounded text-white hover:opacity-50 duration-150'
+			).css({
+				'font-family': '맑은 고딕',
+				'font-size': '13px',
+				'background-color': '#1e73be'
+			}).on('click', function () {
+				fn_createIndivTaxBill(row, col);
+			});
+			$(td).css({
+				"text-align": "center",
+				"white-space": "nowrap"
+			}).append($mthTaxBillBtn).append("  " + (value || ''));
+		} else {
+			$(td).css({
+		        "text-align": "center",
+		        "white-space": "nowrap"
+		    }).text('-');
+		}
+	};
+	
+	var mthTaxBillRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+	    $(td).empty();
+	    var $mthTaxBillBtn = $('<button type="button">' + print +'</button>').addClass(
+	        'save-button p-0.5 mt-0.5 text-sm rounded text-white hover:opacity-50 duration-150'
+	    ).css({
+	        'font-family': '맑은 고딕',
+	        'font-size': '13px',
+	        'background-color': '#1e73be'
+	    }).on('click', function () {
+	        fn_createMthTaxBill(row, col);
+	    });
+	    $(td).css({
+	        "text-align": "center",
+	        "white-space": "nowrap"
+	    }).append($mthTaxBillBtn).append("  " + (value || ''));
+	};
 	
 	if(searchType == '02'){
 		this.documentViewCol = [
 			{data : 'checkBox', type : 'text', className : "htCenter", width: 60, type: 'checkbox', checkedTemplate: 'yes', uncheckedTemplate: 'no', readOnly:false},
+			{data : 'levForm', className : "htCenter",width: 30, wordWrap: false, readOnly:true},
 			{data : 'nabFirm', className : "htCenter",width: 150, wordWrap: false, readOnly:true},
 			{data : 'blno', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'rptNo', className : "htCenter", width: 160, className : "htCenter", readOnly:true, renderer : docuFileLoadRenderer},
@@ -388,6 +451,9 @@ function fn_documentViewTableCol(){
 			{data : 'lisDay', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'dc', className : "htCenter", width: lang === 'en' ? 230 : 150, className : "htCenter", readOnly:true},
 			{data : 'cb', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
+			{data : 'paymentBill', className : "htCenter", width: lang === 'en' ? 180 : 150, className : "htCenter", readOnly:true, renderer : paymentBillRenderer},
+			{data : 'indivTaxBill', className : "htCenter", width: 150, className : "htCenter", readOnly:true, renderer : indivTaxBillRenderer},
+			// {data : 'mthTaxBill', className : "htCenter", width: 150, className : "htCenter", readOnly:true, renderer : mthTaxBillRenderer},
 			{data : 'uc', className : "htCenter", width: lang === 'en' ? 200 : 150, className : "htCenter", readOnly:true},
 			{data : 'ci', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
 			{data : 'pl', className : "htCenter", width: 150, className : "htCenter", readOnly:true},
@@ -440,7 +506,154 @@ function chipRenderer(hotInstance, td, row, column, prop, value, cellProperties)
 	     break
 	}
 }
+function fn_createPaymentBill(row, col) {
+	var rowData = documentViewHot.getSourceDataAtRow(row);
+    var rptNo = rowData.rptNo;
+    var blNo = rowData.blno;
 
+    $.ajax({
+		type: "POST",
+		url: "/document/createPaymentBillPdf.do",
+		data: JSON.stringify({
+			rptNo: rptNo,
+			blNo: blNo,
+		}),
+		beforeSend: function(xmlHttpRequest) {
+			xmlHttpRequest.setRequestHeader("AJAX", "true");
+		},
+		contentType: "application/json; charset=utf-8",
+		async: false,
+		success: function(data) {
+			if (data === "success") {
+				var existingIframe = document.querySelector('.pdfIframe');
+				if (existingIframe) {
+					existingIframe.parentNode.removeChild(existingIframe);
+				}
+				var url = "/home/files/" + rptNo + ".pdf?t=" + new Date().getTime();
+				var iframe = document.createElement('iframe');
+				iframe.className = 'pdfIframe';
+				iframe.style.display = 'none';
+				document.body.appendChild(iframe);
+
+				iframe.onload = function() {
+					setTimeout(function() {
+						iframe.contentWindow.focus();
+						iframe.contentWindow.print();
+					}, 1);
+				};
+
+				iframe.src = url;
+			}
+		},
+		error: function(e, textStatus, errorThrown) {
+			if (e.status == 400) {
+				alert("오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+				location.href = document.referrer;
+			} else {
+				console.log(errorThrown);
+				alert(msgSearchError);
+			}
+		}
+	});
+}
+
+function fn_createIndivTaxBill(row, col) {
+	var rowData = documentViewHot.getSourceDataAtRow(row);
+	var rptNo = rowData.rptNo;
+	var blNo = rowData.blno;
+	
+	$.ajax({
+		type : "POST",
+		url : "/document/createIndivTaxBillPdf.do",
+		data : JSON.stringify({
+			rptNo: rptNo,
+			blNo: blNo,
+		}),
+		beforeSend : function(xmlHttpRequest){
+			xmlHttpRequest.setRequestHeader("AJAX", "true");
+		},
+		contentType: "application/json; charset=utf-8",
+		async : false,
+		success: function(data) {
+			if (data === "success") {
+				var existingIframe = document.querySelector('.pdfIframe');
+				if (existingIframe) {
+					existingIframe.parentNode.removeChild(existingIframe);
+				}
+				var url = "/home/files/" + rptNo + ".pdf?t=" + new Date().getTime();
+				var iframe = document.createElement('iframe');
+				iframe.className = 'pdfIframe';
+				iframe.style.display = 'none';
+				document.body.appendChild(iframe);
+
+				iframe.onload = function() {
+					setTimeout(function() {
+						iframe.contentWindow.focus();
+						iframe.contentWindow.print();
+					}, 1);
+				};
+
+				iframe.src = url;
+			} else if(data === "fail"){
+				alert(msgNoTaxBill); // 생성할 수 있는 세금계산서가 없습니다.
+			}
+		},
+		error : function(e, textStatus, errorThrown) {
+			if(e.status == 400){
+				alert("오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+				location.href = document.referrer;
+			} else { 
+				console.log(errorThrown);
+				alert(msgSearchError);
+			}
+		}
+	});
+}
+
+function fn_createMthTaxBill(row, col) {
+	var rowData = documentViewHot.getSourceDataAtRow(row);
+    var rptNo = rowData.rptNo;
+    
+	$.ajax({
+		type : "POST",
+		url : "/document/createMthTaxBillPdf.do",
+		data : JSON.stringify({
+			rptNo: rptNo,
+		}),
+		beforeSend : function(xmlHttpRequest){
+			xmlHttpRequest.setRequestHeader("AJAX", "true");
+		},
+		contentType: "application/json; charset=utf-8",
+		async : false,
+		success : function(data) {
+			if(data === "success"){
+				var url = "/home/files/" + rptNo + ".pdf";
+				var iframe = document.createElement('iframe');
+				iframe.className = 'pdfIframe';
+				document.body.appendChild(iframe);
+				iframe.style.display = 'none';
+				
+				iframe.onload = function () {
+					setTimeout(function () {
+						iframe.focus();
+						iframe.contentWindow.print();
+						URL.revokeObjectURL(url);
+					}, 1);
+				};
+				iframe.src = url;
+			}
+		},
+		error : function(e, textStatus, errorThrown) {
+			if(e.status == 400){
+				alert("오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+				location.href = document.referrer;
+			} else { 
+				console.log(errorThrown);
+				alert(msgSearchError);
+			}
+		}
+	});
+}
 
 //테이블 헤더
 function fn_documentViewTableHeader(){
@@ -451,11 +664,11 @@ function fn_documentViewTableHeader(){
 	
 	if(searchType == '02') {
 		this.documentViewHeader = [
-			"", nabFirm,
-			blNo, rptNo, rptday, lisDay, declarationCert, docuTotal, docuCorrectionTotal, invoice,
+			"", "", nabFirm,
+			blNo, rptNo, rptday, lisDay, declarationCert, docuTotal, paymentBill, indivTaxBill, docuCorrectionTotal, invoice,
 			pl, bl, co, docuRequirement, docuEtc, docuLiquidation, factoryCd, po
-			/*"", "납세의무자",
-			"B/L 번호", "신고번호", "신고일자", "수리일자", "신고필증", "통합", "정정 통합", "Invoice", 
+			/*"", "징수", "납세의무자",
+			"B/L 번호", "신고번호", "신고일자", "수리일자", "신고필증", "통합", "건별납부고지서", "개별세금계산서", "월별세금계산서", "정정 통합", "Invoice", 
 			"Packing List", "B/L", "원산지증명서", "요건 서류", "기타", "정산서", "부서코드", "PO"*/
 		 ]; 
 	} else if(searchType == '03') {
@@ -474,8 +687,13 @@ function fn_documentViewTableHeader(){
 //테이블 히든컬럼
 function fn_documentViewTableHidden(){
 	var tableType = $("input:radio[name=documentViewType]:checked").val();
-	this.documentViewHidden = [];
-	this.documentViewOrgHidden = [0];
+	
+	var searchType = $("input:radio[name=documentView_srch1]:checked").val(); 
+	if(searchType == '02') {
+		this.documentViewHidden = [1];
+	} else {
+		this.documentViewHidden = [];
+	}
 }
 
 
@@ -606,19 +824,26 @@ function fn_changeDocumentView(type){
 function fn_changeDocumentViewType(type){
 	let documentViewCol = new fn_documentViewTableCol();
 	let documentViewHeader = new fn_documentViewTableHeader();
-	//let documentSearchHeader = new fn_documentSearchTableHeader();
 	let documentViewHidden = new fn_documentViewTableHidden();
 	
 	var col, header, hidden, col2, header2, hidden2, col3, header3, hidden3 ;
 
-	//$('#alignImportView option:eq(0)').prop('selected', true);
-
-	//구매원장
 	fn_searchGridPurchOption(true);
+	
 	col = documentViewCol.documentViewCol;
 	header = documentViewHeader.documentViewHeader;
 	hidden = documentViewHidden.documentViewHidden;
-	//searchHeader = documentSearchHeader.documentSearchHeader;
+	
+	if (lang === 'en') {
+		const hideFields = ['plntCd', 'prOrdr'];
+
+		hideFields.forEach(field => {
+			const index = col.findIndex(c => c.data === field);
+			if (index !== -1 && !hidden.includes(index)) {
+				hidden.push(index);
+			}
+		});
+	}
 	
 	documentViewHot.updateSettings(fn_handsonGridViewOption(col, header, hidden));
 
@@ -814,6 +1039,7 @@ function fn_docuDownloadPopUp(){
 			checkData.push(data[i]);
 			cnt1++; 
 		}
+		// console.log(JSON.stringify(checkData, null, 2));
 	}
 	
 	for (var i = 0; i < checkData.length; i++) {

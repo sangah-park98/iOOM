@@ -570,8 +570,8 @@
 <footer class="w-full mx-auto flex justify-between justify-self-end items-center shrink-0 bg-primary-900 text-gray-200 px-6 py-2 gap-4">
     <span>KORD Systems Inc.</span>
     <span class="mr-auto">Copyright KORD Systems Inc. All rights reserved.</span>
-    <a href="mailto:ioom@kordsystems.com"><i class="fa-regular fa-envelopes"></i>
-      ioom@kordsystems.com
+    <a href="mailto:ioom@customsservice.co.kr"><i class="fa-regular fa-envelopes"></i>
+      ioom@customsservice.co.kr
     </a>
     <p><i class="fa-regular fa-phone-volume"></i>
       +82-2-2038-8299

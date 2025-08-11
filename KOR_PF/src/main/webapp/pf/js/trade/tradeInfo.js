@@ -356,14 +356,14 @@ function fn_tradeViewTableCol(){
 		this.tradeViewCol = [
 			{data : 'rptNo', className : "htCenter", width: lang === 'en' ? 180 : 140, wordWrap: false, className : "htCenter", readOnly:true},
 			{data : 'rptDay', className : "htCenter", width: lang === 'en' ? 120 : 90, wordWrap: false, className : "htCenter", readOnly:true},
-			{data : 'tradeType', className : "htCenter", width: 120, wordWrap: false, className : "htCenter", readOnly:true},
-			{data : 'itemName', className : "htCenter", width: 250, wordWrap: false, className : "htCenter", readOnly:true},
-			{data : 'itemCode', className : "htCenter", width: lang === 'en' ? 170 : 120, wordWrap: false, className : "htCenter", readOnly:true},
+			{data : 'trdCd', className : "htCenter", width: 120, wordWrap: false, className : "htCenter", readOnly:true},
+			{data : 'itemDlrNm', className : "htCenter", width: 250, wordWrap: false, className : "htCenter", readOnly:true},
+			{data : 'itemCd', className : "htCenter", width: lang === 'en' ? 170 : 120, wordWrap: false, className : "htCenter", readOnly:true},
 			{data : 'qty', type : 'numeric', width: 90 , className : "htRight" , 	numericFormat : {pattern : '0,0'},readOnly : true},
 			{data : 'unit', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 			{data : 'invoiceNo', className : "htCenter", width: 130, wordWrap: false, className : "htCenter", readOnly:true},
-			{data : 'invoiceDate', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
-			{data : 'buyFirm', className : "htCenter", width: 200, wordWrap: false, className : "htCenter", readOnly:true},
+			//{data : 'invoiceDate', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
+			{data : 'partnrCd', className : "htCenter", width: 200, wordWrap: false, className : "htCenter", readOnly:true},
 			{data : 'tradeQty', type : 'numeric', className : "htRight" , 	numericFormat : {pattern : '0,0'},readOnly : true},
 			{data : 'tradeRemark', className : "htCenter", width: 220, wordWrap: false, className : "htCenter", readOnly:true},
 			{data : 'regDt', className : "htCenter", width: lang === 'en' ? 120 : 90, wordWrap: false, className : "htCenter", readOnly:true},
@@ -407,7 +407,7 @@ function fn_tradeViewTableHeader(){
 	} else if (chkTradeType == "02"){
 	this.tradeViewHeader = [
 		impRptNo, lisDay, tradeType, goodsName, specItemCd, qty,
-		unit, invoiceNo, invoiceDt, partner, revisionQty, revisionReason, revisionDt, register
+		unit, invoiceNo, partner, revisionQty, revisionReason, revisionDt, register
 		 // "수입신고번호", "수리일자", "거래구분", "거래품명", "규격(ITEM CODE)" , "수량" , 
 		 // "단위" , "인보이스 번호", "인보이스 일자", "거래상대방", "보정 수량", "보정 사유", "보정 일자", "등록자"
 	 ] ;

@@ -1,10 +1,17 @@
 package egovframework.pf.cmmn.web;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -169,6 +176,7 @@ public class cmmnController {
 			
 			model.addAttribute("corpNo", corpNo);
 			model.addAttribute("author", author);
+			model.addAttribute("usrId", userVO.getId());
 			model.addAttribute("userInfo", userInfo);
 			model.addAttribute("cmpnyInfo", cmpnyInfo);
 			
@@ -255,5 +263,52 @@ public class cmmnController {
 			ModelAndView mav = new ModelAndView("jsonView", model);
 			return mav ;
 		}
+		
+		@RequestMapping(value = "/workplacelogin.do", method = RequestMethod.POST)
+		public void workplacelogin(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		    String id = vo.getId();
+		    System.out.println("id: " + id);
+		    String token = createToken(id);
+		    System.out.println("Generated Token: " + token);
 
+		    String redirectUrl = "http://localhost:8081/cmmn/workplacelogincheck.do?token=" + URLEncoder.encode(token, "UTF-8");
+		    response.sendRedirect(redirectUrl);
+		}
+
+		 private static final String SECRET_KEY = "mySecretKey";  // 비밀키는 안전하게 관리해야 함
+
+		    public static String createToken(String email) throws Exception {
+		        // 현재 시간을 YYYYMMDDHHMMSS 형식으로 포맷
+		        String timestamp = String.valueOf(new Date().getTime() / 1000);  // 초 단위로
+
+		        // 토큰 생성할 데이터 (email + timestamp)
+		        String data = email + ":" + timestamp;
+
+		        // HMAC-SHA256 서명 생성
+		        String signature = generateHmacSHA256(data, SECRET_KEY);
+
+		        // 이메일, 타임스탬프, 서명을 합쳐 토큰 구성
+		        String token = Base64.getEncoder().encodeToString((email + ":" + timestamp + ":" + signature).getBytes());
+
+		        return token;
+		    }
+
+		    // HMAC-SHA256 서명 생성 메소드
+		    private static String generateHmacSHA256(String data, String key) throws Exception {
+		        Mac mac = Mac.getInstance("HmacSHA256");
+		        Key secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+		        mac.init(secretKey);
+		        byte[] bytes = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+		        return bytesToHex(bytes);
+		    }
+
+		    // 바이트 배열을 헥사 문자열로 변환
+		    private static String bytesToHex(byte[] bytes) {
+		        StringBuilder sb = new StringBuilder();
+		        for (byte b : bytes) {
+		            sb.append(String.format("%02x", b));
+		        }
+		        return sb.toString();
+		    }
+		
 }

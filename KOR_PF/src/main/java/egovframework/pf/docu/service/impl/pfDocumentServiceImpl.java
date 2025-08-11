@@ -1,6 +1,7 @@
 package egovframework.pf.docu.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -9,25 +10,7 @@ import org.springframework.stereotype.Service;
 import egovframework.pf.cmmn.service.SearchVO;
 import egovframework.pf.docu.service.SaveDocuFileVO;
 import egovframework.pf.docu.service.pfDocumentService;
-import egovframework.pf.exp.service.SaveExpFileVO;
 import egovframework.rte.psl.dataaccess.EgovAbstractMapper;
-
-/**
- * @Class Name : DocumentService.java
- * @Description : DocumentService Class
- * @Modification Information
- * @
- * @         수정일            		       수정자           			수정내용
- * @    ----------------    ------------    ---------------------------
- * @       2024.01.10          	서인석         			최초 생성
- *
- * @author 서인석
- * @since 2024.01.10
- * @version 1.0
- * @see
- *
- *  Copyright (C) by KordSystems All right reserved.
- */
 
 @Service("pfDocumentService")
 public class pfDocumentServiceImpl extends EgovAbstractMapper implements pfDocumentService {
@@ -56,6 +39,10 @@ public class pfDocumentServiceImpl extends EgovAbstractMapper implements pfDocum
 		return pfDocumentMapper.selectDocumentExpViewList(vo);
 	}
 	@Override
+	public int selectMthTaxBillCnt(String rptNo) throws Exception {
+		return pfDocumentMapper.selectMthTaxBillCnt(rptNo);
+	}
+	@Override
 	public void insertImpDocuFilesInfo(SaveDocuFileVO vo) throws Exception {
 		pfDocumentMapper.insertImpDocuFilesInfo(vo);
 	}
@@ -78,5 +65,21 @@ public class pfDocumentServiceImpl extends EgovAbstractMapper implements pfDocum
 	@Override
 	public void deleteDocuFile(SearchVO vo) throws Exception {
 		pfDocumentMapper.deleteDocuFile(vo);
+	}
+	@Override
+	public Map<String, Object> selectMthTaxBill(String rptNo) throws Exception {
+		return pfDocumentMapper.selectMthTaxBill(rptNo);
+	}
+	@Override
+	public List<Map<String, Object>> selectMthTaxBillSub(String rptNo) throws Exception {
+		return pfDocumentMapper.selectMthTaxBillSub(rptNo);
+	}
+	@Override
+	public int selectIndivTaxBillCnt(String rptNo) throws Exception {
+		return pfDocumentMapper.selectIndivTaxBillCnt(rptNo);
+	}
+	@Override
+	public List<?> selectVatType(String rptNo) throws Exception {
+		return pfDocumentMapper.selectVatType(rptNo);
 	}
 }

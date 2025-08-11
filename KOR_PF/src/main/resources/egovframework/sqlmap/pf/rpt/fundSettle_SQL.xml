@@ -204,14 +204,20 @@
 					SELECT 
 					    '항공운임' AS category,
 					    CASE 
-					        WHEN C.SUPPLIER IS NOT NULL AND C.SUPPLIER != '' 
-					        THEN C.SUPPLIER
+					        WHEN A.SUP_EK = 0 AND A.TAX_EK = 0 AND A.SUM_EK = 0 THEN ''
 					        ELSE (
-					            SELECT CMMN_NM
-					            FROM adjust_master M
-					            WHERE TRIM(M.CMMN_CD) =  #{srch8}
-					            ORDER BY M.CMMN_NM LIMIT 1
-					        ) 
+					            CASE 
+					                WHEN C.SUPPLIER IS NOT NULL AND C.SUPPLIER != '' 
+					                THEN C.SUPPLIER
+					                ELSE (
+					                    SELECT CMMN_NM
+					                    FROM adjust_master M
+					                    WHERE TRIM(M.CMMN_CD) = #{srch8}
+					                    ORDER BY M.CMMN_NM 
+					                    LIMIT 1
+					                )
+					            END
+					        )
 					    END AS supplier,
 					 	A.SUP_EK AS clearFee,
 						A.TAX_EK AS taxVat,
@@ -246,11 +252,20 @@
 					 A.SUP_EK AS clearFee,
 					 A.TAX_EK AS taxVat,
 					 A.SUM_EK AS sumEk,
-					    CASE 
+					CASE WHEN #{srch10} = '싸토리우스코리아바이오텍유한' THEN
+					CASE 
 						 	 WHEN B.NOTE IS NOT NULL OR B.NOTE != ''
 						 	 THEN B.NOTE
 						 	 ELSE A.ADJ_NOTE
-						END AS note
+						END 
+						WHEN #{srch10} = '싸토리우스코리아유한회사' THEN
+						 CASE 
+				            WHEN B.NOTE IS NOT NULL AND B.NOTE != '' THEN B.NOTE
+				            WHEN A.SUP_EK = '0' AND A.TAX_EK = '0' AND A.SUM_EK = '0' THEN ''
+				            ELSE A.ADJ_NOTE
+				        END
+					    ELSE A.ADJ_NOTE
+					END AS note						
 					FROM adj_listselops A
 					LEFT JOIN adjust_info B
 					 ON A.fr_key = B.fr_key 
@@ -264,15 +279,21 @@
 						SELECT 
 					    '항공사수수료' AS category,
 					    CASE 
-					        WHEN C.SUPPLIER IS NOT NULL AND C.SUPPLIER != '' 
-					        THEN C.SUPPLIER
+					        WHEN A.SUP_EK = 0 AND A.TAX_EK = 0 AND A.SUM_EK = 0 THEN ''
 					        ELSE (
-					            SELECT CMMN_NM
-					            FROM adjust_master M
-					            WHERE TRIM(M.CMMN_CD) =  #{srch8}
-					            ORDER BY M.CMMN_NM LIMIT 1
-					        ) 
-					    END AS supplier,
+					            CASE 
+					                WHEN C.SUPPLIER IS NOT NULL AND C.SUPPLIER != '' 
+					                THEN C.SUPPLIER
+					                ELSE (
+					                    SELECT CMMN_NM
+					                    FROM adjust_master M
+					                    WHERE TRIM(M.CMMN_CD) =  #{srch8}
+					                    ORDER BY M.CMMN_NM 
+					                    LIMIT 1
+					                )
+					            END
+					        )
+					    END AS supplier,    
 					 	A.SUP_EK AS clearFee,
 					 	A.TAX_EK AS taxVat,
 					 	A.SUM_EK AS sumEk,
@@ -312,12 +333,15 @@
 								
 								SELECT 
 								    '창고료' AS category,
-									CASE 
-							          WHEN SUM_EK = 0 THEN '' 
-							          WHEN  #{srch10} = '싸토리우스코리아유한회사' THEN '신한인비스타'
-							          WHEN  #{srch10} = '싸토리우스코리아바이오텍유한' THEN '(주)연우지엘에스'
-							          ELSE ''
-									 END AS supplier,
+								CASE 
+								  WHEN SUM_EK = 0 THEN '' 
+									WHEN #{srch10} = '싸토리우스코리아바이오텍유한'
+							        AND (#{srch8} = 'KWE' OR #{srch8} = 'KWEK')
+							      THEN '(주)에이씨티앤코아물류'
+							      WHEN #{srch10}  = '싸토리우스코리아유한회사' THEN '(주)신한인비스타'
+							      WHEN #{srch10}  = '싸토리우스코리아바이오텍유한' THEN '(주)연우지엘에스'
+							      ELSE ''
+							    END AS supplier,
 								    SUP_EK AS clearFee,
 								    TAX_EK AS taxVat,
 								    SUM_EK AS sumEk,
@@ -350,7 +374,7 @@
 							    	'내륙운송료' AS category,
 								CASE 
 						          WHEN SUM_EK = 0 THEN '' 
-						          WHEN  #{srch10}  = '싸토리우스코리아유한회사' THEN '신한인비스타'
+						          WHEN  #{srch10}  = '싸토리우스코리아유한회사' THEN '(주)신한인비스타'
 						          WHEN  #{srch10}  = '싸토리우스코리아바이오텍유한' THEN '(주)연우지엘에스'
 						          ELSE ''
 								 END AS supplier,
@@ -498,7 +522,7 @@
 			 RPT_NO,
 			 BLNO,
 			 ETC,
-			 DEADLINE_YN
+			 DEADLINE_YN,
 			 REG_DT,
 			 REG_ID
 			)VALUES(

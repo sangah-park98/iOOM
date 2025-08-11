@@ -305,7 +305,7 @@
 				        </div>
 						 <div class="flex col-span-8 items-center">
 				            <label class="font-medium text-gray-900 text-base mr-2 w-20">* 상차지</label>
-				            <input id="fromAddr" type="text" class="border border-gray-300 rounded-lg text-base p-1 flex-1">
+				            <input id="fromAddr" type="text" maxlength="100" class="border border-gray-300 rounded-lg text-base p-1 flex-1">
 				        </div>
 						<div class="flex col-span-8 items-center justify-between">
 				            <div class="flex items-center">
@@ -372,7 +372,7 @@
 				        </div>
 				        <div class="flex col-span-8 items-center">
 				            <label class="font-medium text-gray-900 text-base mr-2">* 주소</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-				            <input id="toAddr0" type="text" class="border border-gray-300 rounded-lg text-sm p-1 flex-1" style="height: 2rem; font-size: 0.875rem;">
+				            <input id="toAddr0" type="text" maxlength="100" class="border border-gray-300 rounded-lg text-sm p-1 flex-1" style="height: 2rem; font-size: 0.875rem;">
 				        </div>
 				        <div class="flex col-span-8 items-center justify-between">
 				            <div class="flex items-center">

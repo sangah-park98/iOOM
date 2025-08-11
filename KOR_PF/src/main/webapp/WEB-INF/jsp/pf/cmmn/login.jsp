@@ -217,9 +217,9 @@
       <p>Copyright KORD Systems Inc. All rights reserved.</p>
   </div>
   <div class="flex items-center justify-center gap-3 leading-relaxed">
-    <a class="block" href="mailto:ioom@kordsystems.com">
+    <a class="block" href="mailto:ioom@customsservice.co.kr">
       <i class="fa-regular fa-envelopes"></i>
-      ioom@kordsystems.com
+      ioom@customsservice.co.kr
     </a>
     <span>|</span>
     <a class="block">

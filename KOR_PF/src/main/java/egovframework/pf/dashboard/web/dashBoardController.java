@@ -73,6 +73,7 @@ public class dashBoardController {
 		model.addAttribute("noticeList", noticeList);
 		List<?> newsList = dashboardService.selectDashboardNewsList(vo);
 		model.addAttribute("newsList", newsList);
+		model.addAttribute("cmpnyName", userVO.getCmpnyCds());
 
 		return "dash/dashboard";
 	}

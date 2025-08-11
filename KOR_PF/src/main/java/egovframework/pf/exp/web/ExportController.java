@@ -1051,6 +1051,7 @@ private JasperPrint makeJasperPage(JasperPrint jprint, String realPath, String t
 	public ModelAndView selectExportViewList(@RequestBody SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 	    HttpSession httpSession = request.getSession(true);
 	    UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+	    vo.setLang(userVO.getLang());
 		if(!userVO.getCorpNo().equals("00000000000")) {
 			vo.setList(userVO.getCorpNos());
 		}
@@ -1190,6 +1191,7 @@ private JasperPrint makeJasperPage(JasperPrint jprint, String realPath, String t
 			ModelMap model) throws Exception {
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		vo.setLang(userVO.getLang());
 		if(!userVO.getCorpNo().equals("00000000000")) {
 			vo.setList(userVO.getCorpNos());
 		}
@@ -1203,6 +1205,7 @@ private JasperPrint makeJasperPage(JasperPrint jprint, String realPath, String t
 	public ModelAndView selectExpDtlUpdViewList(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		vo.setLang(userVO.getLang());
 		if(!userVO.getCorpNo().equals("00000000000")) {
 			vo.setList(userVO.getCorpNos());
 		}
@@ -1492,7 +1495,7 @@ private JasperPrint makeJasperPage(JasperPrint jprint, String realPath, String t
 			e.printStackTrace();
 		} finally {}
   		
-  		EmailUtill.sendEmailWithFile(sendInvoiceNo, sendCmpnyCd, "ioom@kordsystems.com", "EXPORT", null, "kr", zipFileName);
+  		EmailUtill.sendEmailWithFile(sendInvoiceNo, sendCmpnyCd, "ioom@customsservice.co.kr", "EXPORT", null, "kr", zipFileName);
   	}
 	
 	

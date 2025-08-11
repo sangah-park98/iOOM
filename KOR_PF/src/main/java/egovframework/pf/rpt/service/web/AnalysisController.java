@@ -67,10 +67,10 @@ public class AnalysisController {
 	public String analysisView(HttpServletRequest request, Model model) throws Exception {
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
-		SearchVO vo = new SearchVO();
-		vo.setLang(userVO.getLang());
-		vo.setSrch2("analysis");
-		List<?> msgList = CmmnService.selectMsgList(vo);
+		SearchVO svo = new SearchVO();
+		svo.setLang(userVO.getLang());
+		svo.setSrch2("analysis");
+		List<?> msgList = CmmnService.selectMsgList(svo);
 		for(int i=0; i<msgList.size(); i++) {
 			EgovMap map = (EgovMap)msgList.get(i);
 			model.addAttribute((String)map.get("msgId"), map.get("msgNm"));
@@ -83,14 +83,16 @@ public class AnalysisController {
 	public ModelAndView selectAnalysis1List(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
-		vo.setLang(userVO.getLang());
-		vo.setSrch2("analysis");
-		List<?> msgList = CmmnService.selectMsgList(vo);
+		SearchVO svo = new SearchVO();
+		svo.setLang(userVO.getLang());
+		svo.setSrch2("analysis");
+		List<?> msgList = CmmnService.selectMsgList(svo);
 		for(int i=0; i<msgList.size(); i++) {
 			EgovMap map = (EgovMap)msgList.get(i);
 			model.addAttribute((String)map.get("msgId"), map.get("msgNm"));
 		}
 		vo.setList(userVO.getCorpNos());
+		vo.setLang(userVO.getLang());
 		List<?> resultList = analysisService.selectAnalysis1List(vo);
 	    ModelAndView mav = new ModelAndView("jsonView");
 		mav.addObject("resultList", resultList);
@@ -114,14 +116,16 @@ public class AnalysisController {
 	public ModelAndView selectAnalysis2List(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
-		vo.setLang(userVO.getLang());
-		vo.setSrch2("analysis");
-		List<?> msgList = CmmnService.selectMsgList(vo);
+		SearchVO svo = new SearchVO();
+		svo.setLang(userVO.getLang());
+		svo.setSrch2("analysis");
+		List<?> msgList = CmmnService.selectMsgList(svo);
 		for(int i=0; i<msgList.size(); i++) {
 			EgovMap map = (EgovMap)msgList.get(i);
 			model.addAttribute((String)map.get("msgId"), map.get("msgNm"));
 		}
 		vo.setList(userVO.getCorpNos());
+		vo.setLang(userVO.getLang());
 		List<?> resultList = analysisService.selectAnalysis2List(vo);
 	    ModelAndView mav = new ModelAndView("jsonView");
 		mav.addObject("resultList", resultList);
@@ -145,9 +149,10 @@ public class AnalysisController {
 	public ModelAndView selectAnalysis3List(@ModelAttribute("searchVO") SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
-		vo.setLang(userVO.getLang());
-		vo.setSrch2("analysis");
-		List<?> msgList = CmmnService.selectMsgList(vo);
+		SearchVO svo = new SearchVO();
+		svo.setLang(userVO.getLang());
+		svo.setSrch2("analysis");
+		List<?> msgList = CmmnService.selectMsgList(svo);
 		for(int i=0; i<msgList.size(); i++) {
 			EgovMap map = (EgovMap)msgList.get(i);
 			model.addAttribute((String)map.get("msgId"), map.get("msgNm"));

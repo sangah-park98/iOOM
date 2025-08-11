@@ -74,6 +74,7 @@ public class itemController {
 	    HttpSession httpSession = request.getSession(true);
 	    UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
 		vo.setList(userVO.getCorpNos());
+		vo.setLang(userVO.getLang());
 	    List<?> resultList = null;
 	    
 	    if(vo.getExType().equals("01")) {

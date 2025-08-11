@@ -18,10 +18,9 @@
 		    a.hs,
 		    a.lawCd,
 		    a.currency,
-			CASE
-				WHEN MAX(GREATEST(hsCnt, currencyCnt, unitCnt)) = c.itemCnt THEN '점검 완료'
-				WHEN MAX(currencyCnt) > 1 OR MAX(hsCnt) > 1 OR MAX(unitCnt) > 1 THEN '점검 필요' 
-			ELSE '양호' END AS itemStatus, 
+			CASE WHEN MAX(GREATEST(hsCnt, currencyCnt, unitCnt)) = c.itemCnt THEN '점검 완료' 
+			WHEN MAX(currencyCnt) > 1 OR MAX(hsCnt) > 1 OR MAX(unitCnt) > 1 THEN '점검 필요' 
+			ELSE '양호' END AS itemStatus,
 			firstLisDay, 
 			lastLisDay,
 			MAX(c.memo) AS memo

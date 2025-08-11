@@ -4,28 +4,28 @@
 
 	<select id="selectImportdeadLineList" parameterType="searchVO" resultType="egovMap">
 		SELECT
-		COUNT(*) OVER() as CNT,
-		blNo,
-		rptNo,
-		nab_firm,
-		levForm,
-		date1,
-		date2,
-		FTA,
-		date3,
-		rptDay,
-		lisDay,
-		date4,
-		date5,
-		date6,
-		date7,
-		date8,
-		plantCd,
-		po,
-		reporter,
-		cargMtNo,
-		tgPlnMark,
-		tgPlnCot
+			COUNT(*) OVER() as CNT,
+			blNo,
+			rptNo,
+			nab_firm,
+			levForm,
+			date1,
+			date2,
+			FTA,
+			date3,
+			rptDay,
+			lisDay,
+			date4,
+			date5,
+			date6,
+			date7,
+			date8,
+			plantCd,
+			po,
+			reporter,
+			cargMtNo,
+			tgPlnMark,
+			tgPlnCot
 		FROM (	
 		SELECT
 			blno AS blNo,
@@ -36,14 +36,22 @@
 				'-',
 				SUBSTRING(a.rpt_no, 8)
 			) AS rptNo,
-			a.nab_firm,
-			CASE
-				WHEN a.lev_form = '43' THEN CONCAT('월별 납부 (', a.lev_form, ')')
-				WHEN a.lev_form = '11' THEN CONCAT('사전 납부 (', a.lev_form, ')')
-				WHEN a.lev_form = '13' THEN CONCAT('사후 납부 (', a.lev_form, ')')
-				WHEN a.lev_form = '14' THEN CONCAT('사후 납부 (', a.lev_form, ')')
-				ELSE CONCAT('(', a.lev_form, ')')
+			<!-- a.nab_firm, -->
+			IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.nab_firm = b.msg_id), a.nab_firm) AS nab_firm,
+			CASE 
+			    WHEN a.lev_form IN ('11', '13', '14', '43') THEN 
+			        CONCAT(
+			            IFNULL((
+			                SELECT 
+			                    CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END
+			                FROM msg_info b
+			                WHERE b.msg_id = a.lev_form
+			            ), ''),
+			            ' (', a.lev_form, ')'
+			        )
+			    ELSE CONCAT('(', a.lev_form, ')')
 			END AS levForm,
+ 
 			CASE 		
 			    WHEN a.lev_form = '43' AND DAY(LAST_DAY(STR_TO_DATE(lis_day, '%Y%m%d'))) - CAST(SUBSTRING(lis_day, 7, 2) AS UNSIGNED) > 14 
 			    THEN IFNULL(LAST_DAY(CAST(CONCAT(SUBSTRING(a.lis_day, 1, 4), '-', SUBSTRING(a.lis_day, 5, 2), '-01') AS DATE)), '-')
@@ -76,8 +84,23 @@
 			SUBSTRING_INDEX(SUBSTRING_INDEX(a.user_memo, '\n', 2), '\n', -1)
 			ELSE '' END AS po,
 			
-			IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
-			CONCAT(a.Mrn,a.Msn,a.Hsn) AS cargMtNo, A.Tg_Pln_Mark AS tgPlnMark, A.Tg_Pln_Cot AS tgPlnCot 
+			IFNULL((
+		    	  SELECT 
+		      		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = I.cmmn_nm
+		  		),(
+		    	  SELECT 
+			 		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = '타관세법인'
+		  		  )
+			) AS reporter,
+			   
+			CONCAT(a.Mrn,a.Msn,a.Hsn) AS cargMtNo, 
+			A.Tg_Pln_Mark AS tgPlnMark, 
+			<!-- A.Tg_Pln_Cot AS tgPlnCot  -->
+			IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.Tg_Pln_Cot = b.msg_id), Tg_Pln_Cot) AS tgPlnCot
 			FROM cusdec929a1 a 
 			LEFT OUTER JOIN ( SELECT SNA1, Rpt_No, COUNT(*) FTACNT FROM cusdec929b1 bb WHERE bb.ori_st_mark1 IN (SELECT cmmn_cd FROM cmmn_cd WHERE GRP_CD = 'FTANATION') AND bb.gs_rate != 0 AND bb.gs_divi NOT LIKE 'F%' GROUP BY SNA1, Rpt_No ) b ON a.SN = b.SNA1 AND a.Rpt_No = b.Rpt_No 
 			LEFT OUTER JOIN import_pay c ON a.rpt_no = c.rpt_no
@@ -128,18 +151,18 @@
 	</select>
 	
 	<select id="selectExportdeadLineList" parameterType="searchVO" resultType="egovMap">
-				SELECT
-				COUNT(*) OVER() as CNT,
-				rptNo,
-				exp_firm,
-				mg_code,
-				nation,
-				rptDay,
-				explisDay,
-				shipDay,
-				jukDay,
-				reporter
-				FROM (
+		SELECT
+			COUNT(*) OVER() as CNT,
+			rptNo,
+			exp_firm,
+			mg_code,
+			nation,
+			rptDay,
+			explisDay,
+			shipDay,
+			jukDay,
+			reporter
+		FROM (
 				SELECT 	
                    CONCAT(
 				        SUBSTRING(A.rpt_no, 1, 5), '-', 
@@ -147,13 +170,25 @@
 				        SUBSTRING(A.rpt_no, 8)
 				    ) AS rptNo, -- '신고번호'                   
                   B.mg_code, -- 송품장번호
-                  A.exp_firm,
+                  <!-- A.exp_firm, -->
+                  IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.exp_firm = b.msg_id), a.exp_firm) AS exp_firm,
                    ta_st_isonm AS nation,  -- 목적국
                   IFNULL(DATE_FORMAT(a.rpt_day, '%Y-%m-%d'), '-') AS rptDay, -- '신고일자' 
                   IFNULL(DATE_FORMAT(exp_lis_day, '%Y-%m-%d'), '-') AS explisDay, -- '수리일자' 
                   IFNULL(DATE_FORMAT(ship_day, '%Y-%m-%d'), '-') AS shipDay, -- '선적일자' 
                   IFNULL(DATE_FORMAT(Juk_Day, '%Y-%m-%d'), '-') AS jukDay, -- '선적일자기한' 
-                  IFNULL(I.cmmn_nm,'타관세법인') AS reporter
+                  IFNULL((
+			    	  SELECT 
+			      		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+			    	  FROM msg_info b 
+			    	  WHERE b.msg_id = I.cmmn_nm
+			  		),(
+			    	  SELECT 
+				 		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+			    	  FROM msg_info b 
+			    	  WHERE b.msg_id = '타관세법인'
+			  		  )
+				  ) AS reporter
              FROM cusdec830a1 A 
 				 LEFT OUTER JOIN 
 				  (SELECT

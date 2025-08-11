@@ -4,9 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import egovframework.pf.cmmn.service.SearchVO;
-import egovframework.pf.cmmn.service.UserSessionVO;
-import egovframework.pf.exp.service.SaveExpFileVO;
-
 
 public interface pfDocumentService {
 
@@ -31,5 +28,15 @@ public interface pfDocumentService {
 	List<?> selectDocuExpModalUpdateList(SearchVO vo) throws Exception;
 
 	void deleteDocuFile(SearchVO vo) throws Exception;
+
+	int selectMthTaxBillCnt(String rptNo) throws Exception;
+
+	Map<String, Object> selectMthTaxBill(String rptNo) throws Exception;
+
+	List<Map<String, Object>> selectMthTaxBillSub(String rptNo) throws Exception;
+
+	int selectIndivTaxBillCnt(String rptNo) throws Exception;
+
+	List<?> selectVatType(String rptNo) throws Exception;
 
 }

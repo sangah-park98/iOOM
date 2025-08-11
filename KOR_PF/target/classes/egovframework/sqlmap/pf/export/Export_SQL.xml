@@ -862,21 +862,42 @@
 		FROM (
 			SELECT
 			a.sn,
-		    a.rece,
-		    a.rece_result,
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.rece = b.msg_id), rece) AS rece,
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.rece_result = b.msg_id), a.rece_result) AS rece_result,
 		    CONCAT(SUBSTRING(a.rpt_no, 1, 5), '-', SUBSTRING(a.rpt_no, 6, 2), '-', SUBSTRING(a.rpt_no, 8, 7)) AS rpt_no,
-		    a.exp_firm,
+		    <!-- a.exp_firm, -->
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.exp_firm = b.msg_id), a.exp_firm) AS exp_firm,
 		    a.buy_firm,
 		    a.Ta_St_iso,
-		    IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
+		    IFNULL((
+		    	  SELECT 
+		      		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = I.cmmn_nm
+		  		),(
+		    	  SELECT 
+			 		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = '타관세법인'
+		  		  )
+			   ) AS reporter,
 		    CASE WHEN a.Rpt_Day != '' THEN DATE_FORMAT(a.Rpt_Day, '%Y-%m-%d') ELSE '' END AS rpt_Day,
 		    CASE WHEN a.Exp_Lis_Day != '' THEN DATE_FORMAT(a.Exp_Lis_Day, '%Y-%m-%d') ELSE '' END AS Exp_Lis_Day,
 		    CASE WHEN a.Juk_Day != '' THEN DATE_FORMAT(a.Juk_Day, '%Y-%m-%d') ELSE '' END AS Juk_Day,
 		    case when a.ship_day IS NULL then '-' 
 		    	 when a.ship_day = '' then '-'
 			ELSE DATE_FORMAT(a.ship_day, '%Y-%m-%d') end as ship_day,
-		    CONCAT(a.Exc_Divi, '-', a.Exc_DiviNm) AS Exc_Cot,
-		    a.Con_MetNm,
+			
+		    CONCAT(a.Exc_Divi, '-',
+		    	IFNULL((
+		    		SELECT 
+		    			CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END 
+		    		FROM msg_info b 
+		    		WHERE a.Exc_DiviNm = b.msg_id), 
+		    	a.Exc_DiviNm)
+		    ) AS Exc_Cot,
+		    
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.Con_MetNm = b.msg_id), Con_MetNm) AS Con_MetNm,
 		    FORMAT(a.amt, 2) AS amt,
 		    CONCAT(a.Tot_Pack_Cnt, ' (', a.tot_pack_ut, ')') AS tot_pack_cnt,
 		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt,
@@ -956,21 +977,41 @@
         	
         	SELECT
 			a.sn,
-		    a.rece,
-		    a.rece_result,
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.rece = b.msg_id), rece) AS rece,
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.rece_result = b.msg_id), a.rece_result) AS rece_result,
 		    CONCAT(SUBSTRING(a.rpt_no, 1, 5), '-', SUBSTRING(a.rpt_no, 6, 2), '-', SUBSTRING(a.rpt_no, 8, 7)) AS rpt_no,
 		    a.exp_firm,
 		    a.buy_firm,
 		    a.Ta_St_iso,
-		    IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
+		    IFNULL((
+		    	  SELECT 
+		      		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = I.cmmn_nm
+		  		),(
+		    	  SELECT 
+			 		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = '타관세법인'
+		  		  )
+			) AS reporter,
 		    CASE WHEN a.Rpt_Day != '' THEN DATE_FORMAT(a.Rpt_Day, '%Y-%m-%d') ELSE '' END AS rpt_Day,
 		    CASE WHEN a.Exp_Lis_Day != '' THEN DATE_FORMAT(a.Exp_Lis_Day, '%Y-%m-%d') ELSE '' END AS Exp_Lis_Day,
 		    CASE WHEN a.Juk_Day != '' THEN DATE_FORMAT(a.Juk_Day, '%Y-%m-%d') ELSE '' END AS Juk_Day,
 		    case when a.ship_day IS NULL then '-' 
 		    	 when a.ship_day = '' then '-'
 			ELSE DATE_FORMAT(a.ship_day, '%Y-%m-%d') end as ship_day,
-		    CONCAT(a.Exc_Divi, '-', a.Exc_DiviNm) AS Exc_Cot,
-		    a.Con_MetNm,
+			
+		    CONCAT(a.Exc_Divi, '-',
+		    	IFNULL((
+		    		SELECT 
+		    			CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END 
+		    		FROM msg_info b 
+		    		WHERE a.Exc_DiviNm = b.msg_id), 
+		    	a.Exc_DiviNm)
+		    ) AS Exc_Cot,
+		    
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.Con_MetNm = b.msg_id), Con_MetNm) AS Con_MetNm,
 		    FORMAT(a.amt, 2) AS amt,
 		    CONCAT(a.Tot_Pack_Cnt, ' (', a.tot_pack_ut, ')') AS tot_pack_cnt,
 		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt,
@@ -1058,21 +1099,41 @@
         	
         	SELECT
 			a.sn,
-		    a.rece,
-		    a.rece_result,
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.rece = b.msg_id), rece) AS rece,
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.rece_result = b.msg_id), a.rece_result) AS rece_result,
 		    CONCAT(SUBSTRING(a.rpt_no, 1, 5), '-', SUBSTRING(a.rpt_no, 6, 2), '-', SUBSTRING(a.rpt_no, 8, 7)) AS rpt_no,
 		    a.exp_firm,
 		    a.buy_firm,
 		    a.Ta_St_iso,
-		    IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
+		    IFNULL((
+		    	  SELECT 
+		      		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = I.cmmn_nm
+		  		),(
+		    	  SELECT 
+			 		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = '타관세법인'
+		  		  )
+			) AS reporter,
 		    CASE WHEN a.Rpt_Day != '' THEN DATE_FORMAT(a.Rpt_Day, '%Y-%m-%d') ELSE '' END AS rpt_Day,
 		    CASE WHEN a.Exp_Lis_Day != '' THEN DATE_FORMAT(a.Exp_Lis_Day, '%Y-%m-%d') ELSE '' END AS Exp_Lis_Day,
 		    CASE WHEN a.Juk_Day != '' THEN DATE_FORMAT(a.Juk_Day, '%Y-%m-%d') ELSE '' END AS Juk_Day,
 		    case when a.ship_day IS NULL then '-' 
 		    	 when a.ship_day = '' then '-'
 			ELSE DATE_FORMAT(a.ship_day, '%Y-%m-%d') end as ship_day,
-		    CONCAT(a.Exc_Divi, '-', a.Exc_DiviNm) AS Exc_Cot,
-		    a.Con_MetNm,
+		    
+		    CONCAT(a.Exc_Divi, '-',
+		    	IFNULL((
+		    		SELECT 
+		    			CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END 
+		    		FROM msg_info b 
+		    		WHERE a.Exc_DiviNm = b.msg_id), 
+		    	a.Exc_DiviNm)
+		    ) AS Exc_Cot,
+		    
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.Con_MetNm = b.msg_id), Con_MetNm) AS Con_MetNm,
 		    FORMAT(a.amt, 2) AS amt,
 		    CONCAT(a.Tot_Pack_Cnt, ' (', a.tot_pack_ut, ')') AS tot_pack_cnt,
 		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt,
@@ -1159,21 +1220,41 @@
         	
         	SELECT
 			a.sn,
-		    a.rece,
-		    a.rece_result,
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.rece = b.msg_id), rece) AS rece,
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.rece_result = b.msg_id), a.rece_result) AS rece_result,
 		    CONCAT(SUBSTRING(a.rpt_no, 1, 5), '-', SUBSTRING(a.rpt_no, 6, 2), '-', SUBSTRING(a.rpt_no, 8, 7)) AS rpt_no,
 		    a.exp_firm,
 		    a.buy_firm,
 		    a.Ta_St_iso,
-		    IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
+		    IFNULL((
+		    	  SELECT 
+		      		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = I.cmmn_nm
+		  		),(
+		    	  SELECT 
+			 		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = '타관세법인'
+		  		  )
+			) AS reporter,
 		    CASE WHEN a.Rpt_Day != '' THEN DATE_FORMAT(a.Rpt_Day, '%Y-%m-%d') ELSE '' END AS rpt_Day,
 		    CASE WHEN a.Exp_Lis_Day != '' THEN DATE_FORMAT(a.Exp_Lis_Day, '%Y-%m-%d') ELSE '' END AS Exp_Lis_Day,
 		    CASE WHEN a.Juk_Day != '' THEN DATE_FORMAT(a.Juk_Day, '%Y-%m-%d') ELSE '' END AS Juk_Day,
 		    case when a.ship_day IS NULL then '-' 
 		    	 when a.ship_day = '' then '-'
 			ELSE DATE_FORMAT(a.ship_day, '%Y-%m-%d') end as ship_day,
-		    CONCAT(a.Exc_Divi, '-', a.Exc_DiviNm) AS Exc_Cot,
-		    a.Con_MetNm,
+			
+		    CONCAT(a.Exc_Divi, '-',
+		    	IFNULL((
+		    		SELECT 
+		    			CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END 
+		    		FROM msg_info b 
+		    		WHERE a.Exc_DiviNm = b.msg_id), 
+		    	a.Exc_DiviNm)
+		    ) AS Exc_Cot,
+		    
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.Con_MetNm = b.msg_id), Con_MetNm) AS Con_MetNm,
 		    FORMAT(a.amt, 2) AS amt,
 		    CONCAT(a.Tot_Pack_Cnt, ' (', a.tot_pack_ut, ')') AS tot_pack_cnt,
 		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt,
@@ -1259,21 +1340,41 @@
         	
         	SELECT
 			a.sn,
-		    a.rece,
-		    a.rece_result,
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.rece = b.msg_id), rece) AS rece,
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.rece_result = b.msg_id), a.rece_result) AS rece_result,
 		    CONCAT(SUBSTRING(a.rpt_no, 1, 5), '-', SUBSTRING(a.rpt_no, 6, 2), '-', SUBSTRING(a.rpt_no, 8, 7)) AS rpt_no,
 		    a.exp_firm,
 		    a.buy_firm,
 		    a.Ta_St_iso,
-		    IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
+		    IFNULL((
+		    	  SELECT 
+		      		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = I.cmmn_nm
+		  		),(
+		    	  SELECT 
+			 		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = '타관세법인'
+		  		  )
+			) AS reporter,
 		    CASE WHEN a.Rpt_Day != '' THEN DATE_FORMAT(a.Rpt_Day, '%Y-%m-%d') ELSE '' END AS rpt_Day,
 		    CASE WHEN a.Exp_Lis_Day != '' THEN DATE_FORMAT(a.Exp_Lis_Day, '%Y-%m-%d') ELSE '' END AS Exp_Lis_Day,
 		    CASE WHEN a.Juk_Day != '' THEN DATE_FORMAT(a.Juk_Day, '%Y-%m-%d') ELSE '' END AS Juk_Day,
 		    case when a.ship_day IS NULL then '-' 
 		    	 when a.ship_day = '' then '-'
 			ELSE DATE_FORMAT(a.ship_day, '%Y-%m-%d') end as ship_day,
-		    CONCAT(a.Exc_Divi, '-', a.Exc_DiviNm) AS Exc_Cot,
-		    a.Con_MetNm,
+			
+		    CONCAT(a.Exc_Divi, '-',
+		    	IFNULL((
+		    		SELECT 
+		    			CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END 
+		    		FROM msg_info b 
+		    		WHERE a.Exc_DiviNm = b.msg_id), 
+		    	a.Exc_DiviNm)
+		    ) AS Exc_Cot,
+		    
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.Con_MetNm = b.msg_id), Con_MetNm) AS Con_MetNm,
 		    FORMAT(a.amt, 2) AS amt,
 		    CONCAT(a.Tot_Pack_Cnt, ' (', a.tot_pack_ut, ')') AS tot_pack_cnt,
 		    CONCAT(a.Tot_Wt, ' (', a.ut, ')') AS tot_wt,
@@ -1360,13 +1461,24 @@
         	
         	SELECT
 			a.TE1_001 AS sn,
-		    a.TE1_098 AS rece,
-		    a.TE1_036 AS rece_result,
+			IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.TE1_098 = b.msg_id), a.TE1_098) AS rece,
+		    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.TE1_036 = b.msg_id), a.TE1_036) AS rece_result,
 		    CONCAT(SUBSTRING(a.TE1_032, 1, 5), '-', SUBSTRING(a.TE1_032, 6, 2), '-', SUBSTRING(a.TE1_032, 8, 7)) AS rpt_no,
 		    a.TE1_122 AS exp_firm,
 		    a.TE1_024 AS buy_firm,
 		    a.TE1_040 AS Ta_St_iso,
-		    IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
+		    IFNULL((
+		    	  SELECT 
+		      		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = I.cmmn_nm
+		  		),(
+		    	  SELECT 
+			 		CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  FROM msg_info b 
+		    	  WHERE b.msg_id = '타관세법인'
+		  		  )
+			) AS reporter,
 		    CASE WHEN a.TE1_034 != '' THEN DATE_FORMAT(a.TE1_034, '%Y-%m-%d') ELSE '' END AS rpt_Day,
 		    CASE WHEN a.TE1_095 != '' THEN DATE_FORMAT(a.TE1_095, '%Y-%m-%d') ELSE '' END AS Exp_Lis_Day,
 		    CASE WHEN a.TE1_117 != '' THEN DATE_FORMAT(a.TE1_117, '%Y-%m-%d') ELSE '' END AS Juk_Day,
@@ -1450,13 +1562,24 @@
         	
         	SELECT
 				a.TE1_001 AS sn,
-			    a.TE1_098 AS rece,
-			    a.TE1_036 AS rece_result,
+			    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.TE1_098 = b.msg_id), a.TE1_098) AS rece,
+			    IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.TE1_036 = b.msg_id), a.TE1_036) AS rece_result,
 			    CONCAT(SUBSTRING(a.TE1_032, 1, 5), '-', SUBSTRING(a.TE1_032, 6, 2), '-', SUBSTRING(a.TE1_032, 8, 7)) AS rpt_no,
 			    a.TE1_122 AS exp_firm,
 			    a.TE1_024 AS buy_firm,
 			    a.TE1_040 AS Ta_St_iso,
-			    IFNULL(I.cmmn_nm,'타관세법인') AS reporter,
+			    IFNULL((
+		    	  	SELECT 
+		      			CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  	FROM msg_info b 
+		    	  	WHERE b.msg_id = I.cmmn_nm
+		  		),(
+		    	  	SELECT 
+			 			CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END
+		    	  	FROM msg_info b 
+		    	  	WHERE b.msg_id = '타관세법인'
+		  		  )
+			   	) AS reporter,
 			    CASE WHEN a.TE1_034 != '' THEN DATE_FORMAT(a.TE1_034, '%Y-%m-%d') ELSE '' END AS rpt_Day,
 			    CASE WHEN a.TE1_095 != '' THEN DATE_FORMAT(a.TE1_095, '%Y-%m-%d') ELSE '' END AS Exp_Lis_Day,
 			    CASE WHEN a.TE1_117 != '' THEN DATE_FORMAT(a.TE1_117, '%Y-%m-%d') ELSE '' END AS Juk_Day,
@@ -1962,15 +2085,17 @@
 		    SELECT
 		    	A.sn AS sn,
 		    	B.exp_sdno AS exp_sdno,
-		        A.rece AS rece,
-		        A.exp_name AS expName,
+		        IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.rece = b.msg_id), a.rece) AS rece,
+		        <!-- A.exp_name AS expName, -->
+		        IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE a.exp_name = b.msg_id), a.exp_name) AS expName,
 		        C.invoice AS invoice,
 		        CONCAT(SUBSTRING(A.exp_rpt_no, 1, 5), '-', SUBSTRING(A.exp_rpt_no, 6, 2), '-', SUBSTRING(A.exp_rpt_no, 8)) AS expRptNo,
 		        A.modi_seq AS modiSeq,
 		        (CASE WHEN A.rpt_day IS NULL OR A.rpt_day = '' THEN '' ELSE DATE_FORMAT(STR_TO_DATE(A.rpt_day, '%Y%m%d'), '%Y-%m-%d') END) AS rptDay,
 		        (CASE WHEN A.dpt_day IS NULL OR A.dpt_day = '' THEN '' ELSE DATE_FORMAT(STR_TO_DATE(A.dpt_day, '%Y%m%d'), '%Y-%m-%d') END) AS dptDay, 
 		        A.modi_cot1 AS modiCot1,
-		        E.Cont AS customs, 
+		        <!-- E.Cont AS customs,  -->
+		        IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE e.cont = b.msg_id), e.cont) AS customs,
 		        (CASE WHEN A.lis_day IS NULL OR A.lis_day = '' THEN '' ELSE DATE_FORMAT(STR_TO_DATE(A.lis_day, '%Y%m%d'), '%Y-%m-%d') END) AS lisDay,
 		        B.plant AS plant,
 		        B.so AS so
@@ -2064,10 +2189,10 @@
 	
 	<select id="selectExpDtlUpdViewList" parameterType="searchVO" resultType="egovMap">
 		SELECT 
-			exp_rpt_no,
+			CONCAT(SUBSTRING(exp_rpt_no, 1, 5), '-', SUBSTRING(exp_rpt_no, 6, 2), '-', SUBSTRING(exp_rpt_no, 8)) AS exp_rpt_no,
 			ran_no,
 			size_no,
-			item_nm,
+			IFNULL((SELECT CASE WHEN #{lang} = 'en' THEN msg_nm_en ELSE msg_nm_kr END FROM msg_info b WHERE item_nm = b.msg_id), item_nm) AS item_nm,
 			modiFront1,
 			modiAfter1,
 			pre_no,

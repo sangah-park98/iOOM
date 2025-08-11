@@ -465,24 +465,27 @@ function fn_itemViewTableCol(){
 	var itemCodeChkRenderer = function(instance, td, row, col, _, value) {
 	    Handsontable.dom.empty(td);
 	    td.style.whiteSpace = "nowrap";
-	    if (value === '양호') {
-	        td.style.backgroundColor = '#E8F0EC';
-	        td.style.textAlign = 'center';
-	        td.innerHTML = value;
-	    } else if (value === '점검 완료') {
-	    	td.innerHTML = '점검 완료';
-	        td.style.backgroundColor = '#CCE5FF';
-	        td.style.textAlign = 'center';
-	    } else {
-	        td.style.backgroundColor = '#FFCCCC';
-	        td.style.textAlign = 'center';
+	    td.style.textAlign = 'center';
+	    
+	    var text = {
+	            good: lang === 'en' ? 'Okay' : '양호',
+	            needed: lang === 'en' ? 'Needed to check' : '점검 필요',
+	            completed: lang === 'en' ? 'Check Completed' : '점검 완료'
+	        };
 
-	        var buttonHtml = `
-	            <span onclick="fn_itemCodeChk(${row},${col})" style="cursor:pointer;">
-	              	점검 필요
-	            </span>
-	        `;
-	        td.innerHTML += buttonHtml;
+	        if (value === '양호' || value === 'Okay') {
+	            td.style.backgroundColor = '#E8F0EC';
+	            td.innerHTML = text.good;
+	        } else if (value === '점검 완료' || value === 'Check Completed') {
+	            td.style.backgroundColor = '#CCE5FF';
+	            td.innerHTML = text.completed;
+	        } else {
+	            td.style.backgroundColor = '#FFCCCC';
+	            td.innerHTML = `
+	                <span onclick="fn_itemCodeChk(${row},${col})" style="cursor:pointer;">
+	                    ${text.needed}
+	                </span>
+	            `;
 	    } 
 	};
 
@@ -1320,7 +1323,7 @@ function fn_handsonGridItemPriceOption(col, header, hidden){
 			columns : hidden
 		},
 		stretchH : 'all',
-		width : '50%',
+		width : '100%',
 		autoWrapRow : true,
 		height : 85,
 		border : 1,

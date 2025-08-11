@@ -99,7 +99,7 @@
 		<band height="441" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<staticText>
-				<reportElement x="440" y="27" width="106" height="20" uuid="67310c0b-f9e7-4d04-a78d-68a33fbbb215">
+				<reportElement x="412" y="47" width="106" height="20" uuid="67310c0b-f9e7-4d04-a78d-68a33fbbb215">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -1003,7 +1003,7 @@ price]]></text>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font fontName="바탕" size="16" isBold="true"/>
+					<font fontName="바탕" size="16" isBold="false"/>
 				</textElement>
 				<text><![CDATA[INVOICE]]></text>
 			</staticText>

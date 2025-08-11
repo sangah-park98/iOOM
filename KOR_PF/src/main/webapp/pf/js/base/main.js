@@ -558,6 +558,10 @@ function fn_openInovice(){
 		tabs.tabs("option", "active", id2Index2("#tabs", tab_id));
 	// 아닐경우
 	} else {
+		var tabWidthClass = " w-44 ";
+		if (selectLang === "en") {
+		    tabWidthClass = " w-65 ";
+		}
 
 		$("#myTab").find("a").prop("class","nav-link tab-button inline-flex" + tabWidthClass +" bg-gray-200 border-gray-300 rounded-t-lg border-t border-l border-r items-center justify-center p-2 t-lg hover:text-gray-600 hover:border-primary-800 group gap-2 ui-tabs-anchor");
 		// 탭 라벨 선언
@@ -1013,7 +1017,10 @@ $(".nav-link").removeClass("active");
 		//$("#myTab").tabs("option", "active", id2Index2("#tabs", tab_id));
 		// 아닐경우
 	} else {
-		
+		var tabWidthClass = " w-44 ";
+		if (lang === "en") {
+		    tabWidthClass = " w-65 ";
+		}
 		$("#myTab").find("a").prop("class","nav-link tab-button inline-flex"+ tabWidthClass +"bg-gray-200 border-gray-300 rounded-t-lg border-t border-l border-r items-center justify-center p-2 t-lg hover:text-gray-600 hover:border-primary-800 group gap-2 ui-tabs-anchor");
 		// 탭 라벨 선언
 		var label = "공지사항";
@@ -1098,7 +1105,10 @@ function go_news(){
 		tabs.tabs("option", "active", id2Index2("#tabs", tab_id));
 			// 아닐경우
 	} else {
-		
+		var tabWidthClass = " w-44 ";
+		if (lang === "en") {
+		    tabWidthClass = " w-65 ";
+		}
 		$("#myTab").find("a").prop("class","nav-link tab-button inline-flex"+ tabWidthClass +"bg-gray-200 border-gray-300 rounded-t-lg border-t border-l border-r items-center justify-center p-2 t-lg hover:text-gray-600 hover:border-primary-800 group gap-2 ui-tabs-anchor");
 		// 탭 라벨 선언
 		var label = "관세뉴스";

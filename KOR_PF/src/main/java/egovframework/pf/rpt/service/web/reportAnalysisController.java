@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.poi.util.SystemOutLogger;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -80,12 +81,23 @@ public class reportAnalysisController {
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
 		vo.setCorpNo(userVO.getCorpNo());
-		
+		 if (!userVO.getCorpNo().equals("00000000000")) {
+		        vo.setList(userVO.getCorpNos());
+		    }
+		 if (!userVO.getCorpNo().equals("00000000000")) {
+		        vo.setList3(userVO.getCmpnyCds());
+		    }
+		 vo.setLang(userVO.getLang());
+		 
+		System.out.println("이름"+userVO.getCmpnyCds());
 		String startDate = null;
 		String endDate = null;
 		int year = 0;
 		int month = 0;
-	    
+		int lastYear = 0;
+		String fomateEndDate = null;
+		String fomateStartDate = null;
+		
 		DateTimeFormatter formatter;
 		LocalDate today = LocalDate.now();
 		String format = null;
@@ -97,6 +109,8 @@ public class reportAnalysisController {
 			String[] parts = srch8.split("-");
 			 year = Integer.parseInt(parts[0]);
 			 month = Integer.parseInt(parts[1]);
+			 lastYear = year - 1; // 전년도 구하기
+			 System.out.println("전년도: " + lastYear);
 			 System.out.println("parts"+parts);
 			 System.out.println("year"+year);
 			 System.out.println("month"+month);
@@ -112,12 +126,30 @@ public class reportAnalysisController {
 			
 			//lastDate
 			LocalDate lastDayOfMonth = LocalDate.of(year, month, 1).withDayOfMonth(LocalDate.of(year, month, 1).lengthOfMonth());
+			
+			// 오늘 날짜 와 비교
+			if (lastDayOfMonth.isAfter(today)) {
+			    lastDayOfMonth = today;
+			}
+			
 			endDate = lastDayOfMonth.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+			
+			
+			DateTimeFormatter dotFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+
+			// ✅ startDate 문자열을 LocalDate로 변환 후 다시 포맷
+			LocalDate startLocalDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
+			fomateStartDate = startLocalDate.format(dotFormatter);
+
+			// ✅ endDate 문자열을 LocalDate로 변환 후 다시 포맷
+			LocalDate endLocalDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
+			 fomateEndDate = endLocalDate.format(dotFormatter);
 			
 			vo.setSrch1(startDate);
 			vo.setSrch2(endDate);
 			vo.setSrch3(minYear);
 			vo.setSrch4(curYear);
+			
 		}
 		 // 수입통관현황
 	    List<?> results01 = reportAnalysisService.selectImportStatus(vo);
@@ -153,9 +185,13 @@ public class reportAnalysisController {
 	    List<?> results13 = reportAnalysisService.selectImpCus(vo);
 	    // 세관별 신고건수 및 금액(수출)
 	    List<?> results14 = reportAnalysisService.selectExpCus(vo);
-	    
-	    System.out.println("results11"+results11);
-	    
+	    // FTA 관세 절감효과
+	    List<?> results15 = reportAnalysisService.selectFtaSavingList(vo);
+	    // FTA 적용으로 SAVING추가가능한 금액 
+	    List<?> results16 = reportAnalysisService.selectFtaSavingAddList(vo);
+	    // 전담 관세사
+	    List<?> results17 = reportAnalysisService.selectCmpnyManagerList(vo);
+	    System.out.println("results16"+results16);
 	    Map<String, Object> response = new HashMap<>();
 		    response.put("reportData1", results01);
 		    response.put("reportData2", results02);
@@ -171,12 +207,20 @@ public class reportAnalysisController {
 		    response.put("reportData12", results12);
 		    response.put("reportData13", results13);
 		    response.put("reportData14", results14);
+		    response.put("reportData15", results15);
+		    response.put("reportData16", results16);
+		    response.put("reportData17", results17);
 		    response.put("avgRate", avgRate);
 		    response.put("topAvgRate", topAvgRate);
 		    response.put("rptDate1", year);
 		    response.put("rptDate2", month);
+		    response.put("rptDate3", lastYear);
+		    response.put("fomateEndDate", fomateEndDate);
+		    response.put("fomateStartDate", fomateStartDate);
 		    response.put("cmpnyInfo", userVO.getCmpnyCd());
+		    response.put("cmpnyList", userVO.getCmpnyCds());
 		    response.put("today", format);
+			
 
 		    return response; // JSON 응답 반환
 	}

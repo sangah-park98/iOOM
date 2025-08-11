@@ -349,7 +349,7 @@ public class MemberServiceImpl extends EgovAbstractServiceImpl implements Member
 			        if(email.isEmpty() || email == null) {
 			        	EmailUtill.sendEmail(member.getMEMBER_NAME(),
 							   member.getMEMBER_ID(),
-							   "ioom@kordsystems.com",
+							   "ioom@customsservice.co.kr",
 							   "JOIN2",
 							   null,
 							   "kr");
@@ -390,7 +390,7 @@ public class MemberServiceImpl extends EgovAbstractServiceImpl implements Member
 			            if (email == null || email.isEmpty()) {
 			                EmailUtill.sendEmail(member.getMEMBER_NAME(),
 			                                     member.getMEMBER_ID(),
-			                                     "ioom@kordsystems.com",
+			                                     "ioom@customsservice.co.kr",
 			                                     "JOIN2",
 			                                     null,
 			                                     "kr");

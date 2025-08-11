@@ -32,8 +32,8 @@ $(document).ready(function() {
 
 	let nowYear = new Date().getFullYear();
 	let nowMonth = new Date().getMonth() + 1;
-	const objYMList = [];
-	const yearMonthList = [];
+	var objYMList = [];
+	var yearMonthList = [];
 	
 	for (let i = nowYear; i >= 2020; i--) {
 		for (let j = 12; j >= 1; j--) {
@@ -45,8 +45,8 @@ $(document).ready(function() {
 		}
 	}
 	
-	const currentDate = `${nowYear}-${nowMonth <= 9 ? "0" + nowMonth : nowMonth}`;
-	const yearMonthOptions = fn_makeSelect(objYMList, currentDate);
+	var currentDate = `${nowYear}-${nowMonth <= 9 ? "0" + nowMonth : nowMonth}`;
+	var yearMonthOptions = fn_makeSelect(objYMList, currentDate);
 	document.getElementById("dashbordDate").innerHTML = yearMonthOptions;
 
 
@@ -60,13 +60,13 @@ $(document).ready(function() {
 
 function fn_makeSelect(objList, curVal) {
     let result = "";
-    const optionHtml = "<option value='{key}' {selected}>{val}</option>";
+    var optionHtml = "<option value='{key}' {selected}>{val}</option>";
     for (let i = 0; i < objList.length; i++) {
-        const obj = objList[i];
+        var obj = objList[i];
         for (let x in obj) {
             let key = obj[x]; // 'i'
             let selected = key === curVal ? "selected" : "";
-            const curObj = { key: key, val: key, selected: selected };
+            var curObj = { key: key, val: key, selected: selected };
             result += fn_makeObj(curObj, optionHtml);
         }
     }
@@ -83,7 +83,7 @@ function fn_makeObj(obj, template) {
 
 function fn_dashSrch(){
 	
-	const activeElement = document.querySelector("#chartType li.active");
+	var activeElement = document.querySelector("#chartType li.active");
 	
 	// 값 선언
 	let activeValue = null;
@@ -103,13 +103,13 @@ function fn_dashSrch(){
 
 function fn_rptType(type){
 	if (type=="01"){
-		const tabType1 = document.querySelector('.status-tab-exp');
-		const tabType2 = document.querySelector('.status-tab-imp');
+		var tabType1 = document.querySelector('.status-tab-exp');
+		var tabType2 = document.querySelector('.status-tab-imp');
 		tabType1.classList.add("active");
 	    tabType2.classList.remove("active");
 	} else {
-		const tabType1 = document.querySelector('.status-tab-exp');
-		const tabType2 = document.querySelector('.status-tab-imp');
+		var tabType1 = document.querySelector('.status-tab-exp');
+		var tabType2 = document.querySelector('.status-tab-imp');
 	    tabType1.classList.remove("active");
 	    tabType2.classList.add("active");
 	}
@@ -592,8 +592,8 @@ function fillDashNoticeModalContent(resultList) {
 
 
 $(document).on('click', '#dashDownload', function(){
-	const htmlContent = event.target.innerHTML.trim();
-	const fileOrgNm = htmlContent.split(' 첨부파일 : ')[1];
+	var htmlContent = event.target.innerHTML.trim();
+	var fileOrgNm = htmlContent.split(' 첨부파일 : ')[1];
     $("#dashFileDown").val(fileOrgNm);
     document.dashFileDownForm.action = "/cmmn/dashFileDown.do";
     document.dashFileDownForm.submit();
@@ -698,8 +698,8 @@ function filldashNewsModalContent(resultList) {
 
 //첨부파일
 $(document).on('click', '.dash-file-name', function(event) {
-    const htmlContent = event.target.innerHTML.trim();
-    const fileName = htmlContent.replace(/&nbsp;/g, '').trim();
+    var htmlContent = event.target.innerHTML.trim();
+    var fileName = htmlContent.replace(/&nbsp;/g, '').trim();
     $("#noticeFileDown").val(fileName);
     document.dashNewsFileDownForm.action = "/cmmn/noticesFileDown.do";
     document.dashNewsFileDownForm.submit();
@@ -708,10 +708,10 @@ $(document).on('click', '.dash-file-name', function(event) {
 // 대시보드 내 관세뉴스 
 $(document).on('click', '.news-file-name', function (event) {
     event.preventDefault();
-    const htmlContent = event.target.innerHTML.trim();
-    const fileName = htmlContent.replace(/&nbsp;/g, '').trim();
+    var htmlContent = event.target.innerHTML.trim();
+    var fileName = htmlContent.replace(/&nbsp;/g, '').trim();
     $("#mainNewsFileDown").val(fileName);
-    const form = document.mainNewsFileDown;
+    var form = document.mainNewsFileDown;
     form.action = "/cmmn/mainNewsFileDown.do";
     form.submit();
 });
@@ -889,10 +889,63 @@ function dashExcelDownload(){
 	
 }
 
-//
+function fn_loadingReport() {
+	
+	//업로드 Modal Action
+	const modalReport = document.querySelector('.modal-popup-report')
+	const modalRepor = document.querySelector('.modal-report')
+	modalReport.classList.remove('hidden')
+	modalReport.classList.add('flex')
+	modalRepor.classList.remove('hidden')
+	modalRepor.classList.add('block')
+
+}
+
+
+function fn_CloseAnalysis() {
+	const modalReport = document.querySelector('.modal-popup-report')
+	//const contactModal = document.querySelector('.contact-modal')
+	const modalRepo = document.querySelector('.modal-report')
+	modalReport.classList.remove('flex')
+	modalReport.classList.add('hidden')
+	modalRepo.classList.remove('block')
+	modalRepo.classList.add('hidden')
+	popupState = false
+}
+
+
+modalCloseReport = document.querySelector('.modal-close-report')
+modalCloseReport.addEventListener('click', () => {
+ const modalReport = document.querySelector('.modal-popup-report')
+ //const contactModal = document.querySelector('.contact-modal')
+ const modalRepo = document.querySelector('.modal-report')
+ modalReport.classList.remove('flex')
+ modalReport.classList.add('hidden')
+ modalRepo.classList.remove('block')
+ modalRepo.classList.add('hidden')
+ popupState = false
+})
+
 document.getElementById("reportAnalysis").addEventListener("click", function(event) {
     event.preventDefault(); // 기본 동작 방지
-    fn_loading(true);
+    //fn_loading(true);
+    
+$('.table-container').css('display', 'block');
+		var cmpnyNameStr = cmpnyName;
+		
+		if (Array.isArray(cmpnyName)) {
+		    cmpnyNameStr = cmpnyName.join(', ');
+		} else if (typeof cmpnyName === 'string') {
+		    cmpnyNameStr = cmpnyName.replace(/[\[\]]/g, '').trim();
+		}
+		
+		$("#reportInfo").html('');
+		var newRow = "";
+		newRow =  "<tr><td>"+ $("#dashbordDate").val()+"_"+cmpnyNameStr +"</td><td id='analySts1'><img class='loadingReport' src='/pf/css/images/loading-table-unscreen.gif' /></td></tr>" ;
+		$("#reportInfo").append(newRow);	
+		
+		fn_loadingReport();
+    
     // FTA기준일
     var url = "/rpt/reportAnalysisPdf.do"; // 서버 측 매핑과 일치하는 URL로 설정
     // 데이터 구성
@@ -925,7 +978,7 @@ document.getElementById("reportAnalysis").addEventListener("click", function(eve
 
 
 function exportRptPdf(data){
-
+	let globalIndex = 1; // 전체 소제목 번호
 	let canvas = "";
 	let rightCanvas = "";
 	
@@ -936,10 +989,18 @@ function exportRptPdf(data){
 	let lastYPage5 = 0;
 	let lastYPage6 = 0;
 	let lastYPage7 = 0;
-	let lastYPage8 = 0;
+	let lastYPage8 = 100;
 	let lastYPage9 = 0;
 	let lastYPage10 = 0;
 	let lastYPage11 = 0;
+	let lastYPage12 = 0;
+	
+	let pdf7canvas , pdf8canvas;
+	let pdf7ctx , pdf8ctx;
+	/*여기*/
+	let noDataMsg = "";
+	let chartPage3, chartY3,chartPage4, chartY4,chartPage2, chartY2,page1, safeParse,chartPage5 ,chartPage1,chartY1,chartY5 ,chartPage6, chartY6, chartPage7, chartY7;
+	
 	
 	
 	if (!window.jsPDF) window.jsPDF = window.jspdf.jsPDF;
@@ -959,41 +1020,153 @@ function exportRptPdf(data){
         img.src = '/pf/images/green_report2.jpg'; 
         var logoImg = new Image();
         logoImg.src = '/pf/images/report_4.png';
+        var QRImg = new Image();
+        QRImg.src = '/pf/images/IOOMQR.png';
+        var ioomLogoImg = new Image();
+        ioomLogoImg.src = '/pf/images/ioomLogo.png';
 
         img.onload = function () {
+        	
+        	 safeParse = v => {
+       		  var num = parseFloat(String(v).replace('%',''));
+       		  return isNaN(num) ? 0 : num;
+       		};
+        	
+       		
+       		var chartDataLabels2 = {
+        		    id: 'chartDataLabels',
+        		    afterDraw(chart, args, options) {
+        		        var ctx2 = chart.ctx; // 올바른 컨텍스트 사용
+        		        ctx2.textAlign = "center";
+        		        ctx2.textBaseline = "middle";
+        		        ctx2.fillStyle = '#000';
+        		        ctx2.font = "19px NanumSquareB";
+        		        ctx2.lineWidth = 2; // 선 굵기
+
+        		        let prevTextPositions2 = [];  // 텍스트 위치를 추적할 배열
+
+        		        chart.data.datasets.forEach((dataset, i) => {
+        		        	  chart.getDatasetMeta(i).data.forEach((datapoint, index) => {
+        		                  var value = dataset.data[index]; // 데이터 값
+        		                  var label = chart.data.labels[index]; // 해당 데이터의 라벨
+        		                  var formattedText = `${label} : ${value}%`; // 원하는 형식으로 라벨 만들기
+
+        		                  if (value <= 1) return; // 1% 이하 값은 표시 안 함
+
+        		                var { x, y } = datapoint.tooltipPosition(); // 데이터 좌표 가져오기
+        		                var radius2 = chart.outerRadius || (chart.chartArea.width / 2); // 원의 반지름
+        		                var angle2 = datapoint.startAngle !== undefined && datapoint.endAngle !== undefined
+        		                    ? (datapoint.startAngle + datapoint.endAngle) / 2
+        		                    : (index / dataset.data.length) * Math.PI * 2; // 각도 계산
+
+        		                // 원 바깥으로 시작하는 좌표 (조정)
+        		                var xOuter2 = x + (radius2 * 0) * Math.cos(angle2);  // 0.6으로 값 변경하여 원의 바깥쪽으로
+        		                var yOuter2 = y + (radius2 * 0) * Math.sin(angle2);  // 0.6으로 값 변경하여 원의 바깥쪽으로
+
+        		                // 꺾인 지점 이후, 선 길이를 더 길게 설정
+        		                var xMiddle2 = xOuter2 + (Math.cos(angle2) * 10);  // 30으로 값 늘려 선 길이를 더 길게
+        		                var yMiddle2 = yOuter2 + (Math.sin(angle2) * 10);  // 30으로 값 늘려 선 길이를 더 길게
+
+        		                // 최종 라벨 위치 (길이를 더 멀리 설정)
+        		                let xLine2 = xMiddle2 + (Math.cos(angle2) > 0 ? 10 : -10); // 텍스트 최종 위치도 더 멀리
+        		                let yLine2 = yMiddle2;
+
+        		                // 텍스트 간의 최소 거리 (원하는 값으로 조정)
+        		                var minDistance2 = 30;  // 최소 간격 설정
+
+        		                // 텍스트가 겹치지 않도록 간격 조정
+        		                prevTextPositions2.forEach((prevPos) => {
+        		                    let attempts = 0;
+        		                    while (Math.abs(yLine2 - prevPos.y) < minDistance2 && attempts < 5) { 
+        		                        yLine2 += (Math.sin(angle2) > 0 ? 10 : -10); // 위아래로 조정
+        		                        attempts++;
+        		                    }
+        		                });
+        		                // 텍스트 위치를 이전 위치 배열에 추가
+        		                prevTextPositions2.push({ x: xLine2, y: yLine2 });
+
+        		                // 캔버스에 꺾은선 그리기
+        		                ctx2.beginPath();
+        		                ctx2.moveTo(xOuter2, yOuter2); // 원 테두리에서 시작
+        		                ctx2.lineTo(xMiddle2, yMiddle2); // 꺾인 지점
+        		                ctx2.lineTo(xLine2, yLine2); // 최종 위치
+        		                ctx2.strokeStyle = 'rgba(129,212,250,0.9)';
+        		                ctx2.stroke();
+
+        		                // 텍스트 정렬
+        		                ctx2.textAlign = Math.cos(angle2) > 0 ? "left" : "right";
+
+        		                // 텍스트 표시
+        		                ctx2.fillText(formattedText, xLine2, yLine2);
+        		            });
+        		        });
+        		    }
+        		};
+       		
         	doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'normal');
             console.log("Background image loaded successfully");
             doc.addImage(img, 'JPEG', 0, 0, 210, 297);
             doc.addImage(logoImg, 'PNG', 160, 10, 40, 15);
+            doc.addImage(QRImg, 'PNG', 180, 260, 16, 16);
+            doc.addImage(ioomLogoImg, 'PNG', 181, 278, 14,5);
+           // doc.addImage(ioomLogoImg, 'PNG', 181, 253, 14,5);
 
             doc.setFontSize(22);
             //doc.setTextColor(56, 60, 98); 파란
             doc.setTextColor(35, 69, 56);
             //doc.text(105, 110, String(data.rptDate1) + '년 ' + String(data.rptDate2) + '월', { align: "center" }); 파란
-            doc.text(105, 130, String(data.rptDate1) + '년 ' + String(data.rptDate2) + '월', { align: "center" });
+            doc.text(105, 110, String(data.rptDate1) + '년 ' + String(data.rptDate2) + '월', { align: "center" });
             doc.setFontSize(22);
             //doc.text(105, 120, '통관리포트', { align: "center" }); 파란
-            doc.text(105, 140, '통관리포트', { align: "center" }); 
+            doc.text(105, 120, '통관리포트', { align: "center" }); 
             doc.setFontSize(30);
             //doc.text(105, 135, String(data.cmpnyInfo), { align: "center" }); 파란
-            doc.text(105, 155, String(data.cmpnyInfo), { align: "center" }); 
+            doc.text(105, 160, String(data.cmpnyInfo), { align: "center" }); 
             doc.setFontSize(13);
+            
+            let coverY = 210;
+
+            var label = '● 분석 대상 회사 : ';
+            var companyText = data.cmpnyList.join(', '); // 회사 리스트 텍스트로 합치기
+
+            var splitText = doc.splitTextToSize(companyText, 90); // 여기에 너비를 주어 텍스트 줄바꿈 생성
+            var labelWidth = doc.getTextWidth(label); // 라벨 너비 계산
+
             if (data.cmpnyList && data.cmpnyList.length > 1) {
-            	  const companyText = data.cmpnyList.join(', ');
-            	  doc.text(105, 250, '분석 대상 회사 : ' + companyText, { align: "center" });
+	            splitText.forEach((line, index) => {
+	                if (index === 0) {
+	                    doc.text(60, coverY, label + line, { align: "left" });
+	                } else {
+	                    doc.text(60 + labelWidth, coverY, line, { align: "left" }); // X 좌표 오른쪽으로 들여쓰기
+	                }
+	                coverY += 8;
+	            });
             }
-            doc.text(105, 260, '분석 대상 기간 : '+String(data.fomateStartDate)+" ~ "+String(data.fomateEndDate), { align: "center" }); 
-            doc.text(105, 270, '리포트 생성 일자 : '+String(data.today), { align: "center" }); 
-            doc.text(105, 280, '신한관세법인', { align: "center" }); //파란
+            coverY += 5;
+            doc.text(60, coverY, '● 분석 대상 기간 : ' + String(data.fomateStartDate) + " ~ " + String(data.fomateEndDate), { align: "left" });
+            coverY += 10;
+
+            doc.text(60, coverY, '● 리포트 생성 일자 : ' + String(data.today), { align: "left" });
+            
            
+
+            doc.setFontSize(13);
+            coverY += 25;
+            doc.text(105, 280, '신한관세법인', { align: "center" });
+            doc.setFontSize(9);
+            doc.text(150, 290, 'Copyright © iOOM. All rights reserved.');
+           
+            
+           
+            
             // 목차
             doc.addPage();
             
-            const pageHeight13 = doc.internal.pageSize.getHeight();
-            const boxMargin13 = 5; // 위아래 여백
+            var pageHeight13 = doc.internal.pageSize.getHeight();
+            var boxMargin13 = 5; // 위아래 여백
 
-            const boxY13 = boxMargin13;
-            const boxHeight13 = pageHeight13 - boxMargin13 * 2;
+            var boxY13 = boxMargin13;
+            var boxHeight13 = pageHeight13 - boxMargin13 * 2;
 
             
             doc.setLineWidth(1);  // 테두리 두께 설정 (기본값은 0.2)
@@ -1002,23 +1175,23 @@ function exportRptPdf(data){
 
 
            
-            const pageWidth = doc.internal.pageSize.getWidth();
+            var pageWidth = doc.internal.pageSize.getWidth();
             let currentY = 60;
 
             // === 제목 "Contents" 중앙 정렬 및 위아래 실선 ===
-            const title = "Contents";
+            var title = "Contents";
             doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'normal');
             doc.setFont('NanumSquareEB', 'normal');
             doc.setFontSize(22);
-            const titleWidth = doc.getTextWidth(title);
-            const centerX = pageWidth / 2;
+            var titleWidth = doc.getTextWidth(title);
+            var centerX = pageWidth / 2;
 
             // 위 선
             doc.setLineWidth(0.7);
-            doc.line(centerX - titleWidth / 2 - 15, currentY - 9, centerX + titleWidth / 2 + 15, currentY - 9);
+            doc.line(centerX - titleWidth / 2 - 25, currentY - 9, centerX + titleWidth / 2 + 25, currentY - 9);
 
             // 아래 선
-            doc.line(centerX - titleWidth / 2 - 15, currentY + 4, centerX + titleWidth / 2 + 15, currentY + 4);
+            doc.line(centerX - titleWidth / 2 - 25, currentY + 4, centerX + titleWidth / 2 + 25, currentY + 4);
 
             // 제목 출력
             doc.text(title, centerX, currentY, { align: 'center' });
@@ -1027,33 +1200,71 @@ function exportRptPdf(data){
             // === 목차 항목 설정 ===
             doc.setFontSize(12);
 
-            const contents = [
-              { number: '1', title: '수입통관현황' },
-              { number: '2', title: '수입통관 세액현황' },
-              { number: '3', title: '수입물품 과세현황' },
-              { number: '4', title: '수입물품 적용세율' },
-              { number: '5', title: 'FTA 사후적용금액' },
-              { number: '6', title: '주요 해외 거래처(수입)' },
-              { number: '7', title: '수출통관현황' },
-              { number: '8', title: '주요 해외 거래처(수출)' },
-              { number: '9', title: '수출입 정정 귀책자별 비율' },
-              { number: '10', title: '수출입 정형조건' },
-              { number: '11', title: '세관별 신고건수 및 금액' },
-            ];
+            var contents = [
+            	  {
+            	    section: '01',
+            	    title: '수 입',
+            	    items: ['수입통관현황','수입통관 세액현황', '수입물품 적용세율' ,'수입물품 과세현황',  'FTA 사후적용금액', 'FTA 관세 절감효과', '주요 해외 거래처'],
+            	  },
+            	  {
+            	    section: '02',
+            	    title: '수 출',
+            	    items: ['수출통관현황','주요 해외 거래처'],
+            	  },
+            	  {
+            	    section: '03',
+            	    title: '공 통',
+            	    items: ['수출입 정정 귀책자별 비율', '수출입 정형조건', '세관별 신고건수 및 금액'],
+            	  }
+            	];
 
-            // 각 항목 출력
-            contents.forEach(item => {
-              doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
-              doc.setFont('NanumSquareB', 'normal');
-              doc.text(item.number, 75, currentY);
+            	let indexY = 95;
+            	
+            	//doc.setFont('NanumSquareEB', 'normal');
 
-              doc.setFont('NanumSquareB', 'normal');
-              doc.text(item.title, 120, currentY, { align: 'center' });
+            	contents.forEach((section, idx) => {
+            		doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+                    doc.setFont('NanumSquareEB', 'bold');
+            		doc.setFontSize(21);
+                	doc.setTextColor(108, 179, 63); // 연두색 번호
+            	  // 큰 번호
+            	  var secNum = section.section;
+            	  var secNumX = 75;
+            	  doc.text(secNum, secNumX, indexY);
+            	  
+            	  // 세로줄 그리기 (secNumX에서 오른쪽으로 20 정도 떨어진 위치에서 세로선 그리기)
+              	 /* doc.setLineWidth(0.5);
+              	  doc.setDrawColor(108, 179, 63); // 연두색
+              	  doc.line(secNumX +5, indexY - 5, secNumX + 5, indexY + 30); // 세로줄 시작과 끝 위치 조정
+*/            	  
+            	  doc.setFontSize(15);
+              	  doc.setTextColor(108, 179, 63); // 연두색 번호
 
-              currentY += 15;
-            });
-            
-            
+            	  // 제목
+            	  doc.setTextColor(0, 0, 0); // 검정
+            	  //doc.setFont('NanumSquareB', 'normal');
+            	  doc.setFontSize(14);
+            	  doc.text(section.title, 90, indexY);
+
+            	  indexY += 8;
+
+            	  // 소항목
+            	  doc.setFontSize(12);
+            	  section.items.forEach((item) => {
+            	    doc.text(`${globalIndex}. ${item}`, 100, indexY);
+            	    indexY += 10;
+            	    globalIndex++; // 전역 번호 증가
+            	  });
+
+            	  indexY += 10; // 구간 간 여백
+            	});
+            	
+               
+                doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
+                doc.setFont('NanumSquareB', 'normal');
+                doc.setFontSize(8.5);
+               // doc.setTextColor(35, 69, 56);
+                doc.text(105, 285, '- 본 문서는 통관 이력을 기반으로 정리된 자료이며, IOOM 통관 분석 시스템을 통해 자동으로 생성된 보고서입니다. -', { align: "center" });
             // 🟢 새로운 페이지 추가
             doc.addPage();
 
@@ -1062,24 +1273,24 @@ function exportRptPdf(data){
             doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
             doc.setFont('NanumSquareB', 'normal');
             doc.setTextColor(71, 140, 114); 
-            doc.text(8, 15, "1.수입통관현황");
+            doc.text(8, 15, "1. 수입통관현황");
             
             // 제목 + 설명을 넣을 영역을 네모박스로 그리기
-            const boxMargin = 5;  // 테두리와의 여백
-            const boxWidth = 200;  // 박스의 너비
-            const boxHeight = 23;  // 박스의 높이 (설명 포함)
+            var boxMargin = 5;  // 테두리와의 여백
+            var boxWidth = 200;  // 박스의 너비
+            var boxHeight = 23;  // 박스의 높이 (설명 포함)
             
             doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
             doc.setDrawColor(35, 69,56); 
             doc.rect(5, 8, boxWidth, boxHeight, 'D'); 
             
             
-            const reportData1 = data.reportData1;  // data.reportData1이 제공된다고 가정
-
+            var reportData1 = data.reportData1;  // data.reportData1이 제공된다고 가정
+            	console.log("reportData1",reportData1);
 	            // 데이터 변환: 과세가격을 포매팅된 값과 원본 값으로 구분하여 저장
-	            const datas = reportData1.map(item => {
-	              const amountKrw = parseFloat(item.amountKrw) || 0;  // 원본 값
-	              const formattedAmountKrw = Intl.NumberFormat("ko-KR").format(amountKrw);  // 포매팅된 값
+	            var datas = reportData1.map(item => {
+	              var amountKrw = parseFloat(item.amountKrw) || 0;  // 원본 값
+	              var formattedAmountKrw = Intl.NumberFormat("ko-KR").format(amountKrw);  // 포매팅된 값
 	              
 	              return [
 	                item.lisDay,        // 수리일자
@@ -1095,61 +1306,55 @@ function exportRptPdf(data){
 	                item.txPrc3,        // 검사
 	              ];
 	            });
-		        // 🟢 열별 합계 계산
-	            const defaultColumnCount = 10;
-	            const defaultRow = Array(defaultColumnCount).fill("");
+		        
+	            // ▼ 1) ‘합계’·‘비율(%)’ 행 추출
+	            var totalRow    = reportData1.find(row => row.lisDay === "합계");
+	            var percentRow  = reportData1.find(row => row.lisDay === "비율(%)");
 
-	            // datas가 유효한 배열이고, 최소한 하나 이상의 행이 있다면 그대로 사용하고
-	            // 아니면 defaultRow를 넣어서 안전하게 처리
-	            const safeDatas = (Array.isArray(datas) && datas.length > 0)
-	              ? datas
-	              : [defaultRow];
+	            // 안전 처리: 두 행이 없으면 에러 방지
+	            if (!totalRow || !percentRow) {
+	              console.error("합계·비율 행이 없습니다.");
+	              return;
+	            }
 
-	            // 실제로 사용할 columnCount는 safeDatas에서 가져오면 됨
-	            const columnCount = safeDatas[0].length;
-		         const totals = Array(columnCount).fill(0);  // 0으로 채운 합계 배열
+	            // ▼ 2) 숫자 컬럼 → 천 단위 콤마
+	            var nf = new Intl.NumberFormat("ko-KR");
+	            var formatNum = v => (v === "" || v == null ? "" : nf.format(Number(v)));
 
-		         // 합계 계산 (첫 번째 열은 "합계" 문자열을 넣고, 나머지는 숫자 합산)
-		         totals[0] = "합계"; 
-		         for (let i = 1; i < columnCount; i++) {
-		        	  // 과세가격(3번째 열)을 제외한 값들만 합산
-		        	  if (i === 2) {
-		        	    totals[i] = datas.reduce((sum, row) => sum + (parseFloat(row[i].replace(/,/g, "")) || 0), 0); // 원본 값으로 합계 계산
-		        	  } else {
-		        	    totals[i] = datas.reduce((sum, row) => sum + (parseFloat(row[i]) || 0), 0);
-		        	  }
-		        	}
+	            // 합계 행 포맷
+	            var formattedTotals = {
+	              cnt:         formatNum(totalRow.cnt),
+	              amountKrw:   formatNum(totalRow.amountKrw),
+	              txType1:     formatNum(totalRow.txType1),
+	              txType2:     formatNum(totalRow.txType2),
+	              txType3:     formatNum(totalRow.txType3),
+	              txType4:     formatNum(totalRow.txType4),
+	              txType5:     formatNum(totalRow.txType5),
+	              txPrc1:      formatNum(totalRow.txPrc1),
+	              txPrc2:      formatNum(totalRow.txPrc2),
+	              txPrc3:      formatNum(totalRow.txPrc3)
+	            };
 
-		         // 🟢 비율 계산 (각 그룹을 100%로 설정)
-		         const percentages = Array(columnCount).fill("-");
-		         percentages[0] = "비율(%)"; // 첫 번째 열은 "비율(%)"
+	            // ▼ 3) 비율 행(문자열 “97.45%” 형식이므로 그대로 사용)
+	            var percentages = {
+	              txType1: percentRow.txType1,  // "97.45%"
+	              txType2: percentRow.txType2,
+	              txType3: percentRow.txType3,
+	              txType4: percentRow.txType4,
+	              txType5: percentRow.txType5,
+	              txPrc1:  percentRow.txPrc1,
+	              txPrc2:  percentRow.txPrc2,
+	              txPrc3:  percentRow.txPrc3
+	            };
 
-		         // 🟢 수입 거래형태 비율 계산
-		         const tradeTotal = totals.slice(3, 8).reduce((sum, value) => sum + value, 0); // 3~7번째 열 합계
-		         for (let i = 3; i < 8; i++) {
-		             percentages[i] = tradeTotal > 0 ? ((totals[i] / tradeTotal) * 100).toFixed(1) + "%" : "-";
-		         }
-
-		         // 🟢 수입신고 처리현황 비율 계산
-		         const processTotal = totals.slice(8, 11).reduce((sum, value) => sum + value, 0); // 8~10번째 열 합계
-		         for (let i = 8; i < 11; i++) {
-		             percentages[i] = processTotal > 0 ? ((totals[i] / processTotal) * 100).toFixed(1) + "%" : "-";
-		         }
-
-		         
-		     	 // 🟢 숫자 데이터 포맷팅 (천 단위 콤마 추가)
-		         const formattedTotals = totals.map((value, index) =>
-		         typeof value === "number" ? Intl.NumberFormat("ko-KR").format(value) : value
-		      	);
-		         
-		     	// 🟢 건수, P/L, 제출서류, 검사 가져오기
-		         const countTotal = formattedTotals[1]; // 통관건수
-		         const plTotal = formattedTotals[8]; // P/L 합계
-		         const plPercentage = percentages[8]; // P/L 비율
-		         const submissionTotal = formattedTotals[9]; // 제출서류 합계
-		         const submissionPercentage = percentages[9]; // 제출서류 비율
-		         const inspectionTotal = formattedTotals[10]; // 검사 합계
-		         const inspectionPercentage = percentages[10]; // 검사 비율
+	            // ▼ 4) 필요한 값 꺼내기
+	            var countTotal            = formattedTotals.cnt || 0;      // 통관건수
+	            var plTotal               = formattedTotals.txPrc1 || 0;   // P/L 합계
+	            var plPercentage          = percentages.txPrc1 || 0;       // P/L 비율
+	            var submissionTotal       = formattedTotals.txPrc2 || 0;   // 제출서류 합계
+	            var submissionPercentage  = percentages.txPrc2 || 0;       // 제출서류 비율
+	            var inspectionTotal       = formattedTotals.txPrc3 || 0;   // 검사 합계
+	            var inspectionPercentage  = percentages.txPrc3 || 0;       // 검사 비율
 		            
 		            
 		            // 🟢 설명 추가 (왼쪽 정렬 + 줄 나누기)
@@ -1157,9 +1362,9 @@ function exportRptPdf(data){
 		            doc.addFont('/pf/fonts/NanumSquareR.ttf', 'NanumSquareR', 'normal');
 		            doc.setFont('NanumSquareR', 'normal');
 		            doc.setTextColor(0, 0, 0);
-		            const description = [
-		            	`다음 자료는 ${data.rptDate2}월 한달 수입통관 자료이며 총 ${countTotal}건 수입신고를 진행하였습니다.`,
-		                `수입신고 처리현황은 P/L ${plTotal}건 (${plPercentage}), 제출 ${submissionTotal}건 (${submissionPercentage}), 검사 ${inspectionTotal}건 (${inspectionPercentage}) 입니다.`
+		            var description = [
+		            	`다음 자료는 ${data.rptDate2}월 한 달 수입통관 자료이며 총 ${countTotal}건 수입신고를 진행하였습니다.`,
+		                `수입신고 처리 현황은 P/L ${plTotal}건 (${plPercentage}), 서류 제출 ${submissionTotal}건 (${submissionPercentage}), 검사 ${inspectionTotal}건 (${inspectionPercentage}) 입니다.`
 		            ];
 		          
 		            let startY = 23; // description 높이 위치
@@ -1167,13 +1372,28 @@ function exportRptPdf(data){
 		            	  doc.text(8, startY, line); // 왼쪽 정렬 (x: 8, y: startY)
 		            	  startY += 5; // 각 줄 간격을 5로 설정하여 다음 줄로 내려감
 		        	});
-		         
-		      // 🟢 datas에 합계와 비율 행 추가
-		         datas.push(formattedTotals);
-		         datas.push(percentages);
+		            doc.setFontSize(12);
+		            /*doc.addFont('/pf/fonts/NanumSquareR.ttf', 'NanumSquareR', 'normal');
+		            doc.setFont('NanumSquareR', 'normal');*/
+		            doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+                    doc.setFont('NanumSquareEB', 'bold');
+		            //doc.setTextColor(71, 140, 114); 
+                    doc.setTextColor(108, 179, 63);
+                    doc.text(190, 15, "I.수입");
+		            
+		        if(reportData1.length === 2){
+		        	  noDataMsg = "* 조회기간 동안 수입 통관 현황 내역이 존재하지 않습니다.";
+	                   
+	                   doc.setFont('NanumSquareR', 'normal');
+	                   doc.setFontSize(10);
+	                   doc.setTextColor(64,64,64); // 회색 느낌
+	                   doc.text(noDataMsg, 10, 40);  // 위치 조정해서 출력
+		        }else{
+		        	
+		        
 		         
             	// 테이블 헤더
-		       const header = [
+		       var header = [
 		    	   	[ 
 		    		    { content: '수리일자', rowSpan: 2, border: [true, true, true, true] },  // 수리일자 셀에 테두리 추가
 		    		    { content: '건수', rowSpan: 2, border: [true, true, true, true] },
@@ -1182,11 +1402,11 @@ function exportRptPdf(data){
 		    		    { content: '수입신고 처리현황', colSpan: 3, border: [true, true, true, true] },  // 수입신고 처리현황 셀에 테두리 추가
 		    		  ],  // 첫 번째 행
 		    		  [
-		    		    { content: '일반수입', border: [true, true, true, true] },
-		    		    { content: '수리물품', border: [true, true, true, true] },
+		    		    { content: '일반형태 수입', border: [true, true, true, true] },
+		    		    { content: '기타수입 승인면제', border: [true, true, true, true] },
 		    		    { content: '견품 및 광고용품', border: [true, true, true, true] },
-		    		    { content: '기타 수입 승인면세', border: [true, true, true, true] },
-		    		    { content: '재수출조건', border: [true, true, true, true] },
+		    		    { content: '수출물품 대체용', border: [true, true, true, true] },
+		    		    { content: '기타', border: [true, true, true, true] },
 		    		    { content: 'P/L', border: [true, true, true, true] },
 		    		    { content: '제출서류', border: [true, true, true, true] },
 		    		    { content: '검사', border: [true, true, true, true] },
@@ -1236,26 +1456,21 @@ function exportRptPdf(data){
             	        10: { halign: 'center' , cellWidth: 17}, // 검사
             	  },
             	  didParseCell: function(data) {
-            		    // 🟢 합계 행 스타일 적용 (마지막에서 두 번째 행)
-            		    if (data.row.index === datas.length - 2) {
-            		      data.cell.styles.fillColor = [246, 243, 202]; // 배경
-          	              data.cell.styles.font = 'NanumSquareB'; // 굵은 폰트 적용
-          	              data.cell.styles.fontStyle = 'bold'; // 볼드 처리
-            		    }
-            		    // 🟢 비율 행 스타일 적용 (마지막 행)
-            		    if (data.row.index === datas.length - 1) {
-            		    	data.cell.styles.fillColor = [246, 243, 202]; // 배경
-            	            data.cell.styles.font = 'NanumSquareB'; // 굵은 폰트 적용
-            	            data.cell.styles.fontStyle = 'bold'; // 볼드 처리
-            		    }
+            		  var firstCellValue = data.row.raw[0]; // 첫 번째 컬럼 값 가져오기
+
+            		  if (firstCellValue === "합계" || firstCellValue === "비율(%)") {
+            		    data.cell.styles.fillColor = [246, 243, 202]; // 배경색
+            		    data.cell.styles.font = 'NanumSquareB';       // 폰트
+            		    data.cell.styles.fontStyle = 'bold';          // 굵게
+            		  }
             		  }
         		});
             	
             	// 1번째 테이블 y좌표 저장 
             	let lastY1 = doc.lastAutoTable.finalY;
-            	let page1 = doc.internal.getCurrentPageInfo().pageNumber;
+            	 page1 = doc.internal.getCurrentPageInfo().pageNumber;
             	let spaceLeft1 = doc.internal.pageSize.height - lastY1 - 10;
-            	let chartPage1, chartY1;
+            	chartPage1, chartY1;
             	
             	if (spaceLeft1 < 70) {
             		  doc.addPage(); // 그냥 뒤에 추가
@@ -1270,115 +1485,52 @@ function exportRptPdf(data){
             	Chart.register(ChartDataLabels);
             	
             	
-            	// 거래형태 
-            	// 데이터 변환 (NaN 방지)
-            	const safeParse = (value) => {
-            	    let num = parseFloat(value ? value.replace('%', '') : 0);
-            	    return isNaN(num) ? 0 : num;
-            	};
+            	var percentagesArr = [
+            		  percentRow.txType1,  
+            		  percentRow.txType2,  
+            		  percentRow.txType3,  
+            		  percentRow.txType4,
+            		  percentRow.txType5
+            		];
+            	
+            	
+            		// 왼쪽 차트 데이터 변환
+            		var leftChartData = percentagesArr.map(safeParse); 
+            	
+            	
 
-            	// 왼쪽 차트 데이터 변환
-            	const leftChartData = percentages.slice(3, 8).map(safeParse);
+            	
             	
             	// 왼쪽 차트 캔버스 생성
             	canvas = document.createElement('canvas');
-            	const ctx = canvas.getContext('2d');
+            	var ctx = canvas.getContext('2d');
             	canvas.width = 500;
             	canvas.height = 500;
 
-            	
-            	var chartDataLabels2 = {
-            		    id: 'chartDataLabels',
-            		    afterDraw(chart, args, options) {
-            		        const ctx2 = chart.ctx; // 올바른 컨텍스트 사용
-            		        ctx2.textAlign = "center";
-            		        ctx2.textBaseline = "middle";
-            		        ctx2.fillStyle = '#000';
-            		        ctx2.font = "21px NanumSquareB";
-            		        ctx2.lineWidth = 2; // 선 굵기
-
-            		        let prevTextPositions2 = [];  // 텍스트 위치를 추적할 배열
-
-            		        chart.data.datasets.forEach((dataset, i) => {
-            		        	  chart.getDatasetMeta(i).data.forEach((datapoint, index) => {
-            		                  const value = dataset.data[index]; // 데이터 값
-            		                  const label = chart.data.labels[index]; // 해당 데이터의 라벨
-            		                  const formattedText = `${label} : ${value}%`; // 원하는 형식으로 라벨 만들기
-
-            		                  if (value <= 1) return; // 1% 이하 값은 표시 안 함
-
-            		                const { x, y } = datapoint.tooltipPosition(); // 데이터 좌표 가져오기
-            		                const radius2 = chart.outerRadius || (chart.chartArea.width / 2); // 원의 반지름
-            		                const angle2 = datapoint.startAngle !== undefined && datapoint.endAngle !== undefined
-            		                    ? (datapoint.startAngle + datapoint.endAngle) / 2
-            		                    : (index / dataset.data.length) * Math.PI * 2; // 각도 계산
-
-            		                // 원 바깥으로 시작하는 좌표 (조정)
-            		                const xOuter2 = x + (radius2 * 0) * Math.cos(angle2);  // 0.6으로 값 변경하여 원의 바깥쪽으로
-            		                const yOuter2 = y + (radius2 * 0) * Math.sin(angle2);  // 0.6으로 값 변경하여 원의 바깥쪽으로
-
-            		                // 꺾인 지점 이후, 선 길이를 더 길게 설정
-            		                const xMiddle2 = xOuter2 + (Math.cos(angle2) * 10);  // 30으로 값 늘려 선 길이를 더 길게
-            		                const yMiddle2 = yOuter2 + (Math.sin(angle2) * 10);  // 30으로 값 늘려 선 길이를 더 길게
-
-            		                // 최종 라벨 위치 (길이를 더 멀리 설정)
-            		                let xLine2 = xMiddle2 + (Math.cos(angle2) > 0 ? 10 : -10); // 텍스트 최종 위치도 더 멀리
-            		                let yLine2 = yMiddle2;
-
-            		                // 텍스트 간의 최소 거리 (원하는 값으로 조정)
-            		                const minDistance2 = 30;  // 최소 간격 설정
-
-            		                // 텍스트가 겹치지 않도록 간격 조정
-            		                prevTextPositions2.forEach((prevPos) => {
-            		                    let attempts = 0;
-            		                    while (Math.abs(yLine2 - prevPos.y) < minDistance2 && attempts < 5) { 
-            		                        yLine2 += (Math.sin(angle2) > 0 ? 10 : -10); // 위아래로 조정
-            		                        attempts++;
-            		                    }
-            		                });
-            		                // 텍스트 위치를 이전 위치 배열에 추가
-            		                prevTextPositions2.push({ x: xLine2, y: yLine2 });
-
-            		                // 캔버스에 꺾은선 그리기
-            		                ctx2.beginPath();
-            		                ctx2.moveTo(xOuter2, yOuter2); // 원 테두리에서 시작
-            		                ctx2.lineTo(xMiddle2, yMiddle2); // 꺾인 지점
-            		                ctx2.lineTo(xLine2, yLine2); // 최종 위치
-            		                ctx2.strokeStyle = 'rgba(129,212,250,0.9)';
-            		                ctx2.stroke();
-
-            		                // 텍스트 정렬
-            		                ctx2.textAlign = Math.cos(angle2) > 0 ? "left" : "right";
-
-            		                // 텍스트 표시
-            		                ctx2.fillText(formattedText, xLine2, yLine2);
-            		            });
-            		        });
-            		    }
-            		};
-            	
+		       
             	
             	// 왼쪽 차트 생성
-            	const chart = new Chart(ctx, {
+            	var chart = new Chart(ctx, {
             		plugins : [chartDataLabels2],
             		type: 'pie',
             	    data: {
-            	        labels: ['일반수입', '수리물품', '견품,광고용품', '기타수입', '재수출'],
+            	        labels: ['일반형태 수입', '기타수입 승인면제', '견품 및 광고용품', '수출물품 대체용', '기타'],
             	        datasets: [{
             	            data: leftChartData,
-            	            backgroundColor: [  'rgb(113,162, 218)',
+            	            /* backgroundColor: [ 'rgb(113,162, 218)',
 				            	            	'rgb(48,123,202)', 
 				            	            	'rgb(166,196,232)',
 				            	            	'rgb(216,225,234)',
 				            	            	'rgb(40,101,168)']
 	            	        }]
-			            	/* backgroundColor: [  
+	            	        */
+			            	 backgroundColor: [  
 			            		'rgb(71,140,114)',
 			            		'rgb(49,97,79)', 
 			 	            	'rgb(84,166, 135)', 
 			 	            	'rgb(186,221,139)',
 			 	            	'rgb(231,244,218)']
-            	    		}]*///그린
+            	    		}]//그린
 		            	
             	    },
             	    options: {
@@ -1423,36 +1575,37 @@ function exportRptPdf(data){
             	
             	
             	// 오른쪽 차트 (수입신고 처리현황 비율)
-            	const rightChartData = [
-            	    parseFloat(percentages[8].replace('%', '')) || 0, 
-            	    parseFloat(percentages[9].replace('%', '')) || 0, 
-            	    parseFloat(percentages[10].replace('%', '')) || 0 
-            	];
             	
+            	var rightPercentagesArr = [
+          		  percentRow.txPrc1,  
+          		  percentRow.txPrc2,  
+          		  percentRow.txPrc3,  
+          		];
             	
+            	var rightChartData = rightPercentagesArr.map(safeParse); 
             	// 오른쪽 차트 캔버스 생성
             	rightCanvas = document.createElement('canvas');
-            	const rightCtx = rightCanvas.getContext('2d');
+            	var rightCtx = rightCanvas.getContext('2d');
             	rightCanvas.width = 500;
             	rightCanvas.height = 500;
 
             	// 오른쪽 차트 생성
-            	const rightChart = new Chart(rightCtx, {
+            	var rightChart = new Chart(rightCtx, {
             		plugins : [chartDataLabels2],
             		type: 'pie',
             	    data: {
             	        labels: ['P/L', '제출서류', '검사'],
             	        datasets: [{
             	            data: rightChartData,
-            	            backgroundColor: [  'rgb(48,123,202)', 				            	             
+            	            /*backgroundColor: [  'rgb(48,123,202)', 				            	             
 				            	            	'rgb(113,162, 218)', 
 				            	            	'rgb(166,196,232)']
-            	        }]
-            	            /*backgroundColor: [  
-            	            	'rgb(49,97,79)', 
+            	        }]*/
+            	            backgroundColor: [  
+            	            	'rgb(197, 224, 180)', 
 			 	            	'rgb(84,166, 135)', 
-			 	            	'rgb(186,221,139)']
-        	        		}]*/ //그린
+			 	            	'rgb(49,97,79)']
+        	        		}] //그린
             	    },
             	    options: {
             	        responsive: false,
@@ -1508,7 +1661,7 @@ function exportRptPdf(data){
             	        }
             	    }
             	});
-            	
+	        }	
             	// 🟢 새로운 페이지 추가
                 doc.addPage();
                 // 🟢 "수입통관 세액현황" 제목 추가
@@ -1517,31 +1670,35 @@ function exportRptPdf(data){
                 doc.setFont('NanumSquareB', 'normal');
                 //doc.setTextColor(62, 113, 175); //파란색
                 doc.setTextColor(71, 140, 114); 
-                doc.text(8, 15, "2.수입통관 세액현황");
+                doc.text(8, 15, "2. 수입통관 세액현황");
+	            doc.setFontSize(12);
+	            doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+                doc.setFont('NanumSquareEB', 'bold');
+                doc.setTextColor(108, 179, 63);
+                doc.text(190, 15, "I. 수입");
                 
                 // 제목 + 설명을 넣을 영역을 네모박스로 그리기
-                const boxMargin2 = 5;  // 테두리와의 여백
-                const boxWidth2 = 200;  // 박스의 너비
-                const boxHeight2 = 18;  // 박스의 높이 (설명 포함)
+                var boxMargin2 = 5;  // 테두리와의 여백
+                var boxWidth2 = 200;  // 박스의 너비
+                var boxHeight2 = 18;  // 박스의 높이 (설명 포함)
                 
                 doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
                 doc.setDrawColor(35, 69,56); 
                 doc.rect(5, 8, boxWidth2, boxHeight2, 'D'); 
 	            
-                const reportData2 = data.reportData2;
+                var reportData2 = data.reportData2;
                 console.log("reportData2",reportData2);
-                const datas2 = reportData2.map(item => {
-  	              const formattedCntImp = Intl.NumberFormat("ko-KR").format(item.cntImp);
-  	              const formattedTotGs = Intl.NumberFormat("ko-KR").format(item.totGs);
-  	              const formattedTotVat= Intl.NumberFormat("ko-KR").format(item.totVat);
-  	              const formattedTotTs = Intl.NumberFormat("ko-KR").format(item.totTs);  
-  	              const formattedTotGt = Intl.NumberFormat("ko-KR").format(item.totGt); 
-  	              const formattedTotHof = Intl.NumberFormat("ko-KR").format(item.totHof); 
-  	              const formattedTotKy = Intl.NumberFormat("ko-KR").format(item.totKy); 
-  	              const formattedTotNt = Intl.NumberFormat("ko-KR").format(item.totNt); 
-  	              const formattedTotDlyTax = Intl.NumberFormat("ko-KR").format(item.totDlyTax); 
-  	              const formattedTotAddTax = Intl.NumberFormat("ko-KR").format(item.totAddTax); 
-  	              const formattedTotTaxSum = Intl.NumberFormat("ko-KR").format(item.totTaxSum); 
+                var datas2 = reportData2.map(item => {
+  	              var formattedCntImp = Intl.NumberFormat("ko-KR").format(item.cntImp);
+  	              var formattedTotGs = Intl.NumberFormat("ko-KR").format(item.totGs);
+  	              var formattedTotVat= Intl.NumberFormat("ko-KR").format(item.totVat);
+  	              var formattedTotTs = Intl.NumberFormat("ko-KR").format(item.totTs);  
+  	              var formattedTotGt = Intl.NumberFormat("ko-KR").format(item.totGt); 
+  	              var formattedTotHof = Intl.NumberFormat("ko-KR").format(item.totHof); 
+  	              var formattedTotKy = Intl.NumberFormat("ko-KR").format(item.totKy); 
+  	              var formattedTotNt = Intl.NumberFormat("ko-KR").format(item.totNt); 
+  	              var formattedTotAddTax = Intl.NumberFormat("ko-KR").format(item.totAddTax); 
+  	              var formattedTotTaxSum = Intl.NumberFormat("ko-KR").format(item.totTaxSum); 
   	              
   	              return [
   	                item.lisDay,        		// 수리일자
@@ -1549,44 +1706,35 @@ function exportRptPdf(data){
   	                formattedTotGs, 			//관세
   	                formattedTotVat,      	 	// 부가세
   	                formattedTotTs,       		// 개소세
-  	               /* formattedTotGt,       		// 교통세
-  	                formattedTotHof,       	// 주세*/
-  	                formattedTotKy,       		// 교ㄴ육세
+  	                formattedTotKy,       		// 교육세
   	                formattedTotNt,        	// 농특세
-  	                formattedTotDlyTax,        	// 신고지연가산세
-  	                formattedTotAddTax,        // 미신고가산세
+  	                formattedTotAddTax,        // 가산세
   	                formattedTotTaxSum,        // 총세액
   	              ];
   	            });
                 
-                const defaultColumnCount2 = 9;
-	            const defaultRow2 = Array(defaultColumnCount2).fill("");
-
-	            // datas가 유효한 배열이고, 최소한 하나 이상의 행이 있다면 그대로 사용하고
-	            // 아니면 defaultRow를 넣어서 안전하게 처리
-	            const safeDatas2 = (Array.isArray(datas2) && datas2.length > 0)
-	              ? datas2
-	              : [defaultRow2];
-
-                // 🟢 열별 합계 계산
-                 const columnCount2 = safeDatas2[0].length;  // 열 개수
-		         const totals2 = Array(columnCount2).fill(0);  // 0으로 채운 합계 배열
-
-		         // 합계 계산 (첫 번째 열은 "합계" 문자열을 넣고, 나머지는 숫자 합산)
-		         totals2[0] = "합계"; 
-		         for (let i = 1; i < columnCount2; i++) {
-		        	    // 쉼표(,)를 제거한 후 숫자로 변환하여 합산
-		        	    totals2[i] = datas2.reduce((sum, row) => sum + (parseFloat(row[i].replace(/,/g, "")) || 0), 0);
-
-		        	    // 합계를 다시 한국어 숫자 포맷(ko-KR)으로 변환
-		        	    totals2[i] = Intl.NumberFormat("ko-KR").format(totals2[i]);
-		         }
+                var totalTaxRow = reportData2.find(row => row.lisDay === "합계");
+                
+                var formatTaxtals = {
+	                	cntImp:         formatNum(totalTaxRow.cntImp) || 0,
+	                	totGs:   		formatNum(totalTaxRow.totGs) || 0,
+	                	totVat:     	formatNum(totalTaxRow.totVat) || 0,
+	                	totTs:     		formatNum(totalTaxRow.totTs) || 0,
+	                	totGt:     		formatNum(totalTaxRow.totGt) || 0,
+	                	totHof:     	formatNum(totalTaxRow.totHof) || 0,
+	                	totKy:     		formatNum(totalTaxRow.totKy) || 0,
+	                	totNt:      	formatNum(totalTaxRow.totNt) || 0,
+	                	totAddTax:      formatNum(totalTaxRow.totAddTax) || 0,
+	                	totTaxSum:      formatNum(totalTaxRow.totTaxSum) || 0
+      	            };
+                
+                
 		         
 		         
 		         // 관세 부가세 세액합계 
-		         var gsTot = totals2[2]; //관세
-		         var vatTot = totals2[3]; //부과세
-		         var taxSumTot = totals2[9]; //총세액
+		         var gsTot = formatTaxtals.totGs; //관세
+		         var vatTot = formatTaxtals.totVat; //부과세
+		         var taxSumTot = formatTaxtals.totTaxSum; //총세액
 		         
   		        
                 // 🟢 설명 추가 (왼쪽 정렬 + 줄 나누기)
@@ -1594,8 +1742,8 @@ function exportRptPdf(data){
 	            doc.addFont('/pf/fonts/NanumSquareR.ttf', 'NanumSquareR', 'normal');
 	            doc.setFont('NanumSquareR', 'normal');
 	            doc.setTextColor(0, 0, 0);
-	            const description2 = [
-	            	` ${data.rptDate2}월 통관 관세는${gsTot}원, 부가세는 ${vatTot}원 이며 총세액합계는${taxSumTot}원입니다.`
+	            var description2 = [
+	            	` ${data.rptDate2}월  총 납부세액은 ${taxSumTot}원 이며, 통관 관세는 ${gsTot}원, 부가세는 ${vatTot}원입니다.`
 	            ];
 	          
 	             startY = 23; // description 높이 위치
@@ -1603,16 +1751,24 @@ function exportRptPdf(data){
 	            	  doc.text(8, startY, line); // 왼쪽 정렬 (x: 8, y: startY)
 	            	  startY += 5; // 각 줄 간격을 5로 설정하여 다음 줄로 내려감
 	        	});
+	            if(reportData2.length === 1 ){
+	            	 noDataMsg = "* 조회기간 동안 수입통관 세액현황이 존재하지 않습니다.";
+	                   
+	                   doc.setFont('NanumSquareR', 'normal');
+	                   doc.setFontSize(10);
+	                   doc.setTextColor(64,64,64); // 회색 느낌
+	                   doc.text(noDataMsg, 10, 40);  // 위치 조정해서 출력
+	            }else{
+	            	
+	            
 	        	// 테이블 헤더
 			      var header2 = [[
-			    	    '수리일자', '건수', '관세','부가세' ,'개소세', /*'교통세', '주세', */
-			    	    '교육세', '농특세', '신고지연가산세', '미신고가산세', '총세액'
+			    	    '수리일자', '건수', '관세','부가세' ,'개소세',
+			    	    '교육세', '농특세', '가산세', '총세액'
 			    	]];
 			        
-			   datas2.push(totals2);
-			        
 			     
-			   doc.setPage(chartPage1 === page1 ? page1 + 1 : chartPage1 + 1);
+			   //doc.setPage(chartPage1 === page1 ? page1 + 1 : chartPage1 + 1);
 			   // 🟢 테이블 스타일 적용
 	            	doc.autoTable({
 	            	  head: header2,
@@ -1649,14 +1805,11 @@ function exportRptPdf(data){
 	            	        1: { halign: 'center'}, // 건수
 	            	        2: { halign: 'right'}, // 관세
 	            	        3: { halign: 'right'}, // 부가세
-	            	        4: { halign: 'right'}, // 특소세
-	            	        5: { halign: 'right'}, // 교통세
-	            	        6: { halign: 'right'}, // 주세
-	            	        7: { halign: 'right'}, // 교육세
-	            	        8: { halign: 'right'}, // 농특세
-	            	        9: { halign: 'right'}, // 신고지연가산세
-	            	        10: { halign: 'right'}, // 미신고가산세
-	            	        11: { halign: 'right'}, // 총세액
+	            	        4: { halign: 'right'}, // 개소세
+	            	        5: { halign: 'right'}, // 교육세
+	            	        6: { halign: 'right'}, // 농특세
+	            	        7: { halign: 'right'}, // 가산세
+	            	        8: { halign: 'right'}, // 총세액
 	            	  },
 	            	  didParseCell: function (data) {
 	            	        // 🟡 마지막 행 (합계 행)만 배경색 변경
@@ -1671,7 +1824,7 @@ function exportRptPdf(data){
 	            	let lastY2 = doc.lastAutoTable.finalY;
 	            	let page2 = doc.internal.getCurrentPageInfo().pageNumber;
 	            	let spaceLeft2 = doc.internal.pageSize.height - lastY2 - 10;
-	            	let chartPage2, chartY2;
+	            	 chartPage2, chartY2;
 
 	            	if (spaceLeft2 < 85) {
 	            	  doc.addPage();
@@ -1682,19 +1835,22 @@ function exportRptPdf(data){
 	            	  chartY2 = lastY2 + 10;
 	            	}
 	            	
-	            	
-	            	const reportData3 = data.reportData3;
+	            }
+	            
+	          
+	           
+	            	var reportData3 = data.reportData3;
 	                console.log("reportData3",reportData3);
-	                
+	                if(reportData3.length > 0){
 	                // 첫 번째와 마지막 `lisDay`에서 년도만 추출
-	                const firstYear = reportData3[0].lisDay.substring(0, 4);  // 첫 번째 요소에서 '202401' -> '2024'
-	                const lastYear = reportData3[reportData3.length - 1].lisDay.substring(0, 4);  // 마지막 요소에서 '202503' -> '2025'
+	                var firstYear = reportData3[0].lisDay.substring(0, 4);  // 첫 번째 요소에서 '202401' -> '2024'
+	                var lastYear = reportData3[reportData3.length - 1].lisDay.substring(0, 4);  // 마지막 요소에서 '202503' -> '2025'
 	                
-	                const firstYearData = [];
-	                const lastYearData = [];
+	                var firstYearData = [];
+	                var lastYearData = [];
 
 	                reportData3.forEach(item => {
-	                  const year = item.lisDay.substring(0, 4);  // '202401' -> '2024', '202502' -> '2025'
+	                  var year = item.lisDay.substring(0, 4);  // '202401' -> '2024', '202502' -> '2025'
 	                  if (year === firstYear) {
 	                    // 전년도
 	                    firstYearData.push(item.cntImp);  // cntImp 값을 넣음
@@ -1705,40 +1861,59 @@ function exportRptPdf(data){
 	                });
 	                
 	                // 첫 번째와 두 번째 배열에서 가장 큰 값 추출
-	                const maxFirstYearData = Math.max(...firstYearData);
-	                const maxLastYearData = Math.max(...lastYearData);
+	                var maxFirstYearData = Math.max(...firstYearData);
+	                var maxLastYearData = Math.max(...lastYearData);
 
 	                // 두 배열에서 가장 큰 값 중 더 큰 값을 선택
-	                const maxValue = Math.max(maxFirstYearData, maxLastYearData) + 30;  // 가장 큰 값에 30을 더함
+	                var maxValue = Math.max(maxFirstYearData, maxLastYearData) + 20;  // 가장 큰 값에 30을 더함
 
 	                
+	                // rptDate2가 "4" 같은 문자열 또는 숫자라고 가정
+	                var startMonth = Number(data.rptDate2);   // 4
+
+	                // 1) 월 이름 고정 배열
+	                var monthLabels = ['1월','2월','3월','4월','5월','6월',
+	                                     '7월','8월','9월','10월','11월','12월'];
+
+	                // 2) 재배열: startMonth부터 끝까지 + 앞부분
+	                //index = startMonth-1  (배열은 0‑based)
+	                var idx = startMonth - 1;
+	                var orderedLabels = [
+	                  ...monthLabels.slice(idx),   // idx→11  : ex) 4월~12월
+	                  ...monthLabels.slice(0, idx) // 0→idx-1 : ex) 1월~3월
+	                ];
+	                
 	                // 차트 데이터 (전년도와 올해 데이터)
-	            	const barChartData = {
-	            	    labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-	            	    datasets: [
-	            	        {
-	            	            label: `${firstYear}년`, // 전년도
-	            	            backgroundColor: 'rgba(75, 192, 192, 0.2)', // 연도별 색상
-	            	            borderColor: 'rgba(75, 192, 192, 1)',
-	            	            borderWidth: 1,
-	            	            data: firstYearData // 전년도 데이터
-	            	        },
-	            	        {
-	            	            label: `${lastYear}년`, // 올해
-	            	            backgroundColor: 'rgba(255, 99, 132, 0.2)', // 연도별 색상
-	            	            borderColor: 'rgba(255, 99, 132, 1)',
-	            	            borderWidth: 1,
-	            	            data: lastYearData // 올해 데이터
-	            	        }
-	            	    ]
-	            	};
+	            	var barChartData = {
+	            	    //labels: orderedLabels,
+	            		labels: monthLabels,
+	            		datasets: [
+	            		    {  // ▒ 전년도 막대 ▒
+	            		      type: 'bar',
+	            		      label: `${firstYear}년`,
+	            		      data: firstYearData,
+	            		      backgroundColor: 'rgba(75,192,192,0.5)',
+	            		      borderColor: 'rgba(75,192,192,1)',
+	            		      borderWidth: 1
+	            		    },
+	            		    {  // ▒ 올해 막대 ▒
+	            		      type: 'bar',
+	            		      label: `${lastYear}년`,
+	            		      data: lastYearData,
+	            		      backgroundColor: 'rgba(255,99,132,0.5)',
+	            		      borderColor: 'rgba(255,99,132,1)',
+	            		      borderWidth: 1
+	            		    },
+	            		   
+	            		  ]
+	            		};
             	
 	                
 	                
 	                //전년 동월 대비 건수 비교 차트 
 	            	//  캔버스 생성
-		            const pdf2canvas = document.createElement('canvas');
-	            	const pdf2ctx = pdf2canvas.getContext('2d');
+		            var pdf2canvas = document.createElement('canvas');
+	            	var pdf2ctx = pdf2canvas.getContext('2d');
 	            	pdf2canvas.width = 450;
 	            	pdf2canvas.height = 210;
 	            	// 캔버스를 화면에 보이지 않도록 숨김 처리
@@ -1747,59 +1922,334 @@ function exportRptPdf(data){
 	            	document.body.appendChild(pdf2canvas);  // 캔버스를 DOM에 추가 (차트가 보이도록)
 	                
 	               
-            	const pdf2chart = new Chart(pdf2ctx, {
-            		  type: 'bar',
-            		  data: barChartData,
-            		  options: {
-            		    responsive: true,
-            		    scales: {
-            		    	x: {
-            	                ticks: {
-            	                    font: {
-            	                        size: 18, // x축 폰트 크기
-            	                        //weight: 'bold' // x축 폰트 두께
-            	                    }
-            	                }
-            	            },
-            	            y: {
-            	                ticks: {
-            	                    beginAtZero: true, // y축이 0부터 시작
-            	                    max: maxValue, // y축 최대값 설정
-            	                    font: {
-            	                        size: 18, // y축 폰트 크기
-            	                        //weight: 'bold' // y축 폰트 두께
-            	                    }
-            	                }
-            	            }
-            	        },
-            		    plugins: {
-            		    	legend: {
-            	                position: 'bottom',
-            	                fullWidth: true,
-            	                labels: {
-            	                    font: {
-            	                        size: 20  // 라벨 크기 동일
-            	                        ,weight: 'bold'
-            	                    },
-            	                    boxWidth: 20,  // 아이콘 크기 동일
-            	                    padding: 20
-            	                }
-            	            },
-            		      title: {
-          	                display: true,
-          	                text: '전년 동월 대비 건수 비교',
-          	                font: {
-          	                    size: 28,  // 제목 크기 동일
-          	                    weight: 'bold'},
-          	                padding: {
-          	                    bottom: 10
-          	                }
-          	              }
-            		    },
-            		  }
+	            	var pdf2chart = new Chart(pdf2ctx, {
+	            		  data: barChartData,
+	            		  options: {
+	            		    responsive: true,
+	            		    font: { size: 20 },        // 기본 폰트 크게
+	            		    scales: {
+	            		      x: { ticks: { font:{size:20} } },
+	            		      y: {
+	            		        beginAtZero:true,
+	            		        max:maxValue,
+	            		        ticks:{ font:{size:20} }
+	            		      },
+	            		    },
+	            		    plugins: {
+	            		      legend: {
+	            		        position:'bottom',
+	            		        labels:{ font:{size:18,weight:'bold'}, boxWidth:18, padding:18 }
+	            		      },
+	            		      title: {
+	            		        display:true,
+	            		        text:'전년 동월 대비 건수 비교',
+	            		        font:{size:28,weight:'bold'},
+	            		        padding:{bottom:15}
+	            		      },
+	            		      /* ── 숫자 라벨 ── */
+	            		      datalabels: {
+	            		        anchor:'end',
+	            		        align:'end',
+	            		        font:{size:16,weight:'bold'},
+	            		        formatter:(v,ctx)=>{
+	            		          // 꺾은선은 %로, 막대는 천단위 콤마
+	            		          return ctx.dataset.type==='line'
+	            		                 ? v.toFixed(1)+'%'
+	            		                 : v.toLocaleString() + '건';
+	            		        }
+	            		      }
+	            		    }
+	            		  },
+	            		  plugins: [ChartDataLabels]    // ① CDN 추가 후 등록
             		});
-            	
-            	// 🟢 4번째 페이지 추가
+	            }
+	            	// 🟢5번째 페이지 추가
+	                doc.addPage();
+	                
+	                doc.setFontSize(16);
+	                doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
+	                doc.setFont('NanumSquareB', 'normal');
+	                //doc.setTextColor(62, 113, 175); //파란색
+	                doc.setTextColor(71, 140, 114); 
+	                doc.text(8, 15, "");
+	                doc.text(8, 15, "3. 수입물품 적용세율");
+	                doc.setFontSize(12);
+	                doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+	                doc.setFont('NanumSquareEB', 'bold');
+	                doc.setTextColor(108, 179, 63);
+	                doc.text(190, 15, "I. 수입");
+	                
+	                // 제목 + 설명을 넣을 영역을 네모박스로 그리기
+	                var boxMargin4 = 5;  // 테두리와의 여백
+	                var boxWidth4 = 200;  // 박스의 너비
+	                var boxHeight4 = 15;  // 박스의 높이 (설명 포함)
+	                
+	                doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
+	                doc.setDrawColor(35, 69,56); 
+	                doc.rect(5, 8, boxWidth4, boxHeight4, 'D');
+	                
+	                
+	                
+	                var reportData5 = data.reportData5;
+	                console.log("reportData5",reportData5);
+	                var datas4 = reportData5.map(item => {
+	  	              var formattedCntRan = Intl.NumberFormat("ko-KR").format(item.cntRan); 
+	  	              
+	  	              return [
+	  	            	  item.gsRate,            // 적용 세율
+	  	            	  item.gsDivi,        	// 관세구분
+	  	            	  formattedCntRan,		// 통관란수
+	  	            	  item.cntRate
+	  	                
+	  	              ];
+	  	            });
+	                if(reportData5.length == 1){
+	                	 noDataMsg = "* 조회 기간 동안 수입물품 적용세율이 존재하지 않습니다.";
+		                   
+		                   doc.setFont('NanumSquareR', 'normal');
+		                   doc.setFontSize(10);
+		                   doc.setTextColor(64,64,64); // 회색 느낌
+		                   doc.text(noDataMsg, 10, 40);  // 위치 조정해서 출력
+	                }else{
+	                	// 테이블 헤더
+		            var header4 = [['적용세율','관세구분','통관란수','비율']];
+		            
+		            
+		            // 🟢 테이블 스타일 적용
+	            	doc.autoTable({
+	            	  head: header4,
+	            	  body:datas4,
+	            	  startY: 26, // 설명 아래에 테이블 배치
+	            	  theme: 'grid',
+	            	  styles: {
+	            	    font: 'NanumSquareR',
+	            	    fontSize: 7,
+	            	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
+	            	    textColor: [0, 0, 0],
+	            	    valign: 'middle',
+	            	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
+	                    wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
+	            	  },
+	            	  headStyles: {
+	            		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
+	            		fillColor: [35, 69, 56], // 헤더 배경 (초록)
+	            	    fontSize: 8,
+	            	    textColor: [255, 255, 255],
+	            	    font: 'NanumSquareEB',
+	            	    fontStyle: 'bold',
+	            	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
+	            	    lineWidth: 0.2, // 테두리 두께
+	            	    border: [true, true, true, true],  // 헤더에 테두리 추가
+	            	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
+	                    wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
+	                    halign: 'center', // 텍스트 가운데 정렬
+	            	  },
+	            	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
+	            	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
+	            	  columnStyles: {
+	            		  	0: { halign: 'center'}, // 적용세율
+	            	        1: { halign: 'center'}, // 관세구분
+	            	        2: { halign: 'right'}, // 통관란수
+	            	        3: { halign: 'right'}, // 통관란수
+	            	  },
+	            	  didParseCell: function (data) {
+	            	        // 🟡 마지막 행 (합계 행)만 배경색 변경
+	            	        if (data.row.index === datas4.length - 1) {
+	            	            data.cell.styles.fillColor = [246, 243, 202]; // 연한 회색 배경
+	            	            data.cell.styles.font = 'NanumSquareB'; // 굵은 폰트 적용
+	            	            data.cell.styles.fontStyle = 'bold'; // 볼드 처리
+	            	        }
+	            	    }
+	        		});
+	            	
+	            	// 4번째 테이블 y좌표 저장 
+	            	lastYPage4 = doc.lastAutoTable.finalY;
+	            	var pageAfterTable4 = doc.internal.getCurrentPageInfo().pageNumber;
+	            	
+	            	var spaceLeft4 = doc.internal.pageSize.height - lastYPage4 - 10;
+	            	
+	            	chartPage4, chartY4;
+	            	
+	            	if(spaceLeft4< 110){
+	            		doc.addPage();
+	            		chartPage4 = pageAfterTable4 + 1;
+	            		chartY4 = 15;
+	            	}else{
+	            		 chartPage4 = pageAfterTable4;       // 같은 페이지에 그릴 수 있음
+	            		  chartY4 = lastYPage4;
+	            	}
+
+	            	var rowsNoTotal = reportData5.filter(r => r.gsRate !== '합계');
+
+	            	var pieLabels2 = rowsNoTotal.map(r => `${r.gsDivi}`);
+	            	var pieData2   = rowsNoTotal.map(r => Number(r.cntRan));
+	            	var pieRates2  = rowsNoTotal.map(r => r.cntRate);  // 비율 배열 추가
+	            	
+
+	            	var pdf4canvas = document.createElement("canvas");
+	            	var pdf4ctx = pdf4canvas.getContext("2d");
+	            	
+	            	pdf4canvas.width = 1200;
+	            	pdf4canvas.height = 1200;
+	            	
+	            	pdf4canvas.style.display = 'none'; // 웹 화면에서 숨김 처리
+	            	document.body.appendChild(pdf4canvas);
+	            	
+	            	
+	            	
+	            	
+	            	var chartDataLabels = {
+	            			  id: 'chartDataLabels',
+	            			  afterDraw(chart, args, options) {
+	            			    const ctx = chart.ctx;
+	            			    ctx.textAlign = "center";
+	            			    ctx.textBaseline = "middle";
+	            			    ctx.fillStyle = '#000';
+	            			    ctx.font = "35px NanumSquareB";
+	            			    ctx.lineWidth = 2;
+
+	            			    let labelPoints = [];
+
+	            			    chart.data.datasets.forEach((dataset, i) => {
+	            			      chart.getDatasetMeta(i).data.forEach((datapoint, idx) => {
+	            			        const cnt = Number(dataset.data[idx]);
+	            			        const rateStr = pieRates2[idx];
+	            			        const rateNum = parseFloat(rateStr.replace('%', ''));
+
+	            			        if (rateNum <= 1) return;
+
+	            			        const gs = reportData5[idx].gsDivi;
+	            			        const { x, y } = datapoint.tooltipPosition();
+	            			        const radius = datapoint.outerRadius || (chart.chartArea.width / 2);
+	            			        const angle = (datapoint.startAngle + datapoint.endAngle) / 2;
+
+	            			        const xOuter = x + radius * 0.4 * Math.cos(angle);
+	            			        const yOuter = y + radius * 0.4 * Math.sin(angle);
+	            			        const xMiddle = xOuter + 20 * Math.cos(angle);
+	            			        const yMiddle = yOuter + 20 * Math.sin(angle);
+	            			        const xLine = xMiddle + (Math.cos(angle) > 0 ? 30 : -30);
+	            			        const yLine = yMiddle;
+
+	            			        labelPoints.push({
+	            			          text: `${gs} : ${rateStr}`,
+	            			          xOuter,
+	            			          yOuter,
+	            			          xMiddle,
+	            			          yMiddle,
+	            			          xLine,
+	            			          yLine,
+	            			          angle,
+	            			          side: Math.cos(angle) > 0 ? 'right' : 'left'
+	            			        });
+	            			      });
+	            			    });
+
+	            			    // 겹침 방지를 위한 최소 간격 설정
+	            			    const minYGap = 40;
+
+	            			    ['left', 'right'].forEach(side => {
+	            			      const sideLabels = labelPoints.filter(p => p.side === side)
+	            			        .sort((a, b) => a.yLine - b.yLine);  // y 기준 정렬
+
+	            			      for (let i = 1; i < sideLabels.length; i++) {
+	            			        const prev = sideLabels[i - 1];
+	            			        const curr = sideLabels[i];
+	            			        if ((curr.yLine - prev.yLine) < minYGap) {
+	            			          curr.yLine = prev.yLine + minYGap;
+	            			        }
+	            			      }
+
+	            			      // 선 + 텍스트 다시 그리기
+	            			      sideLabels.forEach(p => {
+	            			        ctx.beginPath();
+	            			        ctx.moveTo(p.xOuter, p.yOuter);
+	            			        ctx.lineTo(p.xMiddle, p.yMiddle);
+	            			        ctx.lineTo(p.xLine, p.yLine);
+	            			        ctx.strokeStyle = 'rgba(129,212,250,0.9)';
+	            			        ctx.stroke();
+
+	            			        ctx.textAlign = p.side === 'right' ? "left" : "right";
+	            			        ctx.fillText(p.text, p.xLine, p.yLine);
+	            			      });
+	            			    });
+	            			  }
+	            			};
+
+
+	            	
+	            	var pdf4chart = new Chart(pdf4ctx, {
+	            	    plugins : [chartDataLabels],
+	            		type: "pie",
+	            	    data: {
+	            	        labels: pieLabels2,
+	            	        datasets: [{
+	            	            data: pieData2,
+	            	            backgroundColor: [
+	            	            	/*'rgba(1,87,155,0.7)',
+	            	            	'rgba(2,119,189,0.7)',
+	            	            	'rgba(2,136,209,0.7)',
+	            	            	'rgba(3,155,229,0.7)',
+	            	            	'rgba(3,169,244,0.7)',
+	            	            	'rgba(41,182,246,0.7)',
+	            	            	'rgba(79,195,247, 0.7)',
+	            	            	'rgba(129,212,250,0.7)',
+	            	            	'rgba(179,229,252,0.7)',
+	            	            	'rgba(166,208,228,0.7)',
+	            	            	*/
+	            	            	
+	            	            	'rgb(49,97,79)',
+	            	            	'rgb(71,140,114)',
+	            	            	'rgb(84,166,135)',
+	            	            	'rgb(123,211,171)',
+	            	            	'rgb(153,184,169)',
+	            	            	'rgb(102,178,103)',
+	            	            	'rgb(154,204,153)',
+	            	            	'rgb(186,221,139)',
+	            	            	'rgb(238,231,148)',
+	            	            	'rgb(231,244,218)',
+	            	            	
+	            	            	]
+	            	        	}]
+	            	    	},
+	            	    options: {
+	            	    	responsive: false,
+	            	        maintainAspectRatio: false, //비율 무시
+	            	        layout: {
+	            	            padding: 180  // 🔹 차트 주변 여백 확보 (값을 늘리면 차트가 작아짐)
+	            	        },
+	            	        plugins: {
+	            	            legend: { 
+	            	            	position: "bottom",
+	            	            	display : true,
+	            	            	align : 'center',
+	            	            	labels : {
+	            	            		boxWidth : 18,
+	            	            		padding : 20,
+	            	            		font : {
+	            	            			size : 30,
+	            	            			weight : 'bold'
+	            	            		}
+	            	            	}
+	            	            },
+	            	            title : {
+	            	            	display: true,
+	            	            	text: '수입물품 적용세율',
+	            	            	font : {size :43, weight : 'bold'},
+	            	            	padding: {bottom : 60}
+	            	            },
+	            	            tooltip: {
+	            	               enabled : false // 툴팁 비활성화
+	            	            },
+	            	            datalabels: { 
+	            	            	 display: false // ✅ 차트 내부 데이터 숨김
+	            	            }
+	            	        }
+	            	    }
+	            	  
+	            	});
+	            	
+	                }	
+	            // 🟢 4번째 페이지 추가
                 doc.addPage();
                 
                 doc.setFontSize(16);
@@ -1807,23 +2257,34 @@ function exportRptPdf(data){
                 doc.setFont('NanumSquareB', 'normal');
                 //doc.setTextColor(62, 113, 175); //파란색
                 doc.setTextColor(71, 140, 114); 
-                doc.text(8, 15, "3.수입물품 과세현황");
+                doc.text(8, 15, "4. 수입물품 과세현황");
+                doc.setFontSize(12);
+	            doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+                doc.setFont('NanumSquareEB', 'bold');
+                doc.setTextColor(108, 179, 63);
+                doc.text(190, 15, "I. 수입");
                 
                 // 제목 + 설명을 넣을 영역을 네모박스로 그리기
-                const boxMargin3 = 5;  // 테두리와의 여백
-                const boxWidth3 = 200;  // 박스의 너비
-                const boxHeight3 = 28;  // 박스의 높이 (설명 포함)
+                var boxMargin3 = 5;  // 테두리와의 여백
+                var boxWidth3 = 200;  // 박스의 너비
+                var boxHeight3 = 28;  // 박스의 높이 (설명 포함)
+                var boxX = 5;
+                var boxY = 8;
+                var textMargin = 4;  // 박스 내부 여백
+                var lineHeight = 5;
+                var innerBoxWidth = boxWidth3 - (textMargin * 2);
                 
-                doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
+                
+               /* doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
                 doc.setDrawColor(35, 69,56); 
-                doc.rect(5, 8, boxWidth3, boxHeight3, 'D'); 
+                doc.rect(5, 8, boxWidth3, boxHeight3, 'D'); */
                 
                 
-                const reportData4 = data.reportData4;
+                var reportData4 = data.reportData4;
                 console.log("reportData4",reportData4);
-                const datas3 = reportData4.map(item => {
-  	              const formattedTaxKrw = Intl.NumberFormat("ko-KR").format(item.taxKrw); 
-  	              const formattedGs = Intl.NumberFormat("ko-KR").format(item.gs); 
+                var datas3 = reportData4.map(item => {
+  	              var formattedTaxKrw = Intl.NumberFormat("ko-KR").format(item.taxKrw); 
+  	              var formattedGs = Intl.NumberFormat("ko-KR").format(item.gs); 
   	              
   	              return [
   	                item.rowNum,        // 순번
@@ -1836,61 +2297,74 @@ function exportRptPdf(data){
   	              ];
   	            });
                 
-                const defaultColumnCount3 = 7;
-	            const defaultRow3 = Array(defaultColumnCount3).fill("");
+                var defaultColumnCount3 = 7;
+	            var defaultRow3 = Array(defaultColumnCount3).fill("");
 
 	            // datas가 유효한 배열이고, 최소한 하나 이상의 행이 있다면 그대로 사용하고
 	            // 아니면 defaultRow를 넣어서 안전하게 처리
-	            const safeDatas3 = (Array.isArray(datas3) && datas3.length > 0)
+	            var safeDatas3 = (Array.isArray(datas3) && datas3.length > 0)
 	              ? datas3
 	              : [defaultRow3];
 
-                //열별 합계
-                 const columnCount3 = safeDatas3[0].length;  // 열 개수
-		         const totals3 = Array(columnCount3).fill("");  // 0으로 채운 합계 배열
-		         
-		         
-		         totals3[0] = "합계"; 
-		         for (let i = 5; i < columnCount3; i++) {
-		        	    // 쉼표(,)를 제거한 후 숫자로 변환하여 합산
-		        	 	totals3[i] = datas3.reduce((sum, row) => sum + (parseFloat(row[i].replace(/,/g, "")) || 0), 0);
-
-		        	    // 합계를 다시 한국어 숫자 포맷(ko-KR)으로 변환
-		        	 	totals3[i] = Intl.NumberFormat("ko-KR").format(totals3[i]);
-		         }
-		         
+                 
 		         	// 1. 전체 과세가격 총합 계산
-	            	const totalTaxKrw = reportData4.reduce((sum, item) => sum + item.taxKrw, 0);
+	            	var totalTaxKrw = reportData4[reportData4.length - 1].taxKrw;
 
 	            	// 2. 파이 차트 데이터 생성
-	            	const pieLabels = reportData4.map(item => item.excGname);  
-	            	const pieData = reportData4.map(item => 
-	                	parseFloat(((item.taxKrw / totalTaxKrw) * 100).toFixed(2))
-	                 );
+			            
+	            	  var rowsNoTal1 =  reportData4.filter(r =>r.rowNum !== '합계' );
+	            	  
+	            	   var pieLabels = rowsNoTal1.map(r => r.excGname) || 0;
+			           var pieData = rowsNoTal1.map(r => +( (r.taxKrw / totalTaxKrw) * 100 ).toFixed(2));
+			           
 	            	
 	            	// 1. 최대 비율 찾기
-	            	const maxPercentage = Math.max(...pieData);  
-
+	            	var maxPercentage = Math.max(...pieData) || 0;  
 	            	
 		         // 🟢 설명 추가 (왼쪽 정렬 + 줄 나누기)
 	            doc.setFontSize(9);
 	            doc.addFont('/pf/fonts/NanumSquareR.ttf', 'NanumSquareR', 'normal');
 	            doc.setFont('NanumSquareR', 'normal');
 	            doc.setTextColor(0, 0, 0);
-	            const description3 = [
-	            	`다음 자료는 HS CODE를 기준으로 주요 수입 품목 관세율을 보여주고 있습니다.`,
-	                `HSCODE ${(reportData4[0] && reportData4[0].hs) ? reportData4[0].hs : "-"}의 ${(reportData4[0] && reportData4[0].gsDivi) ? reportData4[0].gsDivi : "-"}적용  ${(reportData4[0] && reportData4[0].excGname) ? reportData4[0].excGname : "-"}이 상위 10개 통관물품 과세가격 기준 ${maxPercentage}%로 가장 많이 수입되었습니다.`,
-	            	`한달간 전체 품목의 평균 관세율은 ${data.avgRate}% 이며 상위 10개 통관 물품 평균 관세율은 ${data.topAvgRate}% 입니다.`
+	            var description3 = [
+	            	`다음 자료는 HS CODE를 기준으로 주요 수입 품목 관세율을 나타냅니다.`,
+	                `HS CODE ${(reportData4[0] && reportData4[0].hs) ? reportData4[0].hs : "-"}의 ${(reportData4[0] && reportData4[0].gsDivi) ? reportData4[0].gsDivi : "-"} 적용  ${(reportData4[0] && reportData4[0].excGname) ? reportData4[0].excGname : "-"}이 상위 10개 통관 물품 과세가격 기준 ${maxPercentage}%로 가장 많이 수입되었습니다.`,
+	            	`한 달간 전체 품목의 평균 관세율은 ${data.avgRate}% 이며 상위 10개 통관 물품 평균 관세율은 ${data.topAvgRate}% 입니다.`
 	            ];
 	          
-	             startY = 23; // description 높이 위치
-	             description3.forEach((line, index) => {
-	            	  doc.text(8, startY, line); // 왼쪽 정렬 (x: 8, y: startY)
-	            	  startY += 5; // 각 줄 간격을 5로 설정하여 다음 줄로 내려감
-	        	});
-		        
-	            datas3.push(totals3);
-	            
+	            // 1. 텍스트 줄 분할 먼저 계산
+	            let splittedLines = [];
+	            description3.forEach(line => {
+	              var splitted = doc.splitTextToSize(line, innerBoxWidth);
+	              splittedLines.push(...splitted);  // 줄 전체 누적
+	            });
+
+	            // 2. 박스 높이 계산 (전체 줄 * 줄 높이 + 위아래 여백)
+	            var dynamicBoxHeight = (splittedLines.length * lineHeight + 5) + (textMargin * 2);
+
+	            // 3. 박스 먼저 그림
+	            doc.setLineWidth(0.5);
+	            doc.setDrawColor(35, 69, 56);
+	            doc.rect(boxX, boxY, boxWidth3, dynamicBoxHeight, 'D');
+
+	            // 4. 텍스트 출력 (줄 나눠서 순서대로 출력)
+	            let currentY2 = boxY + textMargin + 10;  // ✅ 폰트 기준선 보정용 +1
+
+	            splittedLines.forEach(line => {
+	              doc.text(boxX + textMargin, currentY2, line);
+	              currentY2 += lineHeight;
+	            });
+
+	            var nextStartY = currentY2 + 1.5;  // 이후 콘텐츠 시작 위치
+
+	            if(reportData4.length == 1){
+	            	noDataMsg = "* 조회기간 동안 수입물품 과세현황 내역이 존재하지 않습니다.";
+	                   
+	                   doc.setFont('NanumSquareR', 'normal');
+	                   doc.setFontSize(10);
+	                   doc.setTextColor(64,64,64); // 회색 느낌
+	                   doc.text(noDataMsg, 10, 45);  // 위치 조정해서 출력
+	            }else{
 	            // 테이블 헤더
 	            var header3 = [['Rank', '세번부호', '관세구분','품명' ,'관세율', '과세가격(KRW)', '관세액']];
 	            
@@ -1899,7 +2373,7 @@ function exportRptPdf(data){
             	doc.autoTable({
             	  head: header3,
             	  body:datas3,
-            	  startY: startY + 2, // 설명 아래에 테이블 배치
+            	  startY: nextStartY + 2, // 설명 아래에 테이블 배치
             	  theme: 'grid',
             	  styles: {
             	    font: 'NanumSquareR',
@@ -1948,12 +2422,12 @@ function exportRptPdf(data){
             	
             	// 3번째 테이블 y좌표 저장 
             	lastYPage3 = doc.lastAutoTable.finalY;  
-            	const pageAfterTable3 = doc.internal.getCurrentPageInfo().pageNumber;
+            	var pageAfterTable3 = doc.internal.getCurrentPageInfo().pageNumber;
             	
             	// 🟢 남은 공간 계산
-            	const spaceLeft3 = doc.internal.pageSize.height - lastYPage3 - 10;
+            	var spaceLeft3 = doc.internal.pageSize.height - lastYPage3 - 10;
             	
-            	let chartPage3, chartY3;
+            	 chartPage3, chartY3;
             	
             	if(spaceLeft3< 130){
             		doc.addPage();
@@ -1966,85 +2440,102 @@ function exportRptPdf(data){
             	
 
             	
-            	const pdf3canvas = document.createElement("canvas");
-            	const pdf3ctx = pdf3canvas.getContext("2d");
+            	var pdf3canvas = document.createElement("canvas");
+            	var pdf3ctx = pdf3canvas.getContext("2d");
             	pdf3canvas.width = 1000;
             	pdf3canvas.height = 1000;
             	pdf3canvas.style.display = 'none'; // 웹 화면에서 숨김 처리
             	document.body.appendChild(pdf3canvas);
             	
+            	let sortedData = [...reportData4]
+            	  .map((item, idx) => ({ idx, value: item.cnt })) // index와 값 저장
+            	  .sort((a, b) => b.value - a.value); // 큰 값부터 정렬
+
+            	let rankMap = {}; // index -> 순위 매핑
+            	sortedData.forEach((item, i) => {
+            	  rankMap[item.idx] = i + 1; // 1부터 시작
+            	})
             	var chartDataLabels1 = {
             		    id: 'chartDataLabels',
             		    afterDraw(chart, args, options) {
-            		        const ctx1 = chart.ctx; // 올바른 컨텍스트 사용
+            		        var ctx1 = chart.ctx; // 올바른 컨텍스트 사용
             		        ctx1.textAlign = "center";
             		        ctx1.textBaseline = "middle";
             		        ctx1.fillStyle = '#000';
-            		        ctx1.font = "22px NanumSquareB";
+            		        ctx1.font = "18px NanumSquareB";
             		        ctx1.lineWidth = 3; // 선 굵기
 
             		        let prevTextPositions1 = [];  // 텍스트 위치를 추적할 배열
+            		        var labelPoints = [];
 
+            		        
+            		        
             		        chart.data.datasets.forEach((dataset, i) => {
             		            chart.getDatasetMeta(i).data.forEach((datapoint, index) => {
-            		                const value = dataset.data[index]; // 데이터 값
-            		                const excGname = reportData4[index].excGname;
-            		                if (value <= 3) return; // 0 이하 값은 표시 안 함
+            		            	var value = dataset.data[index];
+            		                 if (value <= 3) return;
 
-            		                const { x, y } = datapoint.tooltipPosition(); // 데이터 좌표 가져오기
-            		                const radius1 = chart.outerRadius || (chart.chartArea.width / 2); // 원의 반지름
-            		                const angle1 = datapoint.startAngle !== undefined && datapoint.endAngle !== undefined
-            		                    ? (datapoint.startAngle + datapoint.endAngle) / 2
-            		                    : (index / dataset.data.length) * Math.PI * 2; // 각도 계산
+            		                 var excGname = reportData4[index].excGname;
+            		                 var rank = rankMap[index];
+            		                 var { x, y } = datapoint.tooltipPosition();
+            		                 var radius = chart.outerRadius || (chart.chartArea.width / 2);
+            		                 var angle = (datapoint.startAngle + datapoint.endAngle) / 2;
 
-            		                // 원 바깥으로 시작하는 좌표 (조정)
-            		                const xOuter1 = x + (radius1 * 0.40) * Math.cos(angle1);  // 0.6으로 값 변경하여 원의 바깥쪽으로
-            		                const yOuter1 = y + (radius1 * 0.40) * Math.sin(angle1);  // 0.6으로 값 변경하여 원의 바깥쪽으로
+            		                 var xOuter = x + radius * 0.3 * Math.cos(angle);
+            		                 var yOuter = y + radius * 0.3 * Math.sin(angle);
+            		                 var xMiddle = xOuter + 20 * Math.cos(angle);
+            		                 var yMiddle = yOuter + 20 * Math.sin(angle);
+            		                 var xLine = xMiddle + (Math.cos(angle) > 0 ? 20 : -20);
+            		                 var yLine = yMiddle;
 
-            		                // 꺾인 지점 이후, 선 길이를 더 길게 설정
-            		                const xMiddle1 = xOuter1 + (Math.cos(angle1) * 20);  // 30으로 값 늘려 선 길이를 더 길게
-            		                const yMiddle1 = yOuter1 + (Math.sin(angle1) * 20);  // 30으로 값 늘려 선 길이를 더 길게
+            		                 labelPoints.push({
+            		                     index,
+            		                     rank,
+            		                     text: `${rank}. ${excGname}:${value}%`,
+            		                     xOuter,
+            		                     yOuter,
+            		                     xMiddle,
+            		                     yMiddle,
+            		                     xLine,
+            		                     yLine,
+            		                     angle,
+            		                     side: Math.cos(angle) > 0 ? 'right' : 'left'
+            		                 });
+            		             });
+            		         });
 
-            		                // 최종 라벨 위치 (길이를 더 멀리 설정)
-            		                let xLine1 = xMiddle1 + (Math.cos(angle1) > 0 ? 20 : -20); // 텍스트 최종 위치도 더 멀리
-            		                let yLine1 = yMiddle1;
+            		         // ⛔ y 겹침 방지: 좌우 나눠서 따로 정렬
+            		        var minYGap = 22;
 
-            		                // 텍스트 간의 최소 거리 (원하는 값으로 조정)
-            		                const minDistance1 =90;  // 최소 간격 설정
+            		         ['left', 'right'].forEach(side => {
+            		             var sideLabels = labelPoints.filter(p => p.side === side)
+            		                 .sort((a, b) => a.yLine - b.yLine);
 
-            		                // 텍스트가 겹치지 않도록 간격 조정
-            		                prevTextPositions1.forEach((prevPos) => {
-            		                    const dist1 = Math.sqrt(Math.pow(xLine1 - prevPos.x, 2) + Math.pow(yLine1 - prevPos.y, 2));
-            		                    if (dist1 < minDistance1) {
-            		                        // 겹칠 경우 위치 조정1
-            		                        const angleOffset1 = Math.PI / 18;  // 약간의 각도 오프셋을 추가하여 이동
-            		                        xLine1 = xMiddle1 + (Math.cos(angle1 + angleOffset1) * 10);
-            		                        yLine1 = yMiddle1 + (Math.sin(angle1 + angleOffset1) * 10);
-            		                    }
-            		                });
+            		             for (let i = 1; i < sideLabels.length; i++) {
+            		                 var prev = sideLabels[i - 1];
+            		                 var curr = sideLabels[i];
+            		                 if ((curr.yLine - prev.yLine) < minYGap) {
+            		                     curr.yLine = prev.yLine + minYGap;
+            		                 }
+            		             }
 
-            		                // 텍스트 위치를 이전 위치 배열에 추가
-            		                prevTextPositions1.push({ x: xLine1, y: yLine1 });
+            		             // 다시 그리기
+            		             sideLabels.forEach(p => {
+            		                 ctx1.beginPath();
+            		                 ctx1.moveTo(p.xOuter, p.yOuter);
+            		                 ctx1.lineTo(p.xMiddle, p.yMiddle);
+            		                 ctx1.lineTo(p.xLine, p.yLine);
+            		                 ctx1.strokeStyle = 'rgba(129,212,250,0.9)';
+            		                 ctx1.stroke();
 
-            		                // 캔버스에 꺾은선 그리기
-            		                ctx1.beginPath();
-            		                ctx1.moveTo(xOuter1, yOuter1); // 원 테두리에서 시작
-            		                ctx1.lineTo(xMiddle1, yMiddle1); // 꺾인 지점
-            		                ctx1.lineTo(xLine1, yLine1); // 최종 위치
-            		                ctx1.strokeStyle = 'rgba(129,212,250,0.9)';
-            		                ctx1.stroke();
-
-            		                // 텍스트 정렬
-            		                ctx1.textAlign = Math.cos(angle1) > 0 ? "left" : "right";
-
-            		                // 텍스트 표시
-            		                ctx1.fillText(`${value}%`, xLine1, yLine1);
-            		            });
-            		        });
+            		                 ctx1.textAlign = p.side === 'right' ? "left" : "right";
+            		                 ctx1.fillText(p.text, p.xLine, p.yLine);
+            		             });
+            		         });
             		    }
             		};
-            	
-            	const pdf3chart = new Chart(pdf3ctx, {
+	            }
+            	var pdf3chart = new Chart(pdf3ctx, {
             		plugins : [chartDataLabels1],
             			type: "pie",
 	            	    data: {
@@ -2052,7 +2543,7 @@ function exportRptPdf(data){
 	            	        datasets: [{
 	            	            data: pieData,
 	            	            backgroundColor: [
-	            	            	'rgba(1,87,155,0.7)',
+	            	            	/*'rgba(1,87,155,0.7)',
 	            	            	'rgba(2,119,189,0.7)',
 	            	            	'rgba(2,136,209,0.7)',
 	            	            	'rgba(3,155,229,0.7)',
@@ -2061,7 +2552,17 @@ function exportRptPdf(data){
 	            	            	'rgba(79,195,247, 0.7)',
 	            	            	'rgba(129,212,250,0.7)',
 	            	            	'rgba(179,229,252,0.7)',
-	            	            	'rgba(166,208,228,0.7)',
+	            	            	'rgba(166,208,228,0.7)',*/
+	            	            	'rgb(49,97,79)',
+	            	            	'rgb(71,140,114)',
+	            	            	'rgb(84,166,135)',
+	            	            	'rgb(123,211,171)',
+	            	            	'rgb(153,184,169)',
+	            	            	'rgb(102,178,103)',
+	            	            	'rgb(154,204,153)',
+	            	            	'rgb(186,221,139)',
+	            	            	'rgb(238,231,148)',
+	            	            	'rgb(231,244,218)',
 	            	            	]
 	            	        }]
 	            	    },
@@ -2093,7 +2594,7 @@ function exportRptPdf(data){
 	            	            },
 	            	            title : {
 	            	            	display: true,
-	            	            	text: '수입물품 과세 현황',
+	            	            	text: '수입물품 과세현황',
 	            	            	font : {size :35,weight : 'bold'},
 	            	            	padding: {bottom : 30}
 	            	            },
@@ -2106,361 +2607,8 @@ function exportRptPdf(data){
 	            	        }
 	            	    },
 	            	});
-            	
-            	// 🟢5번째 페이지 추가
-                doc.addPage();
-                
-                doc.setFontSize(16);
-                doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
-                doc.setFont('NanumSquareB', 'normal');
-                //doc.setTextColor(62, 113, 175); //파란색
-                doc.setTextColor(71, 140, 114); 
-                doc.text(8, 15, "");
-                doc.text(8, 15, "4.수입물품 적용세율");
-                
-                // 제목 + 설명을 넣을 영역을 네모박스로 그리기
-                const boxMargin4 = 5;  // 테두리와의 여백
-                const boxWidth4 = 200;  // 박스의 너비
-                const boxHeight4 = 15;  // 박스의 높이 (설명 포함)
-                
-                doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
-                doc.setDrawColor(35, 69,56); 
-                doc.rect(5, 8, boxWidth4, boxHeight4, 'D');
-                
-                
-                
-                const reportData5 = data.reportData5;
-                console.log("reportData5",reportData5);
-                const datas4 = reportData5.map(item => {
-  	              const formattedCntRan = Intl.NumberFormat("ko-KR").format(item.cntRan); 
-  	              
-  	              return [
-  	            	  item.gsRate,            // 적용 세율
-  	            	  item.gsDivi,        	// 관세구분
-  	                formattedCntRan 		// 통관란수
-  	                
-  	              ];
-  	            });
-                
-                const defaultColumnCount4 = 3;
-	            const defaultRow4 = Array(defaultColumnCount4).fill("");
-
-	            // datas가 유효한 배열이고, 최소한 하나 이상의 행이 있다면 그대로 사용하고
-	            // 아니면 defaultRow를 넣어서 안전하게 처리
-	            const safeDatas4 = (Array.isArray(datas4) && datas4.length > 0)
-	              ? datas4
-	              : [defaultRow4];
-
-                //열별 합계
-                 const columnCount4 = safeDatas4[0].length;  // 열 개수
-		         const totals4 = Array(columnCount4).fill("");  // 0으로 채운 합계 배열
-		         
-		         
-		         totals4[0] = "합계"; 
-		         for (let i = 2; i < columnCount4; i++) {
-		        	    // 쉼표(,)를 제거한 후 숫자로 변환하여 합산
-		        	 	totals4[i] = datas4.reduce((sum, row) => sum + (parseFloat(row[i].replace(/,/g, "")) || 0), 0);
-
-		        	    // 합계를 다시 한국어 숫자 포맷(ko-KR)으로 변환
-		        	 	totals4[i] = Intl.NumberFormat("ko-KR").format(totals4[i]);
-		         }
-		         
-		        
-	            datas4.push(totals4);
-	            
-	            // 테이블 헤더
-	            var header4 = [['적용세율','관세구분','통관란수']];
-	            
-	            
-	            // 🟢 테이블 스타일 적용
-            	doc.autoTable({
-            	  head: header4,
-            	  body:datas4,
-            	  startY: 26, // 설명 아래에 테이블 배치
-            	  theme: 'grid',
-            	  styles: {
-            	    font: 'NanumSquareR',
-            	    fontSize: 7,
-            	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
-            	    textColor: [0, 0, 0],
-            	    valign: 'middle',
-            	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
-                    wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
-            	  },
-            	  headStyles: {
-            		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
-            		fillColor: [35, 69, 56], // 헤더 배경 (초록)
-            	    fontSize: 8,
-            	    textColor: [255, 255, 255],
-            	    font: 'NanumSquareEB',
-            	    fontStyle: 'bold',
-            	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
-            	    lineWidth: 0.2, // 테두리 두께
-            	    border: [true, true, true, true],  // 헤더에 테두리 추가
-            	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
-                    wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
-                    halign: 'center', // 텍스트 가운데 정렬
-            	  },
-            	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
-            	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
-            	  columnStyles: {
-            		  	0: { halign: 'center'}, // 적용세율
-            	        1: { halign: 'center'}, // 관세구분
-            	        2: { halign: 'right'}, // 통관란수
-            	  },
-            	  didParseCell: function (data) {
-            	        // 🟡 마지막 행 (합계 행)만 배경색 변경
-            	        if (data.row.index === datas4.length - 1) {
-            	            data.cell.styles.fillColor = [246, 243, 202]; // 연한 회색 배경
-            	            data.cell.styles.font = 'NanumSquareB'; // 굵은 폰트 적용
-            	            data.cell.styles.fontStyle = 'bold'; // 볼드 처리
-            	        }
-            	    }
-        		});
-            	
-            	// 4번째 테이블 y좌표 저장 
-            	lastYPage4 = doc.lastAutoTable.finalY;
-            	const pageAfterTable4 = doc.internal.getCurrentPageInfo().pageNumber;
-            	
-            	const spaceLeft4 = doc.internal.pageSize.height - lastYPage4 - 10;
-            	
-            	let chartPage4, chartY4;
-            	
-            	if(spaceLeft4< 110){
-            		doc.addPage();
-            		chartPage4 = pageAfterTable4 + 1;
-            		chartY4 = 15;
-            	}else{
-            		 chartPage4 = pageAfterTable4;       // 같은 페이지에 그릴 수 있음
-            		  chartY4 = lastYPage4;
-            	}
-            	// 1. 전체 과세가격 총합 계산
-            	const totalCntRan = reportData5.reduce((sum, item) => sum + item.cntRan, 0);
-
-            	// 2. 파이 차트 데이터 생성
-            	const pieLabels2 = reportData5.map(item => item.gsDivi);  
-            	const pieData2 = reportData5.map(item => 
-                	parseFloat(((item.cntRan / totalCntRan) * 100).toFixed(2))
-                 );
-            	
-            	const pdf4canvas = document.createElement("canvas");
-            	const pdf4ctx = pdf4canvas.getContext("2d");
-            	
-            	pdf4canvas.width = 1200;
-            	pdf4canvas.height = 1200;
-            	
-            	pdf4canvas.style.display = 'none'; // 웹 화면에서 숨김 처리
-            	document.body.appendChild(pdf4canvas);
-            	
-            	
-            	var chartDataLabels = {
-            		    id: 'chartDataLabels',
-            		    afterDraw(chart, args, options) {
-            		        const ctx = chart.ctx; // 올바른 컨텍스트 사용
-            		        ctx.textAlign = "center";
-            		        ctx.textBaseline = "middle";
-            		        ctx.fillStyle = '#000';
-            		        ctx.font = "35px NanumSquareB";
-            		        ctx.lineWidth = 5; // 선 굵기
-
-            		        let prevTextPositions = [];  // 텍스트 위치를 추적할 배열
-
-            		        chart.data.datasets.forEach((dataset, i) => {
-            		            chart.getDatasetMeta(i).data.forEach((datapoint, index) => {
-            		                const value = dataset.data[index]; // 데이터 값
-            		                const gs = reportData5[index].gsDivi;
-            		                if (value <= 1) return; // 0 이하 값은 표시 안 함
-
-            		                const { x, y } = datapoint.tooltipPosition(); // 데이터 좌표 가져오기
-            		                const radius = chart.outerRadius || (chart.chartArea.width / 2); // 원의 반지름
-            		                const angle = datapoint.startAngle !== undefined && datapoint.endAngle !== undefined
-            		                    ? (datapoint.startAngle + datapoint.endAngle) / 2
-            		                    : (index / dataset.data.length) * Math.PI * 2; // 각도 계산
-
-            		                // 원 바깥으로 시작하는 좌표 (조정)
-            		                const xOuter = x + (radius * 0.3) * Math.cos(angle);  // 0.6으로 값 변경하여 원의 바깥쪽으로
-            		                const yOuter = y + (radius * 0.3) * Math.sin(angle);  // 0.6으로 값 변경하여 원의 바깥쪽으로
-
-            		                // 꺾인 지점 이후, 선 길이를 더 길게 설정
-            		                const xMiddle = xOuter + (Math.cos(angle) * 20);  // 30으로 값 늘려 선 길이를 더 길게
-            		                const yMiddle = yOuter + (Math.sin(angle) * 20);  // 30으로 값 늘려 선 길이를 더 길게
-
-            		                // 최종 라벨 위치 (길이를 더 멀리 설정)
-            		                let xLine = xMiddle + (Math.cos(angle) > 0 ? 40 : -40); // 텍스트 최종 위치도 더 멀리
-            		                let yLine = yMiddle;
-
-            		                // 텍스트 간의 최소 거리 (원하는 값으로 조정)
-            		                const minDistance = 40;  // 최소 간격 설정
-
-            		                // 텍스트가 겹치지 않도록 간격 조정
-            		                prevTextPositions.forEach((prevPos) => {
-            		                    const dist = Math.sqrt(Math.pow(xLine - prevPos.x, 2) + Math.pow(yLine - prevPos.y, 2));
-            		                    if (dist < minDistance) {
-            		                        // 겹칠 경우 위치 조정
-            		                        const angleOffset = Math.PI / 18;  // 약간의 각도 오프셋을 추가하여 이동
-            		                        xLine = xMiddle + (Math.cos(angle + angleOffset) * 40);
-            		                        yLine = yMiddle + (Math.sin(angle + angleOffset) * 40);
-            		                    }
-            		                });
-
-            		                // 텍스트 위치를 이전 위치 배열에 추가
-            		                prevTextPositions.push({ x: xLine, y: yLine });
-
-            		                // 캔버스에 꺾은선 그리기
-            		                ctx.beginPath();
-            		                ctx.moveTo(xOuter, yOuter); // 원 테두리에서 시작
-            		                ctx.lineTo(xMiddle, yMiddle); // 꺾인 지점
-            		                ctx.lineTo(xLine, yLine); // 최종 위치
-            		                ctx.strokeStyle = 'rgba(129,212,250,0.9)';
-            		                ctx.stroke();
-
-            		                // 텍스트 정렬
-            		                ctx.textAlign = Math.cos(angle) > 0 ? "left" : "right";
-
-            		                // 텍스트 표시
-            		                ctx.fillText(`${gs} : ${value}%`, xLine, yLine);
-            		            });
-            		        });
-            		    }
-            		};
 
             	
-            	const pdf4chart = new Chart(pdf4ctx, {
-            	    plugins : [chartDataLabels],
-            		type: "pie",
-            	    data: {
-            	        labels: pieLabels2,
-            	        datasets: [{
-            	            data: pieData2,
-            	            backgroundColor: [
-            	            	'rgba(1,87,155,0.7)',
-            	            	'rgba(2,119,189,0.7)',
-            	            	'rgba(2,136,209,0.7)',
-            	            	'rgba(3,155,229,0.7)',
-            	            	'rgba(3,169,244,0.7)',
-            	            	'rgba(41,182,246,0.7)',
-            	            	'rgba(79,195,247, 0.7)',
-            	            	'rgba(129,212,250,0.7)',
-            	            	'rgba(179,229,252,0.7)',
-            	            	'rgba(166,208,228,0.7)',
-            	            	]
-            	        	}]
-            	    	},
-            	    options: {
-            	    	responsive: false,
-            	        maintainAspectRatio: false, //비율 무시
-            	        layout: {
-            	            padding: 180  // 🔹 차트 주변 여백 확보 (값을 늘리면 차트가 작아짐)
-            	        },
-            	        plugins: {
-            	            legend: { 
-            	            	position: "bottom",
-            	            	display : true,
-            	            	align : 'center',
-            	            	labels : {
-            	            		boxWidth : 18,
-            	            		padding : 20,
-            	            		font : {
-            	            			size : 30,
-            	            			weight : 'bold'
-            	            		}
-            	            	}
-            	            },
-            	            title : {
-            	            	display: true,
-            	            	text: '수입물품 적용세율',
-            	            	font : {size :43, weight : 'bold'},
-            	            	padding: {bottom : 60}
-            	            },
-            	            tooltip: {
-            	               enabled : false // 툴팁 비활성화
-            	            },
-            	            datalabels: { 
-            	            	 display: false // ✅ 차트 내부 데이터 숨김
-            	            }
-            	        }
-            	    }
-            	  
-            	});
-            	
-            	/*// 🟢6번째 페이지 추가
-                doc.addPage();
-                
-                doc.setFontSize(16);
-                doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
-                doc.setFont('NanumSquareB', 'normal');
-                //doc.setTextColor(62, 113, 175); //파란색
-                doc.setTextColor(71, 140, 114); 
-                doc.text(8, 15, "수입정정현황");
-                
-                // 제목 + 설명을 넣을 영역을 네모박스로 그리기
-                const boxMargin5 = 5;  // 테두리와의 여백
-                const boxWidth5 = 200;  // 박스의 너비
-                const boxHeight5 = 15;  // 박스의 높이 (설명 포함)
-                
-                doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
-                doc.setDrawColor(35, 69,56); 
-                doc.rect(5, 8, boxWidth5, boxHeight5, 'D'); 
-                
-                const reportData6 = data.reportData6;
-                console.log("reportData6",reportData6);
-                const datas5 = reportData6.map(item => {
-  	              const formattedCntRan = Intl.NumberFormat("ko-KR").format(item.cntRan); 
-  	              
-  	              return [
-  	            	  item.rowNum,			// 번호
-  	            	  item.impRpt,          // 신고번호
-  	            	  item.rptDay,        	// 정정신청일
-  	            	  item.petDay,        	// 정정승인일
-  	            	  item.reasonDoc,  		// 정정사유
-  	            	  item.reason	  		// 귀책사유
-  	              ];
-  	            });
-	            
-	            // 테이블 헤더
-	            var header5 = [['번호','신고번호','정정신청일','정정승인일','정정사유','귀책사유']];
-	            
-	            
-	            // 🟢 테이블 스타일 적용
-            	doc.autoTable({
-            	  head: header5,
-            	  body:datas5,
-            	  startY: 24, // 설명 아래에 테이블 배치
-            	  theme: 'grid',
-            	  styles: {
-            	    font: 'NanumSquareR',
-            	    fontSize: 7,
-            	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
-            	    textColor: [0, 0, 0],
-            	    valign: 'middle',
-            	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
-                    wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
-            	  },
-            	  headStyles: {
-            		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
-            		fillColor: [35, 69, 56], // 헤더 배경 (초록)
-            	    fontSize: 8,
-            	    textColor: [255, 255, 255],
-            	    font: 'NanumSquareEB',
-            	    fontStyle: 'bold',
-            	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
-            	    lineWidth: 0.2, // 테두리 두께
-            	    border: [true, true, true, true],  // 헤더에 테두리 추가
-            	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
-                    wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
-                    halign: 'center', // 텍스트 가운데 정렬
-            	  },
-            	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
-            	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
-            	  columnStyles: {
-            		  	0: { halign: 'center'}, // 번호
-            	        1: { halign: 'center'}, // 신고번호
-            	        2: { halign: 'center'}, // 정정신청일
-            	        3: { halign: 'center'}, // 정정승인일
-            	        4: { halign: 'center'}, // 정정사유
-            	        5: { halign: 'center'}, // 귀책사유
-            	  },
-        		});*/
             	// 🟢7번째 페이지 추가
                 doc.addPage();
                 
@@ -2469,12 +2617,17 @@ function exportRptPdf(data){
                 doc.setFont('NanumSquareB', 'normal');
                 //doc.setTextColor(62, 113, 175); //파란색
                 doc.setTextColor(71, 140, 114); 
-                doc.text(8, 15, "5.FTA 사후적용금액");
+                doc.text(8, 15, "5. FTA 사후적용금액");
+                doc.setFontSize(12);
+	            doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+                doc.setFont('NanumSquareEB', 'bold');
+                doc.setTextColor(108, 179, 63);
+                doc.text(190, 15, "I. 수입");
                 
                 // 제목 + 설명을 넣을 영역을 네모박스로 그리기
-                const boxMargin6 = 5;  // 테두리와의 여백
-                const boxWidth6 = 200;  // 박스의 너비
-                const boxHeight6 = 15;  // 박스의 높이 (설명 포함)
+                var boxMargin6 = 5;  // 테두리와의 여백
+                var boxWidth6 = 200;  // 박스의 너비
+                var boxHeight6 = 15;  // 박스의 높이 (설명 포함)
                 
                 doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
                 doc.setDrawColor(35, 69,56); 
@@ -2488,142 +2641,421 @@ function exportRptPdf(data){
                 doc.setTextColor(71, 140, 114); 
                 doc.text(4, 30, "사후적용 건수 및 금액");
                 
-                const reportData7 = data.reportData7;
+                var reportData7 = data.reportData7;
                 console.log("reportData7",reportData7);
-		         
-                const datas6 = reportData7.map(item => {
-  	              const formattedTransTaxSum = Intl.NumberFormat("ko-KR").format(item.transTaxSum); 
-  	              const formattedTaxCot = Intl.NumberFormat("ko-KR").format(item.taxCot); 
-  	              const formattedTaxCoVat = Intl.NumberFormat("ko-KR").format(item.taxCotVat); 
-  	              
-  	              return [
-  	            	  item.rptNo,            	// 신고번호
-  	            	  item.impRptDay,        	// 신고일자
-  	            	  item.rptDay,				//정정신청일
-  	            	  item.cus,					//수입세관
-  	            	  item.reasonCode,			//정정사유코드	
-  	            	  item.petDay,				//승인일자
-  	            	  formattedTransTaxSum,		//증감내역
-  	            	  formattedTaxCot,			//관세 증감 내역
-  	            	  formattedTaxCoVat			//부가세 증감 내역
-  	              ];
-  	            });
-	            
-                // 테이블 헤더
-	            var header5 = [['수입신고 번호','수입신고일자','정정신청일자','수입 세관','정정사유코드','승인 일자','증감내역','관세 증감내역','부가세 증감내역']];
-	            
-	            
-	            //const columnCount5 = datas6[0].length;  // 열 개수
-	            const columnCount5 = (datas6.length > 0 && Array.isArray(datas6[0])) ? datas6[0].length : 0;
-	            const rowCount5 = datas6.length; // 행 개수
-	            
-		         const totals5 = Array(columnCount5).fill("");  // 0으로 채운 합계 배열
-		         
-		         
-		         for (let i = 6; i < columnCount5; i++) {
-		        	    // 쉼표(,)를 제거한 후 숫자로 변환하여 합산
-		        	 totals5[i] = datas6.reduce((sum, row) => sum + (parseFloat(row[i].replace(/,/g, "")) || 0), 0);
 
-		        	    // 합계를 다시 한국어 숫자 포맷(ko-KR)으로 변환
-		        	 totals5[i] = Intl.NumberFormat("ko-KR").format(totals5[i]);
-		         }
-		         
-		         console.log("totals5",totals5);
+                // 📌 1. 테이블이 들어갈 시작 Y 위치 정의
+                let tableStartY = 55;
+                let datas6 = []; // 항상 배열로 선언 (초기값)
+                let totals5 = ["", "", "", "", "", "", "", "", ""]; // 최소 9칸짜리 빈 값
+                let rowCount5 = 0;
                 
-                
-                
-                
-                
+                if (reportData7.length === 0) {
+                  // 🛑 데이터 없을 때: 안내 문구 출력
+                   noDataMsg = "* 조회기간 동안 FTA 적용 실적이 존재하지 않습니다.";
+                  
+                  doc.setFont('NanumSquareR', 'normal');
+                  doc.setFontSize(10);
+                  doc.setTextColor(64,64,64); // 회색 느낌
+                  doc.text(noDataMsg, 10, 55);
+                } else {
+                  // ✅ 데이터가 있을 때: 테이블 생성
+
+                   datas6 = reportData7.map(item => {
+                    var formattedTransTaxSum = Intl.NumberFormat("ko-KR").format(item.transTaxSum); 
+                    var formattedTaxCot = Intl.NumberFormat("ko-KR").format(item.taxCot); 
+                    var formattedTaxCoVat = Intl.NumberFormat("ko-KR").format(item.taxCotVat); 
+                    
+                    return [
+                      item.seq,
+                      item.reasonCode,
+                      item.rptNo,
+                      item.impRptDay,
+                      item.rptDay,
+                      item.petDay,
+                      item.cus,
+                      formattedTransTaxSum,
+                      formattedTaxCot,
+                      formattedTaxCoVat
+                    ];
+                  });
+
+                   rowCount5 = datas6.length; // ✅ 행 개수 저장
+
+                   // 총합 계산 (6~8열)
+                   for (let i = 7; i <= 9; i++) {
+                     var sum = datas6.reduce((acc, row) => acc + (parseFloat(row[i].replace(/,/g, "")) || 0), 0);
+                     totals5[i] = Intl.NumberFormat("ko-KR").format(sum);
+                    
+                   }
+                   
+                   var header5 = [['','정정사유코드','수입 신고번호','수입 신고일자','정정신청일자','승인 일자','수입 세관','증감 내역','관세 증감 내역','부가세 증감 내역']];
+                  
+
                 // 테이블 헤더
-	            var header6 = [['건수','환급액','관세','부가세']];
-	            
-	            var ftaTotalData = [[rowCount5, totals5[6], totals5[7], totals5[8]]];
-	            
-	            // 🟢 테이블 스타일 적용
-            	doc.autoTable({
-            	  head: header6,
-            	  body: ftaTotalData,
-            	  startY: 32, // 설명 아래에 테이블 배치
-            	  theme: 'grid',
-            	  styles: {
-            	    font: 'NanumSquareR',
-            	    fontSize: 7,
-            	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
-            	    textColor: [0, 0, 0],
-            	    valign: 'middle',
-            	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
-                    wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
-            	  },
-            	  headStyles: {
-            		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
-            		fillColor: [35, 69, 56], // 헤더 배경 (초록)
-            	    fontSize: 8,
-            	    textColor: [255, 255, 255],
-            	    font: 'NanumSquareEB',
-            	    fontStyle: 'bold',
-            	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
-            	    lineWidth: 0.2, // 테두리 두께
-            	    border: [true, true, true, true],  // 헤더에 테두리 추가
-            	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
-                    wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
-                    halign: 'center', // 텍스트 가운데 정렬
-            	  },
-            	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
-            	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
-            	  columnStyles: {
-            		  	0: { halign: 'center'}, // 건수
-            	        1: { halign: 'right'}, // 환급액
-            	        2: { halign: 'right'}, // 관세
-            	        3: { halign: 'right'}, // 부가세
-            	  },
-        		});
+   	            var header6 = [['건수','환급액','관세','부가세']];
+   	            var ftaTotalData = [[rowCount5, totals5[7], totals5[8], totals5[9]]];
+   	            
+   	            // 🟢 테이블 스타일 적용
+               	doc.autoTable({
+               	  head: header6,
+               	  body: ftaTotalData,
+               	  startY: 32, // 설명 아래에 테이블 배치
+               	  theme: 'grid',
+               	  styles: {
+               	    font: 'NanumSquareR',
+               	    fontSize: 7,
+               	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
+               	    textColor: [0, 0, 0],
+               	    valign: 'middle',
+               	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
+                       wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
+               	  },
+               	  headStyles: {
+               		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
+               		fillColor: [35, 69, 56], // 헤더 배경 (초록)
+               	    fontSize: 8,
+               	    textColor: [255, 255, 255],
+               	    font: 'NanumSquareEB',
+               	    fontStyle: 'bold',
+               	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
+               	    lineWidth: 0.2, // 테두리 두께
+               	    border: [true, true, true, true],  // 헤더에 테두리 추가
+               	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
+                       wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
+                       halign: 'center', // 텍스트 가운데 정렬
+               	  },
+               	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
+               	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
+               	  columnStyles: {
+               		  	0: { halign: 'center'}, // 건수
+               		  	1: { halign: 'right'}, // 건수
+               		  	2: { halign: 'right'}, // 건수
+               		  	3: { halign: 'right'}, // 건수
+               	  },
+           		});
+               	
+                   
+                   
+                   // 🟢 테이블 그리기
+                  doc.autoTable({
+                    head: header5,
+                    body: datas6,
+                    startY: tableStartY,
+                    theme: 'grid',
+                    styles: {
+                      font: 'NanumSquareR',
+                      fontSize: 7,
+                      cellPadding: 2,
+                      textColor: [0, 0, 0],
+                      valign: 'middle',
+                      overflow: 'hidden',
+                      wordWrap: 'normal',
+                    },
+                    headStyles: {
+                      fillColor: [35, 69, 56],
+                      fontSize: 8,
+                      textColor: [255, 255, 255],
+                      font: 'NanumSquareEB',
+                      fontStyle: 'bold',
+                      cellPadding: 2,
+                      lineWidth: 0.2,
+                      border: [true, true, true, true],
+                      overflow: 'linebreak',
+                      wordWrap: 'break-word',
+                      halign: 'center',
+                    },
+                    margin: { left: 5, right: 5 },
+                    tableWidth: 'auto',
+                    columnStyles: {
+                    	0: { halign: 'center'}, // 건수
+               		  	1: { halign: 'center'}, // 건수
+               		  	2: { halign: 'center'}, // 건수
+               		  	3: { halign: 'center'}, // 건수
+               		  	4: { halign: 'center'}, // 건수
+               		  	5: { halign: 'center'}, // 건수
+               		  	6: { halign: 'center'}, // 건수
+               	        7: { halign: 'right'}, // 환급액
+               	        8: { halign: 'right'}, // 관세
+               	        9: { halign: 'right'}, // 부가세
+                    },
+                  });
+                }
+
+                
+                
             	
                
 	            
-	            // 🟢 테이블 스타일 적용
-            	doc.autoTable({
-            	  head: header5,
-            	  body:datas6,
-            	  startY: 55, // 설명 아래에 테이블 배치
-            	  theme: 'grid',
-            	  styles: {
-            	    font: 'NanumSquareR',
-            	    fontSize: 7,
-            	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
-            	    textColor: [0, 0, 0],
-            	    valign: 'middle',
-            	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
-                    wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
-            	  },
-            	  headStyles: {
-            		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
-            		fillColor: [35, 69, 56], // 헤더 배경 (초록)
-            	    fontSize: 8,
-            	    textColor: [255, 255, 255],
-            	    font: 'NanumSquareEB',
-            	    fontStyle: 'bold',
-            	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
-            	    lineWidth: 0.2, // 테두리 두께
-            	    border: [true, true, true, true],  // 헤더에 테두리 추가
-            	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
-                    wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
-                    halign: 'center', // 텍스트 가운데 정렬
-            	  },
-            	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
-            	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
-            	  columnStyles: {
-            		  	0: { halign: 'center'}, // 번호
-            	        1: { halign: 'center'}, // 신고일
-            	        2: { halign: 'center'}, // 정정신청일
-            	        3: { halign: 'center'}, // 수입세관
-            	        4: { halign: 'center'}, // 정정사유코드
-            	        5: { halign: 'center'}, // 승인일자
-            	        6: { halign: 'right'}, // 증감내역
-            	        7: { halign: 'right'}, // 관세 증감내역
-            	        8: { halign: 'right'}, // 부가세 증감내역
-            	  },
-        		});
+	           
             	
+            	// 페이지 추가
+                doc.addPage();
+                
+                doc.setFontSize(16);
+                doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
+                doc.setFont('NanumSquareB', 'normal');
+                //doc.setTextColor(62, 113, 175); //파란색
+                doc.setTextColor(71, 140, 114); 
+                doc.text(8, 15, "6. FTA 관세 절감효과");
+                doc.setFontSize(12);
+	            doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+                doc.setFont('NanumSquareEB', 'bold');
+                doc.setTextColor(108, 179, 63);
+                doc.text(190, 15, "I. 수입");
+                
+                // 제목 + 설명을 넣을 영역을 네모박스로 그리기
+                var boxMargin14 = 5;  // 테두리와의 여백
+                var boxWidth14 = 200;  // 박스의 너비
+                var boxHeight14 = 15;  // 박스의 높이 (설명 포함)
+                
+                doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
+                doc.setDrawColor(35, 69,56); 
+                doc.rect(5, 8, boxWidth14, boxHeight14, 'D'); 
+                
+                
+                
+                var reportData15 = data.reportData15;
+                console.log("reportData15",reportData15);
+                
+                if(reportData15.length === 1){
+                	/* noDataMsg = "* 조회기간 동안 FTA SAVING 세액이 존재하지 않습니다.";
+                	 
+                	  doc.setFont('NanumSquareR', 'normal');
+                	  doc.setFontSize(9);
+                	  doc.setTextColor(150);
+                	  doc.text(noDataMsg, 10, 30);*/
+                	  
+                	  lastYPage10 = 16;
+                }else{
+                	var datas13 = reportData15.map(item => {
+        	              var amountKrw = parseFloat(item.amountKrw) || 0;  // 원본 값
+        	              var formattedCnt = Intl.NumberFormat("ko-KR").format(item.cnt);  // 포매팅된 값
+        	              var formattedTotalFtaRate = Intl.NumberFormat("ko-KR").format(item.ftaRate);  // 포매팅된 값
+        	              var formattedTotalGs = Intl.NumberFormat("ko-KR").format(item.gs);  // 포매팅된 값
+        	              var formattedTotalDuty = Intl.NumberFormat("ko-KR").format(item.duty);  // 포매팅된 값
+        	              
+        	              return [
+        	                item.gsRate,       		// 구분
+        	                item.gsDivi,            // 세종
+        	                formattedCnt, 			// 신고건수
+        	                formattedTotalFtaRate,  // 적용 전 관세
+        	                formattedTotalGs,       // 적용 후 관세
+        	                formattedTotalDuty      // 절감세액
+        	              ];
+        	            });
+        		         
+                    	// 테이블 헤더
+        		       var header14 = [
+        		    	   	[ 
+        		    		    { content: '구분', rowSpan: 2, border: [true, true, true, true] },  // 수리일자 셀에 테두리 추가
+        		    		    { content: '세종', rowSpan: 2, border: [true, true, true, true] },
+        		    		    { content: 'FTA SAVING 세액', colSpan: 4, border: [true, true, true, true] },  // 수입 거래형태 현황 셀에 테두리 추가
+        		    		  ],  // 첫 번째 행
+        		    		  [
+        		    		    { content: '신고건수', border: [true, true, true, true] },
+        		    		    { content: '적용 전 관세', border: [true, true, true, true] },
+        		    		    { content: '실제 납부 관세', border: [true, true, true, true] },
+        		    		    { content: '절감 세액', border: [true, true, true, true] },
+        		    		  ]
+        		    	 ];
+        		        doc.setFontSize(10);
+        		        doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
+                        doc.setFont('NanumSquareB', 'normal');
+                        doc.setTextColor(64, 64, 64);
+                      //  doc.text(8, 26, "(1) 25년 6월 FTA 적용에 따른 관세 절감 효과");
+                        doc.text(5, 29, '(1) '+ String(data.rptDate1) + '년 ' + String(data.rptDate2) + '월 FTA 적용에 따른 관세 절감 효과');
+        		       
+                    	// 🟢 테이블 스타일 적용
+                    	doc.autoTable({
+                    	  head: header14,
+                    	  body:datas13,
+                    	  startY: 33, // 설명 아래에 테이블 배치
+                    	  theme: 'grid',
+                    	  styles: {
+                    	    font: 'NanumSquareR',
+                    	    fontSize: 7,
+                    	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
+                    	    textColor: [0, 0, 0],
+                    	    valign: 'middle',
+                    	    halign: 'center',
+                    	    overflow: 'linebreak', // 텍스트 줄바꿈 적용
+                    	  },
+                    	  headStyles: {
+                    		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
+                    		fillColor: [35, 69, 56], // 헤더 배경 (초록)
+                    	    fontSize: 8,
+                    	    textColor: [255, 255, 255],
+                    	    font: 'NanumSquareEB',
+                    	    fontStyle: 'bold',
+                    	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
+                    	    lineWidth: 0.2, // 테두리 두께
+                    	    border: [true, true, true, true],  // 헤더에 테두리 추가
+                    	  },
+                    	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
+                    	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
+                    	  columnStyles: {
+                    		  	0: { halign: 'center'}, // 구분
+                    	        1: { halign: 'center'}, // 세종
+                    	        2: { halign: 'right' }, // 신고건수
+                    	        3: { halign: 'right'}, // 적용 전 관세
+                    	        4: { halign: 'right'}, // 적용 후 관세
+                    	        5: { halign: 'right'}, // 절감 세액
+                    	  },
+                    	 didParseCell: function (data) {
+               		    // 데이터 셀이고, '합계'인 경우
+               		    if (data.section === 'body' && data.row.raw[0] === '합계') {
+               		      data.cell.styles.fillColor = [246, 243, 202]; // 배경
+             	              data.cell.styles.font = 'NanumSquareB'; // 굵은 폰트 적용
+             	              data.cell.styles.fontStyle = 'bold'; // 볼드 처리
+               		    }
+               		  }
+                		});
+                    	
+                    	 lastYPage10 = doc.lastAutoTable.finalY;  
+                }
+		         
+                
+              	 var reportData16 = data.reportData16;
+                 console.log("reportData16",reportData16);
+ 		         
+                 if(reportData16.length === 0){
+                	 
+                 }else{
+                	 
+                	  doc.setFontSize(10);
+      		        doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
+                      doc.setFont('NanumSquareB', 'normal');
+                      doc.setTextColor(64, 64, 64);
+                    //  doc.text(8, 26, "(1) 25년 6월 FTA 적용에 따른 관세 절감 효과");
+                      doc.text(5, lastYPage10 + 11, '(2) '+ '리포트 생성 일자 기준 사후 협정 적용 가능 세액 ');
+                      
+                	 let totalCnt = 0;
+                	 let totalBeforeFta = 0;
+                	 let totalAfterFta = 0;
+                	 let totalSaving = 0;
+
+                	 let datas14 = reportData16.map(item => {
+                	   totalCnt += Number(item.cnt || 0);
+                	   totalBeforeFta += Number(item.beforeFta || 0);
+                	   totalAfterFta += Number(item.afterFta || 0);
+                	   totalSaving += Number(item.saving || 0);
+
+                	   return [
+                	     item.gsname,
+                	     item.gsDivi,
+                	     Intl.NumberFormat("ko-KR").format(item.cnt),
+                	     Intl.NumberFormat("ko-KR").format(item.beforeFta),
+                	     Intl.NumberFormat("ko-KR").format(item.afterFta),
+                	     Intl.NumberFormat("ko-KR").format(item.saving),
+                	   ];
+                	 });
+
+                	 datas14.push([
+                	   '합계',
+                	   '',
+                	   Intl.NumberFormat("ko-KR").format(totalCnt),
+                	   Intl.NumberFormat("ko-KR").format(totalBeforeFta),
+                	   Intl.NumberFormat("ko-KR").format(totalAfterFta),
+                	   Intl.NumberFormat("ko-KR").format(totalSaving),
+                	 ]);
+          		         
+                      	// 테이블 헤더
+          		       var header15 = [
+          		    	   	[ 
+          		    		    { content: '구분', rowSpan: 2, border: [true, true, true, true] },  // 수리일자 셀에 테두리 추가
+          		    		    { content: '세종', rowSpan: 2, border: [true, true, true, true] },
+          		    		    { content: 'FTA 추가 SAVING 가능 세액', colSpan: 4, border: [true, true, true, true] },  // 수입 거래형태 현황 셀에 테두리 추가
+          		    		  ],  // 첫 번째 행
+          		    		  [
+          		    		    { content: '신고건수', border: [true, true, true, true] },
+          		    		    { content: '실제 납부 관세', border: [true, true, true, true] },
+          		    		    { content: '적용 후 관세', border: [true, true, true, true] },
+          		    		    { content: '절감 가능 세액', border: [true, true, true, true] },
+          		    		  ]
+          		    	 ];
+          		       
+          		       
+                      	// 🟢 테이블 스타일 적용
+                      	 doc.autoTable({
+                      	  head: header15,
+                      	  body:datas14,
+                      	  startY: lastYPage10 + 15, // 설명 아래에 테이블 배치
+                      	  theme: 'grid',
+                      	  styles: {
+                      	    font: 'NanumSquareR',
+                      	    fontSize: 7,
+                      	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
+                      	    textColor: [0, 0, 0],
+                      	    valign: 'middle',
+                      	    halign: 'center',
+                      	    overflow: 'linebreak', // 텍스트 줄바꿈 적용
+                      	  },
+                      	  headStyles: {
+                      		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
+                      		fillColor: [35, 69, 56], // 헤더 배경 (초록)
+                      	    fontSize: 8,
+                      	    textColor: [255, 255, 255],
+                      	    font: 'NanumSquareEB',
+                      	    fontStyle: 'bold',
+                      	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
+                      	    lineWidth: 0.2, // 테두리 두께
+                      	    border: [true, true, true, true],  // 헤더에 테두리 추가
+                      	  },
+                      	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
+                      	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
+                      	  columnStyles: {
+                      		  	0: { halign: 'center'}, // 구분
+                      	        1: { halign: 'center'}, // 세종
+                      	        2: { halign: 'right' }, // 신고건수
+                      	        3: { halign: 'right'}, // 적용 전 관세
+                      	        4: { halign: 'right'}, // 적용 후 관세
+                      	        5: { halign: 'right'}, // 절감 세액
+                      	  },
+                      	 didParseCell: function (data) {
+                 		    // 데이터 셀이고, '합계'인 경우
+                 		    if (data.section === 'body' && data.row.raw[0] === '합계') {
+                 		      data.cell.styles.fillColor = [246, 243, 202]; // 배경
+               	              data.cell.styles.font = 'NanumSquareB'; // 굵은 폰트 적용
+               	              data.cell.styles.fontStyle = 'bold'; // 볼드 처리
+                 		    }
+                 		  }
+                  		});
+                      	
+                      	var explanationY = doc.lastAutoTable.finalY + 8;
+                      	doc.setFont('NanumSquareR', 'normal');
+                      	doc.setFontSize(8);
+                      	doc.setTextColor(64, 64, 64);  // 회색 느낌
+
+                      	var explanation = [
+                      	 ` * FTA 추가 SAVING 가능한 세액은 원산지, 적출국, 결정 기준 등 원산지 적용 원칙을 충족하는 경우, 수입 신고 수리 일로부터 1년 이내에 환급이 가능한 세액을 의미합니다.`
+                      	];
+
+                      	let lineHeight = 4.5; // 줄간격
+                      	let currentY = doc.lastAutoTable.finalY + 5;
+
+                      	doc.setFont('NanumSquareR', 'normal');
+                      	doc.setFontSize(8);
+                      	doc.setTextColor(64, 64, 64);
+
+                      	explanation.forEach((line, index) => {
+                      	    doc.text(line, 8, currentY); // 각 줄을 출력
+                      	    currentY += lineHeight; // 줄간격만큼 Y좌표 업데이트
+                      	});
+                 }
+                 
+                 if(reportData15.length === 1 && reportData16.length === 0){
+                	 noDataMsg = "* 조회 기간 동안 FTA 사후적용금액이 존재하지 않습니다.";
+                     
+                     doc.setFont('NanumSquareR', 'normal');
+                     doc.setFontSize(10);
+                     doc.setTextColor(64,64,64); // 회색 느낌
+                     doc.text(noDataMsg, 10, 40);
+
+                 }
+                 
+                 
+                 
             	
             	// 🟢8번째 페이지 추가
                 doc.addPage();
@@ -2633,406 +3065,85 @@ function exportRptPdf(data){
                 doc.setFont('NanumSquareB', 'normal');
                 //doc.setTextColor(62, 113, 175); //파란색
                 doc.setTextColor(71, 140, 114); 
-                doc.text(8, 15, "6.주요 해외 거래처(수입)");
+                doc.text(8, 15, "7. 주요 해외 거래처");
+                doc.setFontSize(12);
+	            doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+                doc.setFont('NanumSquareEB', 'bold');
+                doc.setTextColor(108, 179, 63);
+                doc.text(190, 15, "I. 수입");
                 
                 // 제목 + 설명을 넣을 영역을 네모박스로 그리기
-                const boxMargin7 = 5;  // 테두리와의 여백
-                const boxWidth7 = 200;  // 박스의 너비
-                const boxHeight7 = 15;  // 박스의 높이 (설명 포함)
+                var boxMargin7 = 5;  // 테두리와의 여백
+                var boxWidth7 = 200;  // 박스의 너비
+                var boxHeight7 = 15;  // 박스의 높이 (설명 포함)
                 
                 doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
                 doc.setDrawColor(35, 69,56); 
                 doc.rect(5, 8, boxWidth7, boxHeight7, 'D'); 
                 
-                const reportData8 = data.reportData8;
-               
-                // 수입금액(원화)의 총합 계산
-                const totalConTotAmt = reportData8.reduce((sum, item) => sum + item.conTotAmt, 0);
-               
-                const datas7 = reportData8.map(item => {
-  	              const formattedTotImp = Intl.NumberFormat("ko-KR").format(item.totImp); 
-  	              const formattedConTotAmt = Intl.NumberFormat("ko-KR").format(item.conTotAmt);
-  	              
-  	              // 비율 계산 (총액 대비 백분율)
-  	            const percentage = totalConTotAmt > 0 ? ((item.conTotAmt / totalConTotAmt) * 100).toFixed(2) + "%" : "0%";
+                var reportData8 = data.reportData8;
+               console.log("reportData8",reportData8);
+                if(reportData8.length == 0 ){
+                	 // 🛑 데이터 없을 때: 안내 문구 출력
+                	console.log("xxxxx");
+                	noDataMsg = "* 조회 기간 동안 주요 해외 거래처가 존재하지 않습니다.";
+                   
+                   doc.setFont('NanumSquareR', 'normal');
+                   doc.setFontSize(10);
+                   doc.setTextColor(64,64,64); // 회색 느낌
+                   doc.text(noDataMsg, 10, 40);  // 위치 조정해서 출력
+                }else{
+                	// 수입금액(원화)의 총합 계산
+                    var totalTotRptKrw = reportData8.reduce((sum, item) => sum + item.conTotAmt, 0);
+                    
+                    // percentage 0.01% 이상인 항목 필터링
+                    let filtered = reportData8.filter(item => {
+                      var ratio = item.conTotAmt / totalTotRptKrw;
+                      return ratio * 100 >= 0.01;
+                    });
+                    
+                    // conTotAmt 기준 내림차순 정렬
+                    filtered.sort((a, b) => b.conTotAmt - a.conTotAmt);
 
-  	              
-  	              return [
-  	            	  item.supFirm,            // 해외거래처
-  	            	  item.supStSht,        	// 국가
-  	            	  formattedTotImp,			//건수
-  	            	  formattedConTotAmt,    	// 수입금액(원화)
-  	            	  percentage
-  	              ];
-  	            });
-	            
-	            // 테이블 헤더
-	            var header5 = [['해외거래처','국가','건수','수입금액(원화)','비율']];
-	            
-	            
-	            // 🟢 테이블 스타일 적용
-            	doc.autoTable({
-            	  head: header5,
-            	  body:datas7,
-            	  startY: 24, // 설명 아래에 테이블 배치
-            	  theme: 'grid',
-            	  styles: {
-            	    font: 'NanumSquareR',
-            	    fontSize: 7,
-            	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
-            	    textColor: [0, 0, 0],
-            	    valign: 'middle',
-            	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
-                    wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
-            	  },
-            	  headStyles: {
-            		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
-            		fillColor: [35, 69, 56], // 헤더 배경 (초록)
-            	    fontSize: 8,
-            	    textColor: [255, 255, 255],
-            	    font: 'NanumSquareEB',
-            	    fontStyle: 'bold',
-            	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
-            	    lineWidth: 0.2, // 테두리 두께
-            	    border: [true, true, true, true],  // 헤더에 테두리 추가
-            	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
-                    wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
-                    halign: 'center', // 텍스트 가운데 정렬
-            	  },
-            	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
-            	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
-            	  columnStyles: {
-            		  	0: { halign: 'center'}, // 해외거래처
-            	        1: { halign: 'center'}, // 국가
-            	        2: { halign: 'right'}, // 건수
-            	        3: { halign: 'right'}, // 수입금액(원화)
-            	        4: { halign: 'right'}, // 비율
-            	  },
-        		});
-            	
-            	
-            	lastYPage6 = doc.lastAutoTable.finalY;  
-            	const pageAfterTable6 = doc.internal.getCurrentPageInfo().pageNumber;
-            	
-            	const spaceLeft6 = doc.internal.pageSize.height - lastYPage6 - 10;
-            	
-            	let chartPage6, chartY6;
-            	
-            	if(spaceLeft6< 130){
-            		doc.addPage();
-            		chartPage6 = pageAfterTable6 + 1;
-            		chartY6 = 15;
-            	}else{
-            		 chartPage6 = pageAfterTable6;       // 같은 페이지에 그릴 수 있음
-            		  chartY6 = lastYPage6;
-            	}
-            	
-            	
-               	const pdf7canvas = document.createElement("canvas");
-            	const pdf7ctx = pdf7canvas.getContext("2d");
-            	pdf7canvas.width = 1000;
-            	pdf7canvas.height = 1000;
-            	pdf7canvas.style.visibility = 'hidden';
-            	document.body.appendChild(pdf7canvas);
-            	
-            	// 플러그인 정의
-            	const chartDataLabels3 = {
-            	  id: 'chartDataLabels',
-            	  afterDraw(chart, args, options) {
-            	    const ctx3 = chart.ctx;
-            	    ctx3.textAlign = "center";
-            	    ctx3.textBaseline = "middle";
-            	    ctx3.fillStyle = '#000';
-            	    ctx3.font = "16px NanumSquare";
-            	    ctx3.lineWidth =3;
+                    // 10개 초과 시 상위 10개만 선택
+                    if (filtered.length > 10) {
+                      filtered = filtered.slice(0, 10);
+                    }
+                   
+                    var datas7 = filtered.map(item => {
+      	              var formattedTotImp = Intl.NumberFormat("ko-KR").format(item.totImp); 
+      	              var formattedConTotAmt = Intl.NumberFormat("ko-KR").format(item.conTotAmt);
+      	              
+      	              // 비율 계산 (총액 대비 백분율)
+      	            var percentage = totalTotRptKrw > 0 ? ((item.conTotAmt / totalTotRptKrw) * 100).toFixed(2) + "%" : "0%";
 
-            	    const prevTextPositions3 = [];
-
-            	    chart.data.datasets.forEach((dataset, i) => {
-            	      chart.getDatasetMeta(i).data.forEach((datapoint, index) => {
-            	        const supFirm = chart.data.labels[index]; // supFirm 이름
-            	        const percentage = dataset.data[index];   // 비율 숫자
-
-            	        if (percentage < 1) return;
-
-            	        const { x, y } = datapoint.tooltipPosition();
-            	        const radius = chart.outerRadius || (chart.chartArea.width / 2);
-            	        const angle = (datapoint.startAngle + datapoint.endAngle) / 2;
-
-            	        const xOuter = x + (radius * 0.4) * Math.cos(angle);
-            	        const yOuter = y + (radius * 0.4) * Math.sin(angle);
-
-            	        const xMiddle = xOuter + Math.cos(angle) * 20;
-            	        const yMiddle = yOuter + Math.sin(angle) * 20;
-
-            	        let xLine = xMiddle + (Math.cos(angle) >= 0 ? 20 : -20);
-            	        let yLine = yMiddle;
-
-            	        const minDistance = 90;
-            	        let attempts = 0;
-
-            	        // 텍스트 간격 조정 반복
-            	        prevTextPositions3.forEach((prevPos) => {
-		                    const dist3 = Math.sqrt(Math.pow(xLine - prevPos.x, 2) + Math.pow(yLine - prevPos.y, 2));
-		                    if (dist3 < minDistance) {
-		                        // 겹칠 경우 위치 조정1
-		                        const angleOffset3 = Math.PI / 18;  // 약간의 각도 오프셋을 추가하여 이동
-		                        xLine = xMiddle + (Math.cos(angle + angleOffset3) * 10);
-		                        yLine = yMiddle + (Math.sin(angle + angleOffset3) * 10);
-		                    }
-		                });
-
-            	        prevTextPositions3.push({ x: xLine, y: yLine });
-
-            	        ctx3.beginPath();
-            	        ctx3.moveTo(xOuter, yOuter);
-            	        ctx3.lineTo(xMiddle, yMiddle);
-            	        ctx3.lineTo(xLine, yLine);
-            	        ctx3.strokeStyle = 'rgba(129,212,250,0.9)';
-            	        ctx3.stroke();
-
-            	        ctx3.textAlign = Math.cos(angle) >= 0 ? "left" : "right";
-
-            	       
-            	        //let labelText = `${supFirm} : ${percentage.toFixed(2)}%`;
-            	        let labelText = `${percentage.toFixed(2)}%`;
-
-            	        ctx3.fillText(labelText, xLine, yLine);
-            	      });
-            	    });
-            	  }
-            	};
-
-            	
-            	// 1% 이상인 데이터만 필터링
-            	const chartDataFiltered = reportData8
-            	  .map(item => {
-            	    const percentage = totalConTotAmt > 0 ? (item.conTotAmt / totalConTotAmt) * 100 : 0;
-            	    return {
-            	      supFirm: item.supFirm,
-            	      percentage: percentage
-            	    };
-            	  })
-            	  .filter(item => item.percentage >= 5); // 🔥5% 이상만
-
-            	// 라벨: supFirm 이름
-            	const supFirmLabels = chartDataFiltered.map(item => item.supFirm);
-
-            	// 데이터: 비율 (소수점 2자리)
-            	const impPieData = chartDataFiltered.map(item => Number(item.percentage.toFixed(2)));
-            	
-            	const pdf7chart = new Chart(pdf7ctx, {
-            		plugins : [chartDataLabels3],
-            			type: "pie",
-	            	    data: {
-	            	        labels: supFirmLabels,
-	            	        datasets: [{
-	            	            data: impPieData,
-	            	            backgroundColor: [
-	            	            	'rgba(1,87,155,0.7)',
-	            	            	'rgba(2,119,189,0.7)',
-	            	            	'rgba(2,136,209,0.7)',
-	            	            	'rgba(3,155,229,0.7)',
-	            	            	'rgba(3,169,244,0.7)',
-	            	            	'rgba(41,182,246,0.7)',
-	            	            	'rgba(79,195,247, 0.7)',
-	            	            	'rgba(129,212,250,0.7)',
-	            	            	'rgba(179,229,252,0.7)',
-	            	            	'rgba(166,208,228,0.7)',
-	            	            	/*'rgb(49,97,79)',
-	            	            	'rgb(71,140,114)',
-	            	            	'rgb(84,166,135)',
-	            	            	'rgb(123,211,171)',
-	            	            	'rgb(153,184,169)',
-	            	            	'rgb(102,178,103)',
-	            	            	'rgb(154,204,153)',
-	            	            	'rgb(186,221,139)',
-	            	            	'rgb(238,231,148)',
-	            	            	'rgb(231,244,218)',*/
-	            	            	]
-	            	        }]
-	            	    },
-	            	    options: {
-	            	    	 responsive: false, // ✅ 차트 크기 자동 조절 비활성화
-	            	         maintainAspectRatio: false, // ✅ 원형 비율 유지 비활성화
-	            	         //radius: '50%',
-	            	        //aspectRatio: 1, // 가로세로 비율을 1:1로 고정하여 원형 유지
-	            	        layout: {
-	            	        	padding: {
-	            	                top: 300,
-	            	                right: 320,
-	            	                bottom: 30,
-	            	                left: 320
-	            	            }
-	            	        	//padding:250
-	            	        },
-	            	        plugins: {
-	            	            legend: { 
-	            	            	position: "bottom",
-	            	            	 fullWidth: true,
-	            	            	labels : {
-	            	            		boxWidth : 8,
-	            	            		padding : 10,
-	            	            		font : {
-	            	            			size : 13,
-	            	            			weight : 'bold'
-	            	            		}
-	            	            	}
-
-	            	            },
-	            	            title : {
-	            	            	display: true,
-	            	            	text: '주요 해외거래처(수입)',
-	            	            	font : {size :24 ,weight : 'bold'},
-	            	            	padding: {bottom :30}
-	            	            },
-	            	            tooltip: {
-	             	               enabled : false // 툴팁 비활성화
-	             	            },
-	             	            datalabels: { 
-	             	            	 display: false // ✅ 차트 내부 데이터 숨김
-	             	            }
-	            	        }
-	            	    },
-	            	});
-            	
-            	
-
-            	// 🟢 9번  페이지 추가
-                doc.addPage();
-                
-                doc.setFontSize(16);
-                doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
-                doc.setFont('NanumSquareB', 'normal');
-                //doc.setTextColor(62, 113, 175); //파란색
-                doc.setTextColor(71, 140, 114); 
-                doc.text(8, 15, "7.수출통관현황");
-                
-                // 제목 + 설명을 넣을 영역을 네모박스로 그리기
-                const boxMargin8 = 5;  // 테두리와의 여백
-                const boxWidth8 = 200;  // 박스의 너비
-                const boxHeight8 = 23;  // 박스의 높이 (설명 포함)
-                
-                doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
-                doc.setDrawColor(35, 69,56); 
-                doc.rect(5, 8, boxWidth8, boxHeight8, 'D'); 
-                
-                
-                const reportData9 = data.reportData9;  
-                	console.log("reportData9",reportData9);
-    	            const datas8 = reportData9.map(item => {
-    	              const amountKrw = parseFloat(item.amountKrw) || 0;  // 원본 값
-    	              const formattedAmountKrw = Intl.NumberFormat("ko-KR").format(amountKrw);  // 포매팅된 값
-    	              
-    	              return [
-    	                item.lisDay,        // 수리일자
-    	                item.cnt,           // 건수
-    	                formattedAmountKrw, // 신고가격
-    	                item.exType1,       // 일반수출
-    	                item.exType2,       // 원상태
-    	                item.exType3,       // 반송수출
-    	                item.exType4,       // 수리용
-    	                item.exType5,       // 기타무상수출
-    	                item.exPrc1,        // P/L
-    	                item.exPrc3,        // 제출서류
-    	                item.exPrc2,        // 검사
-    	              ];
-    	            });
-    		        // 🟢 열별 합계 계산
-    		         
+      	              
+      	              return [
+      	            	  item.supFirm,            // 해외거래처
+      	            	  item.supStSht,        	// 국가
+      	            	  formattedTotImp,			//건수
+      	            	  formattedConTotAmt,    	// 수입 금액(KRW)
+      	            	  percentage
+      	              ];
+      	            });
     	            
-    	             const columnCount6 = (datas8.length > 0 && Array.isArray(datas8[0])) ? datas8[0].length : 0; // 열 개수
-    		         const totals6 = Array(columnCount6).fill(0);  // 0으로 채운 합계 배열
-
-    		         // 합계 계산 (첫 번째 열은 "합계" 문자열을 넣고, 나머지는 숫자 합산)
-    		         totals6[0] = "합계"; 
-    		         for (let i = 1; i < columnCount6; i++) {
-    		        	  // 과세가격(3번째 열)을 제외한 값들만 합산
-    		        	  if (i === 2) {
-    		        	    totals6[i] = datas8.reduce((sum, row) => sum + (parseFloat(row[i].replace(/,/g, "")) || 0), 0); // 원본 값으로 합계 계산
-    		        	  } else {
-    		        	    totals6[i] = datas8.reduce((sum, row) => sum + (parseFloat(row[i]) || 0), 0);
-    		        	  }
-    		        	}
-
-    		         // 🟢 비율 계산 (각 그룹을 100%로 설정)
-    		         const percentages1 = Array(columnCount6).fill("-");
-    		         percentages1[0] = "비율(%)"; // 첫 번째 열은 "비율(%)"
-
-    		         // 🟢 수츨 거래형태 비율 계산
-    		         const tradeTotal1 = totals6.slice(3, 8).reduce((sum, value) => sum + value, 0); // 3~7번째 열 합계
-    		         for (let i = 3; i < 8; i++) {
-    		             percentages1[i] = tradeTotal1 > 0 ? ((totals6[i] / tradeTotal1) * 100).toFixed(1) + "%" : "-";
-    		         }
-
-    		         // 🟢 수출처리현황 비율 계산
-    		         const processTotal1 = totals6.slice(8, 11).reduce((sum, value) => sum + value, 0); // 8~10번째 열 합계
-    		         for (let i = 8; i < 11; i++) {
-    		             percentages1[i] = processTotal1 > 0 ? ((totals6[i] / processTotal1) * 100).toFixed(1) + "%" : "-";
-    		         }
-
-    		         
-    		     	 // 🟢 숫자 데이터 포맷팅 (천 단위 콤마 추가)
-    		         const formattedTotals1 = totals6.map((value, index) =>
-    		         typeof value === "number" ? Intl.NumberFormat("ko-KR").format(value) : value
-    		      	);
-    		         
-    		     	// 🟢 건수, P/L, 제출서류, 검사 가져오기
-    		         const countTotal1 = formattedTotals1[1] || 0;              // 통관건수
-    		         const plTotal1 = formattedTotals1[8] || 0;                 // P/L 합계
-    		         const plPercentage1 = percentages1[8] || 0;                // P/L 비율
-    		         const submissionTotal1 = formattedTotals1[9] || 0;         // 제출서류 합계
-    		         const submissionPercentage1 = percentages1[9] || 0;        // 제출서류 비율
-    		         const inspectionTotal1 = formattedTotals1[10] || 0;        // 검사 합계
-    		         const inspectionPercentage1 = percentages1[10] || 0;       // 검사 비율
-    	       
-    		            // 🟢 설명 추가 (왼쪽 정렬 + 줄 나누기)
-    		            doc.setFontSize(9);
-    		            doc.addFont('/pf/fonts/NanumSquareR.ttf', 'NanumSquareR', 'normal');
-    		            doc.setFont('NanumSquareR', 'normal');
-    		            doc.setTextColor(0, 0, 0);
-    		            const description4 = [
-    		            	`다음 자료는 ${data.rptDate2}월 한달 수입통관 자료이며 총 ${countTotal1}건 수입신고를 진행하였습니다.`,
-    		                `수입신고 처리현황은 P/L ${plTotal1}건 (${plPercentage1}), 제출 ${submissionTotal1}건 (${submissionPercentage1}), 검사 ${inspectionTotal1}건 (${inspectionPercentage1}) 입니다.`
-    		            ];
-    		          
-    		             startY = 23; // description 높이 위치
-    		            description4.forEach((line, index) => {
-    		            	  doc.text(8, startY, line); // 왼쪽 정렬 (x: 8, y: startY)
-    		            	  startY += 5; // 각 줄 간격을 5로 설정하여 다음 줄로 내려감
-    		        	});
-    		         
-    		      // 🟢 datas에 합계와 비율 행 추가
-    		         datas8.push(formattedTotals1);
-    		         datas8.push(percentages1);
-    		         
-                	// 테이블 헤더
-    		       const header7 = [
-    		    	   	[ 
-    		    		    { content: '수리일자', rowSpan: 2, border: [true, true, true, true] },  // 수리일자 셀에 테두리 추가
-    		    		    { content: '건수', rowSpan: 2, border: [true, true, true, true] },
-    		    		    { content: '신고가격(KRW)', rowSpan: 2, border: [true, true, true, true] },
-    		    		    { content: '수출신고 거래형태 현황', colSpan: 5, border: [true, true, true, true] },  // 수입 거래형태 현황 셀에 테두리 추가
-    		    		    { content: '수출신고 처리현황', colSpan: 3, border: [true, true, true, true] },  // 수입신고 처리현황 셀에 테두리 추가
-    		    		  ],  // 첫 번째 행
-    		    		  [
-    		    		    { content: '일반수입', border: [true, true, true, true] },
-    		    		    { content: '원상태', border: [true, true, true, true] },
-    		    		    { content: '반송수출', border: [true, true, true, true] },
-    		    		    { content: '수리용', border: [true, true, true, true] },
-    		    		    { content: '기타무상수출', border: [true, true, true, true] },
-    		    		    { content: 'P/L', border: [true, true, true, true] },
-    		    		    { content: '제출서류', border: [true, true, true, true] },
-    		    		    { content: '검사', border: [true, true, true, true] },
-    		    		  ]
-    		    	 ];
-    		       
-    		       
-                	// 🟢 테이블 스타일 적용
+    	            // 테이블 헤더
+    	            var header5 = [['해외거래처','국가','건수','수입 금액(KRW)','비율(%)']];
+    	            
+    	            let sortedData = [...reportData8]
+	              	  .map((item, idx) => ({ idx, value: item.cnt })) // index와 값 저장
+	              	  .sort((a, b) => b.value - a.value); // 큰 값부터 정렬
+	
+	              	let rankMap = {}; // index -> 순위 매핑
+	              	sortedData.forEach((item, i) => {
+	              	  rankMap[item.idx] = i + 1; // 1부터 시작
+	              	})
+    	            
+    	            // 🟢 테이블 스타일 적용
                 	doc.autoTable({
-                	  head: header7,
-                	  body:datas8,
-                	  startY: startY + 2, // 설명 아래에 테이블 배치
+                	  head: header5,
+                	  body:datas7,
+                	  startY: 24, // 설명 아래에 테이블 배치
                 	  theme: 'grid',
                 	  styles: {
                 	    font: 'NanumSquareR',
@@ -3040,8 +3151,8 @@ function exportRptPdf(data){
                 	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
                 	    textColor: [0, 0, 0],
                 	    valign: 'middle',
-                	    halign: 'center',
-                	    overflow: 'linebreak', // 텍스트 줄바꿈 적용
+                	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
+                        wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
                 	  },
                 	  headStyles: {
                 		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
@@ -3053,217 +3164,600 @@ function exportRptPdf(data){
                 	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
                 	    lineWidth: 0.2, // 테두리 두께
                 	    border: [true, true, true, true],  // 헤더에 테두리 추가
+                	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
+                        wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
+                        halign: 'center', // 텍스트 가운데 정렬
                 	  },
                 	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
                 	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
                 	  columnStyles: {
-                		  	0: { halign: 'center' , cellWidth: 23 }, // 수리일자
-                	        1: { halign: 'right' , cellWidth: 18}, // 건수
-                	        2: { halign: 'right' , cellWidth: 23}, // 과세가격
-                	        3: { halign: 'center' , cellWidth: 17}, // 일반수입
-                	        4: { halign: 'center' , cellWidth: 17}, // 수리물품
-                	        5: { halign: 'center' , cellWidth: 17}, // 견품 및 광고용품
-                	        6: { halign: 'center' , cellWidth: 17}, // 기타 수입 승인면세
-                	        7: { halign: 'center' , cellWidth: 17}, // 재수출조건
-                	        8: { halign: 'center' , cellWidth: 17 }, // P/L
-                	        9: { halign: 'center' , cellWidth: 17}, // 제출서류
-                	        10: { halign: 'center' , cellWidth: 17}, // 검사
+                		  	0: { halign: 'center'}, // 해외거래처
+                	        1: { halign: 'center'}, // 국가
+                	        2: { halign: 'right'}, // 건수
+                	        3: { halign: 'right'}, // 수입금액(원화)
+                	        4: { halign: 'right'}, // 비율
                 	  },
-                	  didParseCell: function(data) {
-                		    // 🟢 합계 행 스타일 적용 (마지막에서 두 번째 행)
-                		    if (data.row.index === datas8.length - 2) {
-                		      data.cell.styles.fillColor = [246, 243, 202]; // 배경
-              	              data.cell.styles.font = 'NanumSquareB'; // 굵은 폰트 적용
-              	              data.cell.styles.fontStyle = 'bold'; // 볼드 처리
-                		    }
-                		    // 🟢 비율 행 스타일 적용 (마지막 행)
-                		    if (data.row.index === datas8.length - 1) {
-                		    	data.cell.styles.fillColor = [246, 243, 202]; // 배경
-                	            data.cell.styles.font = 'NanumSquareB'; // 굵은 폰트 적용
-                	            data.cell.styles.fontStyle = 'bold'; // 볼드 처리
-                		    }
-                		  }
             		});
                 	
-                	// 5번째 테이블 y좌표 저장 
-                	lastYPage5 = doc.lastAutoTable.finalY; 
-                	const pageAfterTable5 = doc.internal.getCurrentPageInfo().pageNumber;
                 	
-                	const spaceLeft5 = doc.internal.pageSize.height - lastYPage5 - 10;
+                	lastYPage6 = doc.lastAutoTable.finalY;  
+                	var pageAfterTable6 = doc.internal.getCurrentPageInfo().pageNumber;
                 	
-                	let chartPage5, chartY5;
+                	var spaceLeft6 = doc.internal.pageSize.height - lastYPage6 - 10;
                 	
-                	if(spaceLeft5< 70){
+                	
+                	
+                	if(spaceLeft6< 120){
                 		doc.addPage();
-                		chartPage5 = pageAfterTable5 + 1;
-                		chartY5 = 15;
+                		chartPage6 = pageAfterTable6 + 1;
+                		chartY6 = 15;
                 	}else{
-                		 chartPage5 = pageAfterTable5;       // 같은 페이지에 그릴 수 있음
-                		  chartY5 = lastYPage5;
+                		 chartPage6 = pageAfterTable6;       // 같은 페이지에 그릴 수 있음
+                		  chartY6 = lastYPage6;
                 	}
                 	
-                	// 거래형태 
-                	// 데이터 변환 (NaN 방지)
-                	const safeParse1 = (value) => {
-                	    let num = parseFloat(value ? value.replace('%', '') : 0);
-                	    return isNaN(num) ? 0 : num;
+                	
+                   	 pdf7canvas = document.createElement("canvas");
+                	 pdf7ctx = pdf7canvas.getContext("2d");
+                	pdf7canvas.width = 1000;
+                	pdf7canvas.height = 1000;
+                	pdf7canvas.style.visibility = 'hidden';
+                	document.body.appendChild(pdf7canvas);
+                	
+                	// 플러그인 정의
+                	var chartDataLabels3 = {
+                	  id: 'chartDataLabels',
+                	  afterDraw(chart, args, options) {
+                	    var ctx3 = chart.ctx;
+                	    ctx3.textAlign = "center";
+                	    ctx3.textBaseline = "middle";
+                	    ctx3.fillStyle = '#000';
+                	    ctx3.font = "16px NanumSquare";
+                	    ctx3.lineWidth =3;
+
+                	    var prevTextPositions3 = [];
+                	    var labelPoints = [];
+
+                	    chart.data.datasets.forEach((dataset, i) => {
+                	      chart.getDatasetMeta(i).data.forEach((datapoint, index) => {
+                	        var supFirm = chart.data.labels[index]; // supFirm 이름
+                	        var percentage = dataset.data[index];   // 비율 숫자
+                	        var rank = rankMap[index];
+                	        
+                	        if (percentage < 1) return;
+
+                	        var { x, y } = datapoint.tooltipPosition();
+                	        var radius = chart.outerRadius || (chart.chartArea.width / 2);
+                	        var angle = (datapoint.startAngle + datapoint.endAngle) / 2;
+
+                	        var xOuter = x + (radius * 0.4) * Math.cos(angle);
+                	        var yOuter = y + (radius * 0.4) * Math.sin(angle);
+
+
+                	        var xOuter = x + radius * 0.3 * Math.cos(angle);
+                	        var yOuter = y + radius * 0.3 * Math.sin(angle);
+                	        var xMiddle = xOuter + 20 * Math.cos(angle);
+                	        var yMiddle = yOuter + 20 * Math.sin(angle);
+                	        var xLine = xMiddle + (Math.cos(angle) > 0 ? 20 : -20);
+                	        var yLine = yMiddle;
+                	        
+                	        
+
+                	        labelPoints.push({
+                	            index,
+                	            rank,
+                	            text: ` ${rank}. ${supFirm} : ${percentage.toFixed(2)}%`,
+                	            xOuter,
+                	            yOuter,
+                	            xMiddle,
+                	            yMiddle,
+                	            xLine,
+                	            yLine,
+                	            angle,
+                	            side: Math.cos(angle) > 0 ? 'right' : 'left'
+                	        });
+                	    });
+                	});
+
+                	// ⛔ y 겹침 방지: 좌우 나눠서 따로 정렬
+                	var minYGap = 22;
+
+                	['left', 'right'].forEach(side => {
+                	    var sideLabels = labelPoints.filter(p => p.side === side)
+                	        .sort((a, b) => a.yLine - b.yLine);
+
+                	    for (let i = 1; i < sideLabels.length; i++) {
+                	        var prev = sideLabels[i - 1];
+                	        var curr = sideLabels[i];
+                	        if ((curr.yLine - prev.yLine) < minYGap) {
+                	            curr.yLine = prev.yLine + minYGap;
+                	        }
+                	    }
+
+                	    // 다시 그리기
+                	    sideLabels.forEach(p => {
+                	        ctx3.beginPath();
+                	        ctx3.moveTo(p.xOuter, p.yOuter);
+                	        ctx3.lineTo(p.xMiddle, p.yMiddle);
+                	        ctx3.lineTo(p.xLine, p.yLine);
+                	        ctx3.strokeStyle = 'rgba(129,212,250,0.9)';
+                	        ctx3.stroke();
+
+                	        ctx3.textAlign = p.side === 'right' ? "left" : "right";
+                	        ctx3.fillText(p.text, p.xLine, p.yLine);
+                	    });
+                		});
+
+                	  }
                 	};
 
-                	if (Chart.getChart("myChart")) {  
-                	    Chart.getChart("myChart").destroy();  
-                	}
                 	
-                	// 왼쪽 차트 데이터 변환
-                	const pdf5ImgData = percentages1.slice(3, 7).map(safeParse1);
-                	
-                	// 왼쪽 차트 캔버스 생성
-                	pdf5canvas = document.createElement('canvas');
-                	const pdf5ctx = pdf5canvas.getContext('2d');
-                	pdf5canvas.width = 500;
-                	pdf5canvas.height = 500;
+                	// 1% 이상인 데이터만 필터링
+                	var chartDataFiltered = reportData8
+                	  .map(item => {
+                	    var percentage = totalTotRptKrw > 0 ? (item.conTotAmt / totalTotRptKrw) * 100 : 0;
+                	    return {
+                	      supFirm: item.supFirm,
+                	      percentage: percentage
+                	    };
+                	  })
+                	  .filter(item => item.percentage >= 5); // 🔥5% 이상만
 
+                	// 라벨: supFirm 이름
+                	var supFirmLabels = chartDataFiltered.map(item => item.supFirm);
+
+                	// 데이터: 비율 (소수점 2자리)
+                	var impPieData = chartDataFiltered.map(item => Number(item.percentage.toFixed(2)));
                 	
-                	
-                	
-                	// 왼쪽 차트 생성
-                	const pdf5chart = new Chart(pdf5ctx, {
-                		plugins : [chartDataLabels2],
-                		type: 'pie',
-                	    data: {
-                	        labels: ['일반수출', '원상태', '반송수출', '수리용', '기타무상수출'],
-                	        datasets: [{
-                	            data: pdf5ImgData,
-                	            backgroundColor: [  'rgb(113,162, 218)',
-    				            	            	'rgb(48,123,202)', 
-    				            	            	'rgb(166,196,232)',
-    				            	            	'rgb(216,225,234)',
-    				            	            	'rgb(40,101,168)']
+                	var pdf7chart = new Chart(pdf7ctx, {
+                		plugins : [chartDataLabels3],
+                			type: "pie",
+    	            	    data: {
+    	            	        labels: supFirmLabels,
+    	            	        datasets: [{
+    	            	            data: impPieData,
+    	            	            backgroundColor: [
+    	            	            	/*'rgba(1,87,155,0.7)',
+    	            	            	'rgba(2,119,189,0.7)',
+    	            	            	'rgba(2,136,209,0.7)',
+    	            	            	'rgba(3,155,229,0.7)',
+    	            	            	'rgba(3,169,244,0.7)',
+    	            	            	'rgba(41,182,246,0.7)',
+    	            	            	'rgba(79,195,247, 0.7)',
+    	            	            	'rgba(129,212,250,0.7)',
+    	            	            	'rgba(179,229,252,0.7)',
+    	            	            	'rgba(166,208,228,0.7)',*/
+    	            	            	'rgb(49,97,79)',
+    	            	            	'rgb(71,140,114)',
+    	            	            	'rgb(84,166,135)',
+    	            	            	'rgb(123,211,171)',
+    	            	            	'rgb(153,184,169)',
+    	            	            	'rgb(102,178,103)',
+    	            	            	'rgb(154,204,153)',
+    	            	            	'rgb(186,221,139)',
+    	            	            	'rgb(238,231,148)',
+    	            	            	'rgb(231,244,218)',
+    	            	            	]
     	            	        }]
-    			            	
-                	    },
-                	    options: {
-                	        responsive: false,
-                	        maintainAspectRatio: false,  // 비율 유지 해제
-                	        layout: {
-                	            padding: {
-                	                bottom: 20, // 차트 하단 여백 (라벨 공간 확보)
-                	                right : 90,
-                	                left : 90
-                	            }
-                	        },
-                	        plugins: {
-                	        	datalabels: { 
-                	            	 display: false // ✅ 차트 내부 데이터 숨김
-                	            },
-                	            legend: {
-                	                position: 'bottom',
-                	                fullWidth: true,
-                	                labels: {
-                	                    font: {
-                	                        size: 18  // 라벨 크기 동일
-                	                        ,weight: 'bold'
-                	                    },
-                	                    boxWidth: 15,  // 아이콘 크기 동일
-                	                    padding: 15
-                	                }
-                	            },
-                	            title: {
-                	                display: true,
-                	                text: '거래형태',
-                	                font: {
-                	                    size: 28,  // 제목 크기 동일
-                	                    weight: 'bold'},
-                	                padding: {
-                	                    bottom: 20
-                	                }
-                	            }
-                	        }
-                	    }
-                	});
-                	
-                	
-                	// 오른쪽 차트 (수입신고 처리현황 비율)
-                	const pdf6ImgData = [
-                	    parseFloat(percentages1[8].replace('%', '')) || 0, 
-                	    parseFloat(percentages1[9].replace('%', '')) || 0, 
-                	    parseFloat(percentages1[10].replace('%', '')) || 0 
-                	];
-                	
-                	
-                	// 오른쪽 차트 캔버스 생성
-                	pdf6canvas = document.createElement('canvas');
-                	const pdf6Ctx = pdf6canvas.getContext('2d');
-                	pdf6canvas.width = 500;
-                	pdf6canvas.height = 500;
+    	            	    },
+    	            	    options: {
+    	            	    	 responsive: false, // ✅ 차트 크기 자동 조절 비활성화
+    	            	         maintainAspectRatio: false, // ✅ 원형 비율 유지 비활성화
+    	            	         //radius: '50%',
+    	            	        //aspectRatio: 1, // 가로세로 비율을 1:1로 고정하여 원형 유지
+    	            	        layout: {
+    	            	        	padding: {
+    	            	                top: 300,
+    	            	                right: 320,
+    	            	                bottom: 30,
+    	            	                left: 320
+    	            	            }
+    	            	        	//padding:250
+    	            	        },
+    	            	        plugins: {
+    	            	            legend: { 
+    	            	            	position: "bottom",
+    	            	            	 fullWidth: true,
+    	            	            	labels : {
+    	            	            		boxWidth : 8,
+    	            	            		padding : 10,
+    	            	            		font : {
+    	            	            			size : 13,
+    	            	            			weight : 'bold'
+    	            	            		}
+    	            	            	}
 
-                	// 오른쪽 차트 생성
-                	const pdf6chart = new Chart(pdf6Ctx, {
-                		plugins : [chartDataLabels2],
-                		type: 'pie',
-                	    data: {
-                	        labels: ['P/L', '제출서류', '검사'],
-                	        datasets: [{
-                	            data: pdf6ImgData,
-                	            backgroundColor: [  'rgb(48,123,202)', 				            	             
-    				            	            	'rgb(113,162, 218)', 
-    				            	            	'rgb(166,196,232)']
-                	        }]
-                	    },
-                	    options: {
-                	        responsive: false,
-                	        maintainAspectRatio: false,  
-                	        layout: {
-                	            padding: {
-                	                bottom: 70, // 아래쪽 여백 추가
-                	                left: 90,  // 왼쪽 여백 추가
-                	                right: 90  // 오른쪽 여백 추가
-                	            }
-                	        },
-                	        plugins: {
-                	        	datalabels: {
-                 	                color: 'rgb(89,89,89)',
-                 	                formatter: function(value, context) {
-                 	                	let label = context.chart.data.labels[context.dataIndex];
-                 	                   if (value < 10) {  // 값이 10% 미만인 경우 라벨을 표시하지 않음
-                 	                       return null;  
-                 	                   }
-                 	                    return label + " : " +value + "%"; // 라벨과 퍼센트 표시
-                 	                },
-                 	                font: {
-                 	                    size: 20,
-                 	                    weight : 'bold'
-                 	                },
-                	        	}, 
-                	        	datalabels: { 
-               	            	 display: false // ✅ 차트 내부 데이터 숨김
-                	        	},
-                	        	legend: {
-                	                position: 'bottom',
-                	                fullWidth: true,
-                	                labels: {
-                	                    font: {
-                	                        size: 18  // 라벨 크기 동일
-                	                        ,weight: 'bold'
-                	                    },
-                	                    boxWidth: 15,  // 아이콘 크기 동일
-                	                    padding: 15
-                	                }
-                	            },
-                	            title: {
-                	                display: true,
-                	                text: '신고처리',
-                	                font: {
-                	                    size: 28,  // 제목 크기 동일
-                	                    weight: 'bold'
-                	                },
-                	                padding: {
-                	                    bottom: 10
-                	                }
-                	            }
-                	        }
-                	    }
-                	});
-                	
+    	            	            },
+    	            	            title : {
+    	            	            	display: true,
+    	            	            	text: '주요 해외 거래처',
+    	            	            	font : {size :24 ,weight : 'bold'},
+    	            	            	padding: {bottom :30}
+    	            	            },
+    	            	            tooltip: {
+    	             	               enabled : false // 툴팁 비활성화
+    	             	            },
+    	             	            datalabels: { 
+    	             	            	 display: false // ✅ 차트 내부 데이터 숨김
+    	             	            }
+    	            	        }
+    	            	    },
+    	            	});
+                }
+
+            	// 🟢 9번  페이지 추가
+                doc.addPage();
+                
+                doc.setFontSize(16);
+                doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
+                doc.setFont('NanumSquareB', 'normal');
+                //doc.setTextColor(62, 113, 175); //파란색
+                doc.setTextColor(71, 140, 114); 
+                doc.text(8, 15, "8. 수출통관현황");
+                doc.setFontSize(12);
+	            doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+                doc.setFont('NanumSquareEB', 'bold');
+                doc.setTextColor(108, 179, 63);
+                doc.text(190, 15, "II. 수출");
+                
+                // 제목 + 설명을 넣을 영역을 네모박스로 그리기
+                var boxMargin8 = 5;  // 테두리와의 여백
+                var boxWidth8 = 200;  // 박스의 너비
+                var boxHeight8 = 23;  // 박스의 높이 (설명 포함)
+                
+                doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
+                doc.setDrawColor(35, 69,56); 
+                doc.rect(5, 8, boxWidth8, boxHeight8, 'D'); 
+                
+                
+                var reportData9 = data.reportData9;  
+                	console.log("reportData9",reportData9);
+    	            var datas8 = reportData9.map(item => {
+    	              var amountKrw = parseFloat(item.expAmountKrw) || 0;  // 원본 값
+    	              var formattedAmountKrw = Intl.NumberFormat("ko-KR").format(amountKrw);  // 포매팅된 값
+    	              
+    	              return [
+    	                item.expLisDay,        // 수리일자
+    	                item.expCnt,           // 건수
+    	                formattedAmountKrw, // 신고가격
+    	                item.exType1,       // 일반수출
+    	                item.exType2,       // 원상태
+    	                item.exType3,       // 반송수출
+    	                item.exType4,       // 수리용
+    	                item.exType5,       // 기타무상수출
+    	                item.exPrc1,        // P/L
+    	                item.exPrc3,        // 제출서류
+    	                item.exPrc2,        // 검사
+    	              ];
+    	            });
+    		         
+    	            // ▼ 1) ‘합계’·‘비율(%)’ 행 추출
+    	             totalRow    = reportData9.find(row => row.expLisDay === "합계");
+    	             percentRow  = reportData9.find(row => row.expLisDay === "비율(%)");
+    	             
+    	             
+    	                // 합계 행 포맷
+    		            var formattedTotal_1 = {
+    		              cnt:         formatNum(totalRow.expCnt),
+    		              amountKrw:   formatNum(totalRow.expAmountKrw),
+    		              exType1:     formatNum(totalRow.exType1),
+    		              exType2:     formatNum(totalRow.exType2),
+    		              exType3:     formatNum(totalRow.exType3),
+    		              exType4:     formatNum(totalRow.exType4),
+    		              exType5:     formatNum(totalRow.exType5),
+    		              exPrc1:      formatNum(totalRow.exPrc1),
+    		              exPrc3:      formatNum(totalRow.exPrc3),
+    		              exPrc2:      formatNum(totalRow.exPrc2)
+    		            };
+    		            
+    		            var percentage_1 = {
+  			            	  exType1: percentRow.exType1,  
+  			            	  exType2: percentRow.exType2,
+  			            	  exType3: percentRow.exType3,
+  			            	  exType4: percentRow.exType4,
+  			            	  exType5: percentRow.exType5,
+  			            	  exPrc1:  percentRow.exPrc1,
+  			            	  exPrc3:  percentRow.exPrc3,
+  			            	  exPrc2:  percentRow.exPrc2
+  			  	            };
+    	             
+    	            
+    	            
+    		         
+    		     	// 🟢 건수, P/L, 제출서류, 검사 가져오기
+    		         var countTotal1 = formattedTotal_1.cnt || 0;              // 통관건수
+    		         var plTotal1 = formattedTotal_1.exPrc1 || 0;                 // P/L 합계
+    		         var plPercentage1 = percentage_1.exPrc1 || 0;                // P/L 비율
+    		         var submissionTotal1 = formattedTotal_1.exPrc3 || 0;         // 제출서류 합계
+    		         var submissionPercentage1 = percentage_1.exPrc3 || 0;        // 제출서류 비율
+    		         var inspectionTotal1 = formattedTotal_1.exPrc2 || 0;        // 검사 합계
+    		         var inspectionPercentage1 = percentage_1.exPrc2 || 0;       // 검사 비율
+    	       
+    		            // 🟢 설명 추가 (왼쪽 정렬 + 줄 나누기)
+    		            doc.setFontSize(9);
+    		            doc.addFont('/pf/fonts/NanumSquareR.ttf', 'NanumSquareR', 'normal');
+    		            doc.setFont('NanumSquareR', 'normal');
+    		            doc.setTextColor(0, 0, 0);
+    		            var description4 = [
+    		            	`다음 자료는 ${data.rptDate2}월 한 달 수출통관 자료이며 총 ${countTotal1}건 수출신고를 진행하였습니다.`,
+    		                `수출신고 처리 현황은 P/L ${plTotal1}건 (${plPercentage1}), 서류 제출 ${submissionTotal1}건 (${submissionPercentage1}), 검사 ${inspectionTotal1}건 (${inspectionPercentage1}) 입니다.`
+    		            ];
+    		          
+    		             startY = 23; // description 높이 위치
+    		            description4.forEach((line, index) => {
+    		            	  doc.text(8, startY, line); // 왼쪽 정렬 (x: 8, y: startY)
+    		            	  startY += 5; // 각 줄 간격을 5로 설정하여 다음 줄로 내려감
+    		        	});
+    		         
+		            if(reportData9.length === 2 ){
+		            	  noDataMsg = "* 조회 기간 동안 수출통관현황이 존재하지 않습니다.";
+		                   
+		                   doc.setFont('NanumSquareR', 'normal');
+		                   doc.setFontSize(10);
+		                   doc.setTextColor(64,64,64); // 회색 느낌
+		                   doc.text(noDataMsg, 10, 40);  // 위치 조정해서 출력
+		            	
+		            }else{
+    		            	
+		    		        // 테이블 헤더
+		    		       var header7 = [
+		    		    	   	[ 
+		    		    		    { content: '수리일자', rowSpan: 2, border: [true, true, true, true] },  // 수리일자 셀에 테두리 추가
+		    		    		    { content: '건수', rowSpan: 2, border: [true, true, true, true] },
+		    		    		    { content: '신고가격(KRW)', rowSpan: 2, border: [true, true, true, true] },
+		    		    		    { content: '수출신고 거래형태 현황', colSpan: 5, border: [true, true, true, true] },  // 수입 거래형태 현황 셀에 테두리 추가
+		    		    		    { content: '수출신고 처리현황', colSpan: 3, border: [true, true, true, true] },  // 수입신고 처리현황 셀에 테두리 추가
+		    		    		  ],  // 첫 번째 행
+		    		    		  [
+		    		    		    { content: '일반형태', border: [true, true, true, true] },
+		    		    		    { content: '위탁 가공 원자재', border: [true, true, true, true] },
+		    		    		    { content: '기타 수출 승인 면제', border: [true, true, true, true] },
+		    		    		    { content: '무상견품', border: [true, true, true, true] },
+		    		    		    { content: '기타', border: [true, true, true, true] },
+		    		    		    { content: 'P/L', border: [true, true, true, true] },
+		    		    		    { content: '제출서류', border: [true, true, true, true] },
+		    		    		    { content: '검사', border: [true, true, true, true] },
+		    		    		  ]
+		    		    	 ];
+		    		       
+		    		       
+		                	// 🟢 테이블 스타일 적용
+		                	doc.autoTable({
+		                	  head: header7,
+		                	  body:datas8,
+		                	  startY: startY + 2, // 설명 아래에 테이블 배치
+		                	  theme: 'grid',
+		                	  styles: {
+		                	    font: 'NanumSquareR',
+		                	    fontSize: 7,
+		                	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
+		                	    textColor: [0, 0, 0],
+		                	    valign: 'middle',
+		                	    halign: 'center',
+		                	    overflow: 'linebreak', // 텍스트 줄바꿈 적용
+		                	  },
+		                	  headStyles: {
+		                		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
+		                		fillColor: [35, 69, 56], // 헤더 배경 (초록)
+		                	    fontSize: 8,
+		                	    textColor: [255, 255, 255],
+		                	    font: 'NanumSquareEB',
+		                	    fontStyle: 'bold',
+		                	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
+		                	    lineWidth: 0.2, // 테두리 두께
+		                	    border: [true, true, true, true],  // 헤더에 테두리 추가
+		                	  },
+		                	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
+		                	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
+		                	  columnStyles: {
+		                		  	0: { halign: 'center' , cellWidth: 23 }, // 수리일자
+		                	        1: { halign: 'right' , cellWidth: 18}, // 건수
+		                	        2: { halign: 'right' , cellWidth: 23}, // 과세가격
+		                	        3: { halign: 'center' , cellWidth: 17}, // 일반수입
+		                	        4: { halign: 'center' , cellWidth: 17}, // 수리물품
+		                	        5: { halign: 'center' , cellWidth: 17}, // 견품 및 광고용품
+		                	        6: { halign: 'center' , cellWidth: 17}, // 기타 수입 승인면세
+		                	        7: { halign: 'center' , cellWidth: 17}, // 재수출조건
+		                	        8: { halign: 'center' , cellWidth: 17 }, // P/L
+		                	        9: { halign: 'center' , cellWidth: 17}, // 제출서류
+		                	        10: { halign: 'center' , cellWidth: 17}, // 검사
+		                	  },
+		                	  didParseCell: function(data) {
+		                		  var firstCellValue = data.row.raw[0];
+		                		  
+		                		  if (firstCellValue === "합계" || firstCellValue === "비율(%)") {
+		                  		    data.cell.styles.fillColor = [246, 243, 202]; // 배경색
+		                  		    data.cell.styles.font = 'NanumSquareB';       // 폰트
+		                  		    data.cell.styles.fontStyle = 'bold';          // 굵게
+		                  		  }
+		                	 }
+		            		});
+		                	
+		                	// 5번째 테이블 y좌표 저장 
+		                	lastYPage5 = doc.lastAutoTable.finalY; 
+		                	var pageAfterTable5 = doc.internal.getCurrentPageInfo().pageNumber;
+		                	
+		                	var spaceLeft5 = doc.internal.pageSize.height - lastYPage5 - 10;
+		                	
+		                	
+		                	if(spaceLeft5< 70){
+		                		doc.addPage();
+		                		chartPage5 = pageAfterTable5 + 1;
+		                		chartY5 = 15;
+		                	}else{
+		                		 chartPage5 = pageAfterTable5;       // 같은 페이지에 그릴 수 있음
+		                		  chartY5 = lastYPage5;
+		                	}
+		
+				            var percentagesArr1 = [
+			            	   percentRow.exType1,  
+			            	   percentRow.exType2,
+			            	   percentRow.exType3,
+			            	   percentRow.exType4,
+			            	   percentRow.exType5,
+		            	   ];
+		  	             
+				            console.log("percentagesArr1", percentagesArr1);
+				            console.log("percentagesArr1", safeParse);
+				          
+				            
+		                	var pdf5ImgData = percentagesArr1.map(safeParse); 
+		                	
+		                	console.log("pdf5ImgData", pdf5ImgData);
+		                	// 왼쪽 차트 캔버스 생성
+		                	pdf5canvas = document.createElement('canvas');
+		                	var pdf5ctx = pdf5canvas.getContext('2d');
+		                	pdf5canvas.width = 500;
+		                	pdf5canvas.height = 500;
+		
+		                	
+		                	
+		                	
+		                	console.log("chartDataLabels2", chartDataLabels2);
+		                	// 왼쪽 차트 생성
+		                	var pdf5chart = new Chart(pdf5ctx, {
+		                		plugins : [chartDataLabels2],
+		                		type: 'pie',
+		                	    data: {
+		                	        labels: ['일반형태', '위탁 가공 원자재', '기타 수출 승인 면제', '무상견품', '기타'],
+		                	        datasets: [{
+		                	            data: pdf5ImgData,
+		                	            backgroundColor: [  'rgb(71,140,114)',
+						    			            		'rgb(49,97,79)', 
+						    			 	            	'rgb(84,166, 135)', 
+						    			 	            	'rgb(186,221,139)',
+						    			 	            	'rgb(231,244,218)']
+		    	            	        }]
+		    			            	
+		                	    },
+		                	    options: {
+		                	        responsive: false,
+		                	        maintainAspectRatio: false,  // 비율 유지 해제
+		                	        layout: {
+		                	            padding: {
+		                	                bottom: 20, // 차트 하단 여백 (라벨 공간 확보)
+		                	                right : 90,
+		                	                left : 90
+		                	            }
+		                	        },
+		                	        plugins: {
+		                	        	datalabels: { 
+		                	            	 display: false // ✅ 차트 내부 데이터 숨김
+		                	            },
+		                	            legend: {
+		                	                position: 'bottom',
+		                	                fullWidth: true,
+		                	                labels: {
+		                	                    font: {
+		                	                        size: 18  // 라벨 크기 동일
+		                	                        ,weight: 'bold'
+		                	                    },
+		                	                    boxWidth: 15,  // 아이콘 크기 동일
+		                	                    padding: 15
+		                	                }
+		                	            },
+		                	            title: {
+		                	                display: true,
+		                	                text: '거래형태',
+		                	                font: {
+		                	                    size: 28,  // 제목 크기 동일
+		                	                    weight: 'bold'},
+		                	                padding: {
+		                	                    bottom: 20
+		                	                }
+		                	            }
+		                	        }
+		                	    }
+		                	});
+		                	
+		                	console.log("percentRow", percentRow);
+		                	
+		                	// 오른쪽 차트 (수입신고 처리현황 비율)
+		                	var percentagesArr2 = [
+		                		      percentRow.exPrc1,
+					            	  percentRow.exPrc3,
+					            	  percentRow.exPrc2
+		                		];
+		                	
+		                	
+		                	  console.log("percentagesArr2", percentagesArr2);
+		                	
+		                	var pdf6ImgData = percentagesArr2.map(safeParse); 
+		                	
+		                	// 오른쪽 차트 캔버스 생성
+		                	pdf6canvas = document.createElement('canvas');
+		                	var pdf6Ctx = pdf6canvas.getContext('2d');
+		                	pdf6canvas.width = 500;
+		                	pdf6canvas.height = 500;
+		
+		                	// 오른쪽 차트 생성
+		                	var pdf6chart = new Chart(pdf6Ctx, {
+		                		plugins : [chartDataLabels2],
+		                		type: 'pie',
+		                	    data: {
+		                	        labels: ['P/L', '제출서류', '검사'],
+		                	        datasets: [{
+		                	            data: pdf6ImgData,
+		                	            backgroundColor: [  'rgb(197, 224, 180)', 
+		    			 	            					'rgb(84,166, 135)', 
+		    			 	            					'rgb(65,115,70)']
+		                	        }]
+		                	    },
+		                	    options: {
+		                	        responsive: false,
+		                	        maintainAspectRatio: false,  
+		                	        layout: {
+		                	            padding: {
+		                	                bottom: 70, // 아래쪽 여백 추가
+		                	                left: 90,  // 왼쪽 여백 추가
+		                	                right: 90  // 오른쪽 여백 추가
+		                	            }
+		                	        },
+		                	        plugins: {
+		                	        	datalabels: {
+		                 	                color: 'rgb(89,89,89)',
+		                 	                formatter: function(value, context) {
+		                 	                	let label = context.chart.data.labels[context.dataIndex];
+		                 	                   if (value < 10) {  // 값이 10% 미만인 경우 라벨을 표시하지 않음
+		                 	                       return null;  
+		                 	                   }
+		                 	                    return label + " : " +value + "%"; // 라벨과 퍼센트 표시
+		                 	                },
+		                 	                font: {
+		                 	                    size: 20,
+		                 	                    weight : 'bold'
+		                 	                },
+		                	        	}, 
+		                	        	datalabels: { 
+		               	            	 display: false // ✅ 차트 내부 데이터 숨김
+		                	        	},
+		                	        	legend: {
+		                	                position: 'bottom',
+		                	                fullWidth: true,
+		                	                labels: {
+		                	                    font: {
+		                	                        size: 18  // 라벨 크기 동일
+		                	                        ,weight: 'bold'
+		                	                    },
+		                	                    boxWidth: 15,  // 아이콘 크기 동일
+		                	                    padding: 15
+		                	                }
+		                	            },
+		                	            title: {
+		                	                display: true,
+		                	                text: '신고처리',
+		                	                font: {
+		                	                    size: 28,  // 제목 크기 동일
+		                	                    weight: 'bold'
+		                	                },
+		                	                padding: {
+		                	                    bottom: 10
+		                	                }
+		                	            }
+		                	        }
+		                	    }
+		                	});
+			            }
                 	// 🟢 페이지 추가
                     doc.addPage();
                     
@@ -3272,33 +3766,56 @@ function exportRptPdf(data){
                     doc.setFont('NanumSquareB', 'normal');
                     //doc.setTextColor(62, 113, 175); //파란색
                     doc.setTextColor(71, 140, 114); 
-                    doc.text(8, 15, "8.주요 해외 거래처(수출)");
+                    doc.text(8, 15, "9. 주요 해외 거래처");
+                    doc.setFontSize(12);
+    	            doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+                    doc.setFont('NanumSquareEB', 'bold');
+                    doc.setTextColor(108, 179, 63);
+                    doc.text(190, 15, "II. 수출");
                     
                     // 제목 + 설명을 넣을 영역을 네모박스로 그리기
-                    const boxMargin9 = 5;  // 테두리와의 여백
-                    const boxWidth9 = 200;  // 박스의 너비
-                    const boxHeight9 = 15;  // 박스의 높이 (설명 포함)
+                    var boxMargin9 = 5;  // 테두리와의 여백
+                    var boxWidth9 = 200;  // 박스의 너비
+                    var boxHeight9 = 15;  // 박스의 높이 (설명 포함)
                     
                     doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
                     doc.setDrawColor(35, 69,56); 
                     doc.rect(5, 8, boxWidth9, boxHeight9, 'D'); 
                     
-                    const reportData10 = data.reportData10;
+                    var reportData10 = data.reportData10;
                    console.log("reportData10",reportData10);
-                    // 수출금액 총합 계산
-                    const totalTotRptKrw  = reportData10.reduce((sum, item) => sum + item.totRptKrw, 0);
-                   console.log("totalTotRptKrw",totalTotRptKrw);
-                    const datas9 = reportData10.map(item => {
-      	              const formattedTotExp = Intl.NumberFormat("ko-KR").format(item.cmtExp); 
-      	              const formattedConTotRptKrw = Intl.NumberFormat("ko-KR").format(item.totRptKrw);
-      	              
-      	              // 비율 계산 (총액 대비 백분율)
-      	              const rpt = Number(item.totRptKrw || 0); // 안전하게 숫자 변환
+                   if(reportData10.length == 0){
+                		noDataMsg = "* 조회 기간 동안 주요 해외 거래처가 존재하지 않습니다.";
+                	   
+                	   doc.setFont('NanumSquareR', 'normal');
+                	   doc.setFontSize(10);
+                	   doc.setTextColor(64,64,64); // 회색 느낌
+                	   doc.text(noDataMsg, 10, 40);  // 위치 조정해서 출력
+                   }else{
+                		// 수출금액(원화)의 총합 계산
+                		var totalTotRptKrw = reportData10.reduce((sum, item) => sum + item.totRptKrw, 0);
+                		
+                		// percentage 0.01% 이상인 항목 필터링
+                		let filtered = reportData10.filter(item => {
+                		  var ratio = item.cmtExp / totalTotRptKrw;
+                		  return ratio * 100 >= 0.01;
+                		});
+                		
+                		// conTotAmt 기준 내림차순 정렬
+                		filtered.sort((a, b) => b.cmtExp - a.cmtExp);
 
-	      	          // 비율 계산
-	      	          const expPercentage = totalTotRptKrw > 0
-	      	            ? ((rpt / totalTotRptKrw) * 100).toFixed(2) + "%"
-	      	            : "0%";
+                		// 10개 초과 시 상위 10개만 선택
+                		if (filtered.length > 10) {
+                		  filtered = filtered.slice(0, 10);
+                		}  
+                 
+                   
+                    var datas9 = reportData10.map(item => {
+      	              var formattedTotExp = Intl.NumberFormat("ko-KR").format(item.cmtExp); 
+      	              var formattedConTotRptKrw = Intl.NumberFormat("ko-KR").format(item.totRptKrw);
+      	              
+      	            var expPercentage = totalTotRptKrw > 0 ? ((item.totRptKrw / totalTotRptKrw) * 100).toFixed(2) + "%" : "0%";
+      	            
       	              
       	              return [
       	            	  item.buyFirm,            // 해외거래처
@@ -3310,7 +3827,7 @@ function exportRptPdf(data){
       	            });
     	            
     	            // 테이블 헤더
-    	            var header8 = [['해외거래처','국가','건수','수출금액','비율']];
+    	            var header8 = [['해외 거래처','국가','건수','수출 금액(KRW)','비율(%)']];
     	            
     	            
     	            // 🟢 테이블 스타일 적용
@@ -3345,20 +3862,20 @@ function exportRptPdf(data){
                 	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
                 	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
                 	  columnStyles: {
-                		  	0: { halign: 'center'}, // 해외거래처
-                	        1: { halign: 'center'}, // 국가
-                	        2: { halign: 'right'}, // 건수
-                	        3: { halign: 'right'}, // 수출금액
-                	        4: { halign: 'right'}, // 비율
+                		    0: { halign: 'center'}, // 해외거래처
+	              			1: { halign: 'center'}, // 국가
+	              			2: { halign: 'right'}, // 건수
+	              			3: { halign: 'right'}, // 수입금액(원화)
+	              			4: { halign: 'right'}, // 비율
                 	  },
             		});
                 	
                 	lastYPage7 = doc.lastAutoTable.finalY;  
-                	const pageAfterTable7 = doc.internal.getCurrentPageInfo().pageNumber;
+                	var pageAfterTable7 = doc.internal.getCurrentPageInfo().pageNumber;
                 	
-                	const spaceLeft7 = doc.internal.pageSize.height - lastYPage7 - 10;
+                	var spaceLeft7 = doc.internal.pageSize.height - lastYPage7 - 10;
                 	
-                	let chartPage7, chartY7;
+                	
                 	
                 	if(spaceLeft7< 120){
                 		doc.addPage();
@@ -3371,87 +3888,109 @@ function exportRptPdf(data){
                 	
                 	
                 	
-                	const pdf8canvas = document.createElement("canvas");
-                	const pdf8ctx = pdf8canvas.getContext("2d");
+                	pdf8canvas = document.createElement("canvas");
+                	pdf8ctx = pdf8canvas.getContext("2d");
                 	pdf8canvas.width = 1000;
                 	pdf8canvas.height = 1000;
                 	pdf8canvas.style.visibility = 'hidden';
                 	document.body.appendChild(pdf8canvas);
                 	
+            		let sortedData = [...reportData10]
+	              	  .map((item, idx) => ({ idx, value: item.cnt })) // index와 값 저장
+	              	  .sort((a, b) => b.value - a.value); // 큰 값부터 정렬
+
+	              	let rankMap = {}; // index -> 순위 매핑
+	              	sortedData.forEach((item, i) => {
+	              	  rankMap[item.idx] = i + 1; // 1부터 시작
+	              	});
+                	
                 	// 플러그인 정의
-                	const chartDataLabels4 = {
+                	var chartDataLabels4 = {
                 	  id: 'chartDataLabels',
                 	  afterDraw(chart, args, options) {
-                	    const ctx4 = chart.ctx;
+                	    var ctx4 = chart.ctx;
                 	    ctx4.textAlign = "center";
                 	    ctx4.textBaseline = "middle";
                 	    ctx4.fillStyle = '#000';
                 	    ctx4.font = "16px NanumSquare";
                 	    ctx4.lineWidth =3;
 
-                	    const prevTextPositions4 = [];
+                	    var prevTextPositions4 = [];
+                	    var labelPoints = [];
 
                 	    chart.data.datasets.forEach((dataset, i) => {
                 	      chart.getDatasetMeta(i).data.forEach((datapoint, index) => {
-                	        //const supFirm = chart.data.labels[index]; // supFirm 이름
-                	        const expPercentage = dataset.data[index];   // 비율 숫자
-
+                	        var exsupFirm = chart.data.labels[index]; // supFirm 이름
+                	        var expPercentage = dataset.data[index];   // 비율 숫자
+                	        var rank = rankMap[index];
+                	        
+                	        
                 	        if (expPercentage < 1) return;
 
-                	        const { x, y } = datapoint.tooltipPosition();
-                	        const radius = chart.outerRadius || (chart.chartArea.width / 2);
-                	        const angle = (datapoint.startAngle + datapoint.endAngle) / 2;
+                	        var { x, y } = datapoint.tooltipPosition();
+                	        var radius = chart.outerRadius || (chart.chartArea.width / 2);
+                	        var angle = (datapoint.startAngle + datapoint.endAngle) / 2;
 
-                	        const xOuter = x + (radius * 0.4) * Math.cos(angle);
-                	        const yOuter = y + (radius * 0.4) * Math.sin(angle);
+                	        var xOuter = x + radius * 0.3 * Math.cos(angle);
+                	        var yOuter = y + radius * 0.3 * Math.sin(angle);
+                	        var xMiddle = xOuter + 20 * Math.cos(angle);
+                	        var yMiddle = yOuter + 20 * Math.sin(angle);
+                	        var xLine = xMiddle + (Math.cos(angle) > 0 ? 20 : -20);
+                	        var yLine = yMiddle;
 
-                	        const xMiddle = xOuter + Math.cos(angle) * 20;
-                	        const yMiddle = yOuter + Math.sin(angle) * 20;
+                	        labelPoints.push({
+                	            index,
+                	            rank,
+                	            text: ` ${rank}. ${exsupFirm} : ${expPercentage.toFixed(2)}%`,
+                	            xOuter,
+                	            yOuter,
+                	            xMiddle,
+                	            yMiddle,
+                	            xLine,
+                	            yLine,
+                	            angle,
+                	            side: Math.cos(angle) > 0 ? 'right' : 'left'
+                	        });
+                	    });
+                	});
 
-                	        let xLine = xMiddle + (Math.cos(angle) >= 0 ? 20 : -20);
-                	        let yLine = yMiddle;
+                	// ⛔ y 겹침 방지: 좌우 나눠서 따로 정렬
+                	var minYGap = 22;
 
-                	        const minDistance = 90;
-                	        let attempts = 0;
+                	['left', 'right'].forEach(side => {
+                	    var sideLabels = labelPoints.filter(p => p.side === side)
+                	        .sort((a, b) => a.yLine - b.yLine);
 
-                	        // 텍스트 간격 조정 반복
-                	        prevTextPositions4.forEach((prevPos) => {
-    		                    const dist2 = Math.sqrt(Math.pow(xLine - prevPos.x, 2) + Math.pow(yLine - prevPos.y, 2));
-    		                    if (dist2 < minDistance) {
-    		                        // 겹칠 경우 위치 조정1
-    		                        const angleOffset2 = Math.PI / 18;  // 약간의 각도 오프셋을 추가하여 이동
-    		                        xLine = xMiddle + (Math.cos(angle + angleOffset2) * 10);
-    		                        yLine = yMiddle + (Math.sin(angle + angleOffset2) * 10);
-    		                    }
-    		                });
+                	    for (let i = 1; i < sideLabels.length; i++) {
+                	        var prev = sideLabels[i - 1];
+                	        var curr = sideLabels[i];
+                	        if ((curr.yLine - prev.yLine) < minYGap) {
+                	            curr.yLine = prev.yLine + minYGap;
+                	        }
+                	    }
 
-                	        prevTextPositions4.push({ x: xLine, y: yLine });
-
+                	    // 다시 그리기
+                	    sideLabels.forEach(p => {
                 	        ctx4.beginPath();
-                	        ctx4.moveTo(xOuter, yOuter);
-                	        ctx4.lineTo(xMiddle, yMiddle);
-                	        ctx4.lineTo(xLine, yLine);
+                	        ctx4.moveTo(p.xOuter, p.yOuter);
+                	        ctx4.lineTo(p.xMiddle, p.yMiddle);
+                	        ctx4.lineTo(p.xLine, p.yLine);
                 	        ctx4.strokeStyle = 'rgba(129,212,250,0.9)';
                 	        ctx4.stroke();
 
-                	        ctx4.textAlign = Math.cos(angle) >= 0 ? "left" : "right";
-
-                	       
-                	        //let labelText = `${supFirm} : ${percentage.toFixed(2)}%`;
-                	        let labelText = `${expPercentage.toFixed(2)}%`;
-
-                	        ctx4.fillText(labelText, xLine, yLine);
-                	      });
+                	        ctx4.textAlign = p.side === 'right' ? "left" : "right";
+                	        ctx4.fillText(p.text, p.xLine, p.yLine);
                 	    });
+                		});
                 	  }
                 	};
 
                 	
                 	// 1% 이상인 데이터만 필터링
-                	const chartDataFilter = reportData10
+                	var chartDataFilter = reportData10
                 	  .map(item => {
-                	    	const rpt = Number(item.totRptKrw || 0); // 금액
-                	        const percentage = totalTotRptKrw > 0 ? (rpt / totalTotRptKrw) * 100 : 0;
+                	    	var rpt = Number(item.totRptKrw || 0); // 금액
+                	        var percentage = totalTotRptKrw > 0 ? (rpt / totalTotRptKrw) * 100 : 0;
                 	        
                 	        return {
                 	          buyFirm: item.buyFirm,
@@ -3461,12 +4000,12 @@ function exportRptPdf(data){
                 	  .filter(item => item.percentage >= 5); //  🔥3% 이상만
 
                 	// 라벨: supFirm 이름
-                	const expLabels = chartDataFilter.map(item => item.buyFirm);
+                	var expLabels = chartDataFilter.map(item => item.buyFirm);
 
                 	// 데이터: 비율 (소수점 2자리)
-                	const expPieData = chartDataFilter.map(item => Number(item.percentage.toFixed(2)));
+                	var expPieData = chartDataFilter.map(item => Number(item.percentage.toFixed(2)));
                 	
-                	const pdf8chart = new Chart(pdf8ctx, {
+                	var pdf8chart = new Chart(pdf8ctx, {
                 		plugins : [chartDataLabels4],
                 			type: "pie",
     	            	    data: {
@@ -3474,16 +4013,16 @@ function exportRptPdf(data){
     	            	        datasets: [{
     	            	            data: expPieData,
     	            	            backgroundColor: [
-    	            	            	'rgba(1,87,155,0.7)',
-    	            	            	'rgba(2,119,189,0.7)',
-    	            	            	'rgba(2,136,209,0.7)',
-    	            	            	'rgba(3,155,229,0.7)',
-    	            	            	'rgba(3,169,244,0.7)',
-    	            	            	'rgba(41,182,246,0.7)',
-    	            	            	'rgba(79,195,247, 0.7)',
-    	            	            	'rgba(129,212,250,0.7)',
-    	            	            	'rgba(179,229,252,0.7)',
-    	            	            	'rgba(166,208,228,0.7)',
+    	            	            	'rgb(49,97,79)',
+    	        						'rgb(71,140,114)',
+    	        						'rgb(84,166,135)',
+    	        						'rgb(123,211,171)',
+    	        						'rgb(153,184,169)',
+    	        						'rgb(102,178,103)',
+    	        						'rgb(154,204,153)',
+    	        						'rgb(186,221,139)',
+    	        						'rgb(238,231,148)',
+    	        						'rgb(231,244,218)',
     	            	            	]
     	            	        }]
     	            	    },
@@ -3514,7 +4053,7 @@ function exportRptPdf(data){
     	            	            },
     	            	            title : {
     	            	            	display: true,
-    	            	            	text: '주요 해외거래처(수출)',
+    	            	            	text: '주요 해외 거래처',
     	            	            	font : {size :24 ,weight : 'bold'},
     	            	            	padding: {bottom :30}
     	            	            },
@@ -3527,6 +4066,7 @@ function exportRptPdf(data){
     	            	        }
     	            	    },
     	            	});
+                   }
                 	
                 	// 🟢 페이지 추가
                     doc.addPage();
@@ -3536,26 +4076,31 @@ function exportRptPdf(data){
                     doc.setFont('NanumSquareB', 'normal');
                     //doc.setTextColor(62, 113, 175); //파란색
                     doc.setTextColor(71, 140, 114); 
-                    doc.text(8, 15, "9.수출입 정정 귀책자별 비율");
+                    doc.text(8, 15, "10. 수출입 정정 귀책자별 비율");
+                    doc.setFontSize(12);
+    	            doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+                    doc.setFont('NanumSquareEB', 'bold');
+                    doc.setTextColor(108, 179, 63);
+                    doc.text(190, 15, "III. 공통");
                     
                     // 제목 + 설명을 넣을 영역을 네모박스로 그리기
-                    const boxMargin10 = 5;  // 테두리와의 여백
-                    const boxWidth10 = 200;  // 박스의 너비
-                    const boxHeight10 = 15;  // 박스의 높이 (설명 포함)
+                    var boxMargin10 = 5;  // 테두리와의 여백
+                    var boxWidth10 = 200;  // 박스의 너비
+                    var boxHeight10 = 15;  // 박스의 높이 (설명 포함)
                     
                     doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
                     doc.setDrawColor(35, 69,56); 
                     doc.rect(5, 8, boxWidth10, boxHeight10, 'D'); 
                     
-                    const reportData11 = data.reportData11;
+                    var reportData11 = data.reportData11;
                    console.log("reportData11",reportData11);
                    
-                   const datas10 = [];
+                   var datas10 = [];
 
                    
                    for (let i = 0; i < reportData11.length; i += 2) {
-                	   const row1 = reportData11[i];     // 건수
-                	   const row2 = reportData11[i + 1]; // 비율
+                	   var row1 = reportData11[i];     // 건수
+                	   var row2 = reportData11[i + 1]; // 비율
 
                 	   datas10.push([
                 	     {
@@ -3586,8 +4131,8 @@ function exportRptPdf(data){
     	            	  	[
     	            		    { content: '구분', colSpan: 2, styles: { halign: 'center' } },
     	            		    { content: '신고인', styles: { halign: 'center' } },
-    	            		    { content: '신고의뢰인(화주 등)', styles: { halign: 'center' } },
-    	            		    { content: '외국인구매자(판매자)', styles: { halign: 'center' } },
+    	            		    { content: '신고 의뢰인(화주 등)', styles: { halign: 'center' } },
+    	            		    { content: '해외 거래처', styles: { halign: 'center' } },
     	            		    { content: '기타', styles: { halign: 'center' } },
     	            		    { content: '합계', styles: { halign: 'center' } }
     	            		  ]
@@ -3634,6 +4179,23 @@ function exportRptPdf(data){
                 		  5: { halign: 'right' },
                 		  6: { halign: 'right' }
                 	  },
+                	  didDrawCell: function (data) {
+                		  const doc = data.doc;
+                		  const rowIndex = data.row.index;
+
+                		  // ✅ 특정 행(rowIndex === 1)의 첫 번째 열에서만 한 번 선 그리기
+                		  if (data.section === 'body' && rowIndex === 1) {
+                		    const y = data.cell.y + data.cell.height;
+
+                		    // 선 시작과 끝 좌표 설정 (테이블 전체 폭 기준)
+                		    const startX = 5;
+                		    const endX = 205;
+                		    doc.setLineWidth(0.8); // 선 굵기
+                		    doc.setDrawColor(64, 64, 64); // 선 색상 (진한 회색)
+                		    doc.line(startX, y, endX, y); // 선 그리기
+
+                		  }
+                		}
             		});
                 	
                 	lastYPage8 = doc.lastAutoTable.finalY;
@@ -3643,36 +4205,49 @@ function exportRptPdf(data){
                     doc.setFont('NanumSquareB', 'normal');
                     //doc.setTextColor(62, 113, 175); //파란색
                     doc.setTextColor(71, 140, 114); 
-                    doc.text(8, lastYPage8 + 20, "10.수출입 정형조건");
+                    doc.text(8, lastYPage8 + 20, "11.수출입 정형조건");
+                    doc.setFontSize(12);
+    	            doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+                    doc.setFont('NanumSquareEB', 'bold');
+                    doc.setTextColor(108, 179, 63);
+                    doc.text(190, lastYPage8 + 20, "III.공통");
                     
                     // 제목 + 설명을 넣을 영역을 네모박스로 그리기
-                    const boxMargin11 =  5;  // 테두리와의 여백
-                    const boxWidth11 = 200;  // 박스의 너비
-                    const boxHeight11 = 15;  // 박스의 높이 (설명 포함)
+                    var boxMargin11 =  5;  // 테두리와의 여백
+                    var boxWidth11 = 200;  // 박스의 너비
+                    var boxHeight11 = 15;  // 박스의 높이 (설명 포함)
                     
-                    doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
+                    doc.setLineWidth(0.8);  // 테두리 두께 설정 (기본값은 0.2)
                     doc.setDrawColor(35, 69,56); 
                     doc.rect(5, lastYPage8 + 13, boxWidth11, boxHeight11, 'D'); 
                     
-                    const reportData12 = data.reportData12;
+                    var reportData12 = data.reportData12;
                    console.log("reportData12",reportData12);
-                   
-                   
+
+                   if(reportData12.length == 0){
+                	   noDataMsg = "* 조회 기간 동안 수출입 정정 귀책자별 비율이 존재하지 않습니다.";
+                       
+                       doc.setFont('NanumSquareR', 'normal');
+                       doc.setFontSize(10);
+                       doc.setTextColor(64,64,64); // 회색 느낌
+                       doc.text(noDataMsg, 10, 93);
+                   }else{
+                	
                    // 1. 각각 총합 계산
-                   const totalImpAmt = reportData12.reduce((sum, item) => sum + Number(item.impAmt || 0), 0);
-                   const totalExpAmt = reportData12.reduce((sum, item) => sum + Number(item.expAmt || 0), 0);
+                   var totalImpAmt = reportData12.reduce((sum, item) => sum + Number(item.impAmt || 0), 0);
+                   var totalExpAmt = reportData12.reduce((sum, item) => sum + Number(item.expAmt || 0), 0);
 
                    // 2. map 돌면서 비율 계산
-                   const datas11 = reportData12.map(item => {
-                	 const formattedlmpAmt = Intl.NumberFormat("ko-KR").format(item.impAmt); 
-                	 const formattedEmpAmt = Intl.NumberFormat("ko-KR").format(item.expAmt); 
-                     const impAmt = Number(item.impAmt || 0);
-                     const expAmt = Number(item.expAmt || 0);
+                   var datas11 = reportData12.map(item => {
+                	 var formattedlmpAmt = Intl.NumberFormat("ko-KR").format(item.impAmt); 
+                	 var formattedEmpAmt = Intl.NumberFormat("ko-KR").format(item.expAmt); 
+                     var impAmt = Number(item.impAmt || 0);
+                     var expAmt = Number(item.expAmt || 0);
 
                      // 수입 비율
-                     const impRate = totalImpAmt === 0 ? '0.0%' : ((impAmt / totalImpAmt) * 100).toFixed(1) + '%';
+                     var impRate = totalImpAmt === 0 ? '0.0%' : ((impAmt / totalImpAmt) * 100).toFixed(1) + '%';
                      // 수출 비율
-                     const expRate = totalExpAmt === 0 ? '0.0%' : ((expAmt / totalExpAmt) * 100).toFixed(1) + '%';
+                     var expRate = totalExpAmt === 0 ? '0.0%' : ((expAmt / totalExpAmt) * 100).toFixed(1) + '%';
 
                      return [
                        item.incoterms,  // 인코텀즈
@@ -3687,24 +4262,24 @@ function exportRptPdf(data){
                    
                    
                 // 테이블 헤더
-    		       const header10 = [
+    		       var header10 = [
     		    	   	[ 
     		    		    { content: '인코텀즈', rowSpan: 3, border: [true, true, true, true] },  // 수리일자 셀에 테두리 추가
     		    		    { content: '수입', colSpan: 3, border: [true, true, true, true] },
     		    		    { content: '수출', colSpan: 3, border: [true, true, true, true] },
     		    		  ],  // 첫 번째 행
     		    		  [
-      		    		    { content: '신고금액(USD)',colSpan: 3, border: [true, true, true, true] },
-      		    		    { content: '신고금액(USD)',colSpan: 3, border: [true, true, true, true] },
+      		    		    { content: '신고금액',colSpan: 3, border: [true, true, true, true] },
+      		    		    { content: '신고금액',colSpan: 3, border: [true, true, true, true] },
       		    		    
       		    		  ],
     		    		  [
     		    		    { content: '건수', border: [true, true, true, true] },
-    		    		    { content: '금액', border: [true, true, true, true] },
-    		    		    { content: '비율', border: [true, true, true, true] },
+    		    		    { content: '금액(USD)', border: [true, true, true, true] },
+    		    		    { content: '비율(%)', border: [true, true, true, true] },
     		    		    { content: '건수', border: [true, true, true, true] },
-    		    		    { content: '금액', border: [true, true, true, true] },
-    		    		    { content: '비율', border: [true, true, true, true] },
+    		    		    { content: '금액(USD)', border: [true, true, true, true] },
+    		    		    { content: '비율(%)', border: [true, true, true, true] },
     		    		  ]
     		    	 ];
     		       
@@ -3748,242 +4323,377 @@ function exportRptPdf(data){
                 		  5: { halign: 'right' },
                 		  6: { halign: 'right' }
                 	  },
-            		});
+                	  /** 🔵 여기에 굵은 세로선 추가 **/
+                	  didDrawCell: function (data) {
+                		  const colIndex = data.column.index;
+                		  const cell = data.cell;
+                		  const doc = data.doc;
+
+                		  // 본문(body) 셀에서만 실행
+                		  if (data.section === 'body' && colIndex === 4) {
+                		    doc.setLineWidth(0.5);       // 선 굵기
+                		    doc.setDrawColor(64, 64, 64); // 선 색상
+                		    doc.line(cell.x, cell.y, cell.x, cell.y + cell.height); // 왼쪽 세로선
+                		  }
+                		}
+                	});
+                   }
                 	
                 	lastYPage9 = doc.lastAutoTable.finalY;
+                	if(lastYPage9 == 58.605000000000004){
+                		lastYPage9 = 130;
+                	}
                 	
                     doc.setFontSize(16);
                     doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
                     doc.setFont('NanumSquareB', 'normal');
                     //doc.setTextColor(62, 113, 175); //파란색
                     doc.setTextColor(71, 140, 114); 
-                    doc.text(8, lastYPage9 + 20, "11.세관별 신고건수 및 금액");
+                    doc.text(8, lastYPage9 + 20, "12. 세관별 신고건수 및 금액");
+                    doc.setFontSize(12);
+    	            doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
+                    doc.setFont('NanumSquareEB', 'bold');
+                    doc.setTextColor(108, 179, 63);
+                    doc.text(190, lastYPage9 + 20, "III. 공통");
                     
                     // 제목 + 설명을 넣을 영역을 네모박스로 그리기
-                    const boxMargin12 =  5;  // 테두리와의 여백
-                    const boxWidth12 = 200;  // 박스의 너비
-                    const boxHeight12 = 15;  // 박스의 높이 (설명 포함)
+                    var boxMargin12 =  5;  // 테두리와의 여백
+                    var boxWidth12 = 200;  // 박스의 너비
+                    var boxHeight12 = 15;  // 박스의 높이 (설명 포함)
                     
                     doc.setLineWidth(0.5);  // 테두리 두께 설정 (기본값은 0.2)
                     doc.setDrawColor(35, 69,56); 
                     doc.rect(5, lastYPage9 + 13, boxWidth12, boxHeight12, 'D'); 
                     
-                    const reportData13 = data.reportData13;
+                    var reportData13 = data.reportData13;
                     console.log("reportData13",reportData13);
+                    if(reportData13.length == 0){
+                    	 noDataMsg = "* 조회 기간 동안 세관별 수입 신고건수 및 금액이 존재하지 않습니다.";
+                         
+                         doc.setFont('NanumSquareR', 'normal');
+                         doc.setFontSize(10);
+                         doc.setTextColor(64,64,64); // 회색 느낌
+                         doc.text(noDataMsg, 10, 165);  // 위치 조정해서 출력
+                    }else{
                     
-                    const datas12 = [];
-                    let currentGroupStartRow = 0;
-
-                    reportData13.forEach((item, index) => {
-                      const formattedCnt = Intl.NumberFormat("ko-KR").format(item.cnt);
-                      const formattedTaxKrw = Intl.NumberFormat("ko-KR").format(item.taxKrw);
-                      const formattedTaxSum = Intl.NumberFormat("ko-KR").format(item.taxSum);
-                      const formattedTaxUsd = Intl.NumberFormat("ko-KR").format(item.taxUsd);
-
-
-                      datas12.push([
-                    	item.al,
-                        item.cus,
-                        item.cusnm,
-                        formattedCnt,
-                        formattedTaxUsd,
-                        formattedTaxKrw,
-                        formattedTaxSum,
-                        item.taxRate,
-                      ]);
-                    });
+	                    var datas12 = [];
+	                    let currentGroupStartRow = 0;
+	
+	                    reportData13.forEach((item, index) => {
+	                      var formattedCnt = Intl.NumberFormat("ko-KR").format(item.cnt);
+	                      var formattedTaxKrw = Intl.NumberFormat("ko-KR").format(item.taxKrw);
+	                      var formattedTaxSum = Intl.NumberFormat("ko-KR").format(item.taxSum);
+	                      var formattedTaxUsd = Intl.NumberFormat("ko-KR").format(item.taxUsd);
+	
+	
+	                      datas12.push([
+	                    	item.al,
+	                        item.cus,
+	                        item.cusnm,
+	                        formattedCnt,
+	                        formattedTaxUsd,
+	                        formattedTaxKrw,
+	                        formattedTaxSum,
+	                        item.taxRate,
+	                      ]);
+	                    });
+	                    
+	                 // 테이블 헤더
+	    	            var header11 = [['구분','세관코드','세관명','신고건수','신고금액(USD)','과세가격(KRW)','납부세액','비율(%)']];
+	                    
+	    	         // 🟢 테이블 스타일 적용
+	                	doc.autoTable({
+	                	  head: header11,
+	                	  body:datas12,
+	                	  startY: lastYPage9 + 29, // 설명 아래에 테이블 배치
+	                	  theme: 'grid',
+	                	  styles: {
+	                	    font: 'NanumSquareR',
+	                	    fontSize: 7,
+	                	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
+	                	    textColor: [0, 0, 0],
+	                	    valign: 'middle',
+	                	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
+	                        wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
+	                	  },
+	                	  headStyles: {
+	                		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
+	                		fillColor: [35, 69, 56], // 헤더 배경 (초록)
+	                	    fontSize: 8,
+	                	    textColor: [255, 255, 255],
+	                	    font: 'NanumSquareEB',
+	                	    fontStyle: 'bold',
+	                	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
+	                	    lineWidth: 0.2, // 테두리 두께
+	                	    border: [true, true, true, true],  // 헤더에 테두리 추가
+	                	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
+	                        wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
+	                        halign: 'center', // 텍스트 가운데 정렬
+	                	  },
+	                	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
+	                	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
+	                	  columnStyles: {
+	                		  	0: { halign: 'center'},
+	                	        1: { halign: 'center'},
+	                	        2: { halign: 'center'},
+	                	        3: { halign: 'right'},
+	                	        4: { halign: 'right'},
+	                	        5: { halign: 'right'},
+	                	        6: { halign: 'right'},
+	                	        7: { halign: 'right'},
+	                	  },
+	                	  didParseCell: function (data) {
+	                		    // 데이터 셀이고, '합계'인 경우
+	                		    if (data.section === 'body' && data.row.raw[0] === '합계') {
+	                		      data.cell.styles.fillColor = [246, 243, 202]; // 배경
+	              	              data.cell.styles.font = 'NanumSquareB'; // 굵은 폰트 적용
+	              	              data.cell.styles.fontStyle = 'bold'; // 볼드 처리
+	                		    }
+	                		  }
+	                		});
+                    }
                     
-                 // 테이블 헤더
-    	            var header11 = [['구분','세관코드','세관명','신고건수','신고금액(USD)','과세가격(원화)','납부세액','비중']];
+                    lastYPage12 = doc.lastAutoTable.finalY;
+                    console.log("랭스"+reportData13.length);
                     
-    	         // 🟢 테이블 스타일 적용
-                	doc.autoTable({
-                	  head: header11,
-                	  body:datas12,
-                	  startY: lastYPage9 + 29, // 설명 아래에 테이블 배치
-                	  theme: 'grid',
-                	  styles: {
-                	    font: 'NanumSquareR',
-                	    fontSize: 7,
-                	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
-                	    textColor: [0, 0, 0],
-                	    valign: 'middle',
-                	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
-                        wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
-                	  },
-                	  headStyles: {
-                		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
-                		fillColor: [35, 69, 56], // 헤더 배경 (초록)
-                	    fontSize: 8,
-                	    textColor: [255, 255, 255],
-                	    font: 'NanumSquareEB',
-                	    fontStyle: 'bold',
-                	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
-                	    lineWidth: 0.2, // 테두리 두께
-                	    border: [true, true, true, true],  // 헤더에 테두리 추가
-                	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
-                        wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
-                        halign: 'center', // 텍스트 가운데 정렬
-                	  },
-                	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
-                	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
-                	  columnStyles: {
-                		  	0: { halign: 'center'},
-                	        1: { halign: 'center'},
-                	        2: { halign: 'center'},
-                	        3: { halign: 'right'},
-                	        4: { halign: 'right'},
-                	        5: { halign: 'right'},
-                	        6: { halign: 'right'},
-                	        7: { halign: 'right'},
-                	  },
-                	  didParseCell: function (data) {
-                		    // 데이터 셀이고, '합계'인 경우
-                		    if (data.section === 'body' && data.row.raw[0] === '합계') {
-                		      data.cell.styles.fillColor = [246, 243, 202]; // 배경
-              	              data.cell.styles.font = 'NanumSquareB'; // 굵은 폰트 적용
-              	              data.cell.styles.fontStyle = 'bold'; // 볼드 처리
-                		    }
-                		  }
-                		});
-                	
-            		/*lastYPage10 = doc.lastAutoTable.finalY;
-                	
-                    const reportData14 = data.reportData14;
+                    if(reportData13.length == 0){
+                		/*lastYPage12 = 12123;*/
+                    	lastYPage12 += 25;
+                	}
+                    console.log("lastYPage12"+lastYPage12);
+                    
                     console.log("reportData14",reportData14);
+                   /* if(reportData14.length == 1){
+                    	 noDataMsg = "* 조회기간 동안 세관별 수출 신고건수 내역이 존재하지 않습니다.";
+                         
+                         doc.setFont('NanumSquareR', 'normal');
+                         doc.setFontSize(10);
+                         doc.setTextColor(64,64,64); // 회색 느낌
+                         doc.text(noDataMsg, 10, 165);  // 위치 조정해서 출력
+                    }*/if(reportData14.length != 1){
                     
-                    let lastAl1 = null; // <-- 이 줄을 map() 함수 바깥에 선언해줘야 해
-                    let rowSpanTracker1 = {};
-                    let rowIndex1 = 0;
+	                    var datas15 = [];
+	                    let currentGroupStartRow = 0;
+	
+	                    reportData14.forEach((item, index) => {
+	                      var formattedCnt = Intl.NumberFormat("ko-KR").format(item.cnt);
+	                      var formattedTaxSum = Intl.NumberFormat("ko-KR").format(item.taxSum);
+	                      var formattedTaxUsd = Intl.NumberFormat("ko-KR").format(item.taxUsd);
+	
+	
+	                      datas15.push([
+	                    	item.al,
+	                        item.cus,
+	                        item.cusnm,
+	                        formattedCnt,
+	                        formattedTaxUsd,
+	                        formattedTaxSum,
+	                        item.taxSd,
+	                        item.taxRate,
+	                      ]);
+	                    });
+	                    
+	                 // 테이블 헤더
+	    	            var header12 = [['구분','세관코드','세관명','신고건수','신고금액(USD)','수출금액(FOB)','납부세액','비율(%)']];
+	                    
+	    	         // 🟢 테이블 스타일 적용
+	                	doc.autoTable({
+	                	  head: header12,
+	                	  body:datas15,
+	                	  startY: lastYPage12 + 5, // 설명 아래에 테이블 배치
+	                	  theme: 'grid',
+	                	  styles: {
+	                	    font: 'NanumSquareR',
+	                	    fontSize: 7,
+	                	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
+	                	    textColor: [0, 0, 0],
+	                	    valign: 'middle',
+	                	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
+	                        wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
+	                	  },
+	                	  headStyles: {
+	                		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
+	                		fillColor: [35, 69, 56], // 헤더 배경 (초록)
+	                	    fontSize: 8,
+	                	    textColor: [255, 255, 255],
+	                	    font: 'NanumSquareEB',
+	                	    fontStyle: 'bold',
+	                	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
+	                	    lineWidth: 0.2, // 테두리 두께
+	                	    border: [true, true, true, true],  // 헤더에 테두리 추가
+	                	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
+	                        wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
+	                        halign: 'center', // 텍스트 가운데 정렬
+	                	  },
+	                	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
+	                	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
+	                	  columnStyles: {
+	                		  	0: { halign: 'center'},
+	                	        1: { halign: 'center'},
+	                	        2: { halign: 'center'},
+	                	        3: { halign: 'right'},
+	                	        4: { halign: 'right'},
+	                	        5: { halign: 'right'},
+	                	        6: { halign: 'center'},
+	                	        7: { halign: 'right'},
+	                	  },
+	                	  didParseCell: function (data) {
+	                		    // 데이터 셀이고, '합계'인 경우
+	                		    if (data.section === 'body' && data.row.raw[0] === '합계') {
+	                		      data.cell.styles.fillColor = [246, 243, 202]; // 배경
+	              	              data.cell.styles.font = 'NanumSquareB'; // 굵은 폰트 적용
+	              	              data.cell.styles.fontStyle = 'bold'; // 볼드 처리
+	                		    }
+	                		  }
+	                		});
+                    }
                     
-                    const datas13 = reportData14.map(item => {
-      	              const formattedCnt = Intl.NumberFormat("ko-KR").format(item.cnt);
-      	              const formattedTaxKrw = Intl.NumberFormat("ko-KR").format(item.taxKrw);
-      	              const formattedTaxSum = Intl.NumberFormat("ko-KR").format(item.taxSum);
-      	              const formattedTaxUsd = Intl.NumberFormat("ko-KR").format(item.taxUsd);
-      	              
-      	            // rowspan을 위해 현재 al이 이전과 다른 경우만 표시
-      	            const showAl1 = item.al !== lastAl1;
-	      	          if (showAl1) {
-	      	            const sameAlCount1 = reportData13.filter(i => i.al === item.al).length;
-	      	            rowSpanTracker1[rowIndex1] = { text: item.al, rowSpan: sameAlCount1 };
-	      	            lastAl1 = item.al;
-	      	          }
-      	              
-      	          const row = [
-      	            item.al,                // 나중에 커스텀 렌더링 할 열
-      	            item.cus,
-      	            item.cusnm,
-      	            formattedCnt,
-      	            formattedTaxUsd,
-      	            formattedTaxKrw,
-      	            formattedTaxSum,
-      	            item.taxRate,
-      	          ];
-
-      	          rowIndex++;
-      	          return row;
-      	        });
+                   
                     
-                 // 테이블 헤더
-    	            var header12 = [['구분','세관코드','세관명','신고건수','신고금액(USD)','과세가격(원화)','납부세액','비중']];
-                    
-    	         // 🟢 테이블 스타일 적용
-                	doc.autoTable({
-                	  head: header12,
-                	  body:datas13,
-                	  startY: lastYPage10 + 5, // 설명 아래에 테이블 배치
-                	  theme: 'grid',
-                	  styles: {
-                	    font: 'NanumSquareR',
-                	    fontSize: 7,
-                	    cellPadding: 2,   // 셀 패딩을 줄여서 행 높이 줄이기
-                	    textColor: [0, 0, 0],
-                	    valign: 'middle',
-                	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
-                        wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
-                	  },
-                	  headStyles: {
-                		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
-                		fillColor: [35, 69, 56], // 헤더 배경 (초록)
-                	    fontSize: 8,
-                	    textColor: [255, 255, 255],
-                	    font: 'NanumSquareEB',
-                	    fontStyle: 'bold',
-                	    cellPadding: 2, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
-                	    lineWidth: 0.2, // 테두리 두께
-                	    border: [true, true, true, true],  // 헤더에 테두리 추가
-                	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
-                        wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
-                        halign: 'center', // 텍스트 가운데 정렬
-                	  },
-                	  tableWidth: 'auto', // PDF 크기에 맞게 자동 조정
-                	  margin: { left: 5, right: 5 }, // 좌우 공백 추가
-                	  columnStyles: {
-                		  	0: { halign: 'center'},
-                	        1: { halign: 'center'},
-                	        2: { halign: 'center'},
-                	        3: { halign: 'right'},
-                	        4: { halign: 'right'},
-                	        5: { halign: 'right'},
-                	        6: { halign: 'right'},
-                	        7: { halign: 'right'},
-                	  },
-                	  didParseCell: function (data) {
-                		    if (data.section === 'body' && data.column.index === 0) {
-                		      const rowSpanInfo = rowSpanTracker[data.row.index];
-                		      if (rowSpanInfo) {
-                		        data.cell.rowSpan = rowSpanInfo.rowSpan;
-                		        data.cell.text = rowSpanInfo.text;
-                		      } else {
-                		        // 병합된 셀 아래쪽은 숨김 처리
-                		        data.cell.text = '';
-                		      }
-                		    }
-                		  },
-            		});*/
-            	
-	            	
+                    lastYPage11 = doc.lastAutoTable.finalY;
+                	if(lastYPage11 == 58.605000000000004){
+                		lastYPage11 = 170;
+                	}
+                   
+                    var reportData17 = data.reportData17;
+                    console.log("reportData17",reportData17);
+                  
+                    if(reportData17.length > 0){
+                    	
+                    	doc.setFontSize(8.5);
+                        doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
+                        doc.setFont('NanumSquareB', 'normal');
+                        //doc.setTextColor(62, 113, 175); //파란색
+                        doc.setTextColor(71, 140, 114); 
+                        doc.text(85, lastYPage11 + 13, "전담 관세사 & 통관 담당자");
+                	   
+		                    var datas13 = [];
+		
+		                    reportData17.forEach((item, index) => {
+		
+		                      datas13.push([
+		                    	item.cmpnyNm,
+		                        item.usrType,
+		                        item.usrNm,
+		                        item.usrEmail,
+		                        item.usrTel
+		                      ]);
+		                    });
+		                    
+		                 // 테이블 헤더
+		    	            var header12 = [['회사','구분','이름','이메일','전화번호']];
+		                    
+		    	         // 🟢 테이블 스타일 적용
+		                	doc.autoTable({
+		                	  head: header12,
+		                	  body:datas13,
+		                	  startY: lastYPage11 + 15, // 설명 아래에 테이블 배치
+		                	  theme: 'grid',
+		                	  styles: {
+		                	    font: 'NanumSquareR',
+		                	    fontSize: 7,
+		                	    cellPadding: 1,   // 셀 패딩을 줄여서 행 높이 줄이기
+		                	    textColor: [0, 0, 0],
+		                	    valign: 'middle',
+		                	    overflow: 'hidden', // 텍스트 줄바꿈을 방지하고 넘치지 않게 설정
+		                        wordWrap: 'normal', // 줄바꿈 방지 (한 줄로만 보이게)
+		                	  },
+		                	  headStyles: {
+		                		//fillColor: [36, 83, 118], // 헤더 배경 (파란)
+		                		fillColor: [35, 69, 56], // 헤더 배경 (초록)
+		                	    fontSize: 7,
+		                	    textColor: [255, 255, 255],
+		                	    font: 'NanumSquareEB',
+		                	    fontStyle: 'bold',
+		                	    cellPadding: 1, // 헤더 높이를 줄이기 위해 패딩을 적게 설정
+		                	    lineWidth: 0.2, // 테두리 두께
+		                	    border: [true, true, true, true],  // 헤더에 테두리 추가
+		                	    overflow: 'linebreak', // 헤더의 텍스트가 두 줄로 넘어가도록 설정
+		                        wordWrap: 'break-word', // 텍스트가 셀 너비를 넘어서면 줄바꿈 되도록 설정
+		                        halign: 'center', // 텍스트 가운데 정렬
+		                	  },
+		                	  tableWidth: 120, // PDF 크기에 맞게 자동 조정
+		                	  margin: { left:85,right: 10 }, // 좌우 공백 추가
+		                	  columnStyles: {
+		                		  	0: { halign: 'center'},
+		                	        1: { halign: 'center'},
+		                	        2: { halign: 'center'},
+		                	        3: { halign: 'center'},
+		                	        4: { halign: 'center'},
+		                	  },
+		                		});
+             
+                    	}
+            			            	
 	            setTimeout(() => {
-	            	const imgData = canvas.toDataURL('image/png'); // 왼쪽 차트 캔버스를 PNG로 변환
-	                const rightImgData = rightCanvas.toDataURL('image/png'); // 오른쪽 차트 캔버스를 PNG로 변환
-	                const pdf2ImgData = pdf2canvas.toDataURL('image/png');
-	                const pdf3ImgData = pdf3canvas.toDataURL('image/png');
-	                const pdf4ImgData = pdf4canvas.toDataURL('image/png');
-	                const pdf5ImgData = pdf5canvas.toDataURL('image/png');
-	                const pdf6ImgData = pdf6canvas.toDataURL('image/png');
-	                const pdf7ImgData = pdf7canvas.toDataURL('image/png');
-	                const pdf8ImgData = pdf8canvas.toDataURL('image/png');
-	               
+	            	
+	            	let pdf3ImgData,pdf4ImgData,pdf2ImgData,pdf5ImgData, pdf6ImgData,pdf7ImgData, imgData, rightImgData; 
+	            	
+	            	if(reportData1.length > 2 ){
+	            	 imgData = canvas.toDataURL('image/png'); // 왼쪽 차트 캔버스를 PNG로 변환
+	                 rightImgData = rightCanvas.toDataURL('image/png'); // 오른쪽 차트 캔버스를 PNG로 변환
+	            	}
+	            	if(reportData3.length > 0){
+	            	 pdf2ImgData = pdf2canvas.toDataURL('image/png');
+	            	}
+	            	if(reportData4.length > 1){
+	            	 pdf3ImgData = pdf3canvas.toDataURL('image/png');
+	            	}
+	            	if(reportData5.length > 1){
+	            	 pdf4ImgData = pdf4canvas.toDataURL('image/png');
+	            	}
+	                
+	                
+	                if(reportData9.length > 2 ){
+	                 pdf5ImgData = pdf5canvas.toDataURL('image/png');
+	                 pdf6ImgData = pdf6canvas.toDataURL('image/png');
+	                }
+	                if(reportData8.length > 0 ){
+	                 pdf7ImgData = pdf7canvas.toDataURL('image/png');
+	                }
+	                if(reportData10.length > 0 ){
+	                 pdf8ImgData = pdf8canvas.toDataURL('image/png');
+	                }
 
+	                if(reportData1.length > 2 ){
 	                doc.setPage(chartPage1);
 	                doc.addImage(imgData, 'PNG', 25, chartY1, 60, 60);      // 왼쪽 차트
 	                doc.addImage(rightImgData, 'PNG', 125, chartY1, 60, 60); // 오른쪽 차트
-            	    
+	                }
+	                
+	                if(reportData3.length > 2 ){
 	                doc.setPage(chartPage2);
             	    doc.addImage(pdf2ImgData, 'PNG', 15, chartY2, 180, 70); // 전월 대비 차트 (x, y, width, height)
-            	    
-            	    doc.setPage(chartPage3);
+	                }
+	                
+	                if(reportData4.length > 1){
+	                doc.setPage(chartPage3);
             	    doc.addImage(pdf3ImgData, 'PNG', 43, chartY3, 120, 120);
+	                }
             	    
+	                if(reportData5.length > 1){
             	    doc.setPage(chartPage4);
-            	   
             	    doc.addImage(pdf4ImgData, 'PNG', 55, chartY4-10,100,100);
-            	    
+            	    }
+
+            	    if(reportData9.length > 2 ){
             	    doc.setPage(chartPage5);  
-            	    
             	    doc.addImage(pdf5ImgData, 'PNG', 25, chartY5+5, 60, 60); // 왼쪽 차트 (x, y, width, height)
             	    doc.addImage(pdf6ImgData, 'PNG', 125, chartY5+5 , 60, 60); // 오른쪽 차트 (x, y, width, height)
+            	    }
             	    
-            	    doc.setPage(chartPage6);
-            	    
-            	    doc.addImage(pdf7ImgData, 'PNG', 15, chartY6-45,180,180);
-            	    
-            	    doc.setPage(chartPage7);
             	   
+            	    if(reportData8.length > 0 ){
+            	    doc.setPage(chartPage6);
+            	    doc.addImage(pdf7ImgData, 'PNG', 15, chartY6-45,180,180);
+            	    doc.setPage(chartPage7);
+            	    }
+            	    
+            	    if(reportData10.length > 0 ){
+            	    doc.setPage(chartPage7);
             	    doc.addImage(pdf8ImgData, 'PNG', 15, chartY7-45,180,180);
             	    //doc.addImage(pdf7ImgData, 'PNG', 15, lastYPage6 , pdfWidth, pdfHeight);
-
+            	    }
             	    // 🟢 페이지 번호 추가
             	    let totalPages = doc.getNumberOfPages();
             	    for (let i = 3; i <= totalPages; i++) {
@@ -3995,7 +4705,8 @@ function exportRptPdf(data){
             	    
             	    // 🟢 PDF 저장
 	               doc.save(String(data.rptDate1) + '년 ' + String(data.rptDate2) + '월_' + String(data.cmpnyInfo) +'_'+'_report.pdf');
-	               fn_loading(false);
+	               //fn_loading(false);
+	                $("#analySts1").html('<img class="completeReport" src="/pf/css/images/complete.png" />');
 				    fn_dashInfo1("02");
 					fn_dashManagerInfo();
 					fn_dashSrch();

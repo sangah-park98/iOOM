@@ -636,8 +636,8 @@ function fn_expViewTableCol(){
 		{data : 'co', className : "htCenter", width: 100, wordWrap: false, className : "htCenter", readOnly:true, renderer : transRenderer},
 		{data : 'state', className : "htCenter", width: 100, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'sn', className : "htCenter", width: 100, wordWrap: false, className : "htCenter", readOnly:true, renderer : chipRenderer2},
-		{data : 'rece', className : "htCenter", width: 50, wordWrap: false, className : "htCenter", readOnly:true, renderer : chipRenderer2},
-		{data : 'receResult', className : "htCenter", width: 80, wordWrap: false, className : "htCenter", readOnly:true, renderer : chipRenderer},
+		{data : 'rece', className : "htCenter", width: lang === 'en' ? 150 : 50, wordWrap: false, className : "htCenter", readOnly:true, renderer : chipRenderer2},
+		{data : 'receResult', className : "htCenter", width: lang === 'en' ? 120 : 80, wordWrap: false, className : "htCenter", readOnly:true, renderer : chipRenderer},
 		{data : 'rptNo', className : "htCenter", width: 160, wordWrap: false, className : "htCenter", readOnly:true, renderer : expViewFileLoadRenderer},
 		//{data : 'invoice', className : "htCenter", width: 130, wordWrap: false, className : "htCenter", readOnly:true},
 		{data : 'expFirm', className : "htCenter", width: 180, wordWrap: false, className : "htCenter", readOnly:true},
@@ -658,7 +658,7 @@ function fn_expViewTableCol(){
 		//{data : 'factoryCode', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		//{data : 'srOrdr', className : "htCenter", width: 90, wordWrap: false, className : "htCenter", readOnly:true},
 		//{data : 'userMemo', className : "htCenter", width: 250, wordWrap: false, className : "htCenter", readOnly:true, renderer : userMemoRenderer},
-		{data : 'reporter', className : "htCenter", width: 120, wordWrap: false, className : "htCenter", readOnly:true},
+		{data : 'reporter', className : "htCenter", width: lang === 'en' ? 160 : 120, wordWrap: false, className : "htCenter", readOnly:true},
 		//{data : 'cusMemo', className : "htCenter", wordWrap: false, className : "htCenter"},
 	] ;
 }
@@ -1221,8 +1221,8 @@ function fn_expProgressTableCol(){
 
 function fn_expProgressTableHeader(){
 	this.expProgressHeader = [
-		impDeclareAcDt, termsOfObligation, packingCnt, customsWeight, shipCmpStatus, blNo, onBoardDt, shipPackingCnt, shipWeight
-		/*"수입신고수리일자", "적재의무기한", "통관포장개수", "통관중량", "선적완료여부", "BL번호", "선적일자", "선기적포장개수", "선기적중량"*/
+		expDeclareAcDt, termsOfObligation, packingCnt, customsWeight, shipCmpStatus, blNo, onBoardDt, shipPackingCnt, shipWeight
+		/*"수출신고수리일자", "적재의무기한", "통관포장개수", "통관중량", "선적완료여부", "BL번호", "선적일자", "선기적포장개수", "선기적중량"*/
 	];
 }
 

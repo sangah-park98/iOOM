@@ -263,67 +263,67 @@
 </div>
 
 <!-- /Modal -->
-   <div class="modal fade fixed top-0 left-0 h-full w-full z-[200] bg-black/50 items-center justify-center duration-300" id="inFileListPopUp"
-		tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
-		aria-hidden="true" style="display: none; ">
-		<div class="modal-close absolute top-0 left-0 w-full h-full"></div>
-		<div class="modal-dialog modal-xl" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width:800px;" >
-			<div class="modal-content bg-white shadow-lg relative rounded min-w-80 overflow-hidden">
-				<div class="pl-7 pr-5 py-2 text-white bg-primary-900 flex items-center justify-between">
-					<h1 class="modal-title">
-						<span></span> <!-- invoice 번호 -->
-					</h1>
-					<button type="button" onclick="fileListClose()" class="modal-close text-2xl px-1.5 py-1 rounded-lg hover:bg-rose-500/70 border-2 border-transparent hover:border-white duration-300 flex items-center justify-center"><i class="far fa-xmark"></i></button>
-				</div>
-				<div class="pl-7 pr-5 py-2 flex items-center justify-end">
-					<button type="button" onclick="fn_docuPrint()" class="px-3 py-2 rounded-lg text-white hover:opacity-50 border-2 border-transparent duration-150 bg-primary-700 ">
-				        <i class="fa-regular fa-download"></i>
-				        &nbsp;${download}
-				    </button>&nbsp;
-				    <button type="button" onclick="fn_expPopupDelete()" class="px-3 py-2 rounded-lg text-white hover:opacity-50 border-2 border-transparent duration-150 bg-primary-700 ">
-				        <i class="fa-regular fa-xmark"></i>
-				        	${delete}
-				    </button>
-				</div>
-				 <div class="modal-body">
-					 <div id="inListPopupTable" class="grow bg-white shadow-sm h-full max-h-[100rem] rounded-lg border border-slate-200 z-0"></div>
-			    <form id="fileInUpload" method="post" enctype=”multipart/form-data”>
-				    <div>
-				      <ul class="file-list-expUpload px-4 py-6"></ul>
-				    </div>
-			    </form>
-				<div id="uploadInDiv" class="flex items-center justify-center w-full px-4 pb-6">
-				  <div class="relative w-full h-42 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
-				    <input id="dropzone-file-expUpload" type="file" multiple class="absolute top-0 left-0 opacity-0 w-full h-full">
-				    <div class="flex flex-col items-center justify-center pt-5 pb-6" style="width: 100%; height: 100%;"> 
-				     <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-				       <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-				     </svg>
-				     <div class="flex flex-col items-center justify-center gap-1 items-center"> <!-- 각 요소 사이의 여백을 조정하기 위해 gap 클래스 추가 -->
-				       <p class="mb-0 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
-				       <p class="mt-0 mb-0 text-xs text-gray-500 dark:text-gray-400">JPG, PNG, HWP or PDF (MAX. 5mb)</p> <!-- 위 아래 여백을 조정하기 위해 mt-0 클래스 추가 -->
-				      </div>
-				    </div>
-				  </div>
-				</div>
-			    <div class="mx-5 py-4 border-t-2 flex justify-end gap-2 border-t" style="z-index: 1;">
-			      <input type="hidden" name="invoiceNo" id="invoiceNo" />
-			      <input type="hidden" name="rptNo" id="rptNo" />
-			      <button type="button" id="uploadInSaveBtn" onclick="fn_fileExpInSave()" class="so-upload-button px-3 py-2 rounded-lg text-white hover:opacity-50 duration-150 bg-primary-700">
-			        <i class="fa-regular fa-floppy-disk"></i>
-			        	${save}
-			      </button>
-			    </div>
-				  <form name="zipInDownForm" method="post" action="/base/downloadFile.do">
-					<input type="hidden" name="docuPath" id="docuPath" />
-					<input type="hidden" name="docuFile" id="docuFile" />
-					<input type="hidden" name="docuOrgFile" id="docuOrgFile" />
-					<input type="hidden" name="zipInName" id="zipInName" />
-				  </form>
-				</div> 
+  <div class="modal fade fixed top-0 left-0 h-full w-full z-[200] bg-black/50 items-center justify-center duration-300" id="inFileListPopUp"
+	tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+	aria-hidden="true" style="display: none; ">
+	<div class="modal-close absolute top-0 left-0 w-full h-full"></div>
+	<div class="modal-dialog modal-xl" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width:800px;" >
+		<div class="modal-content bg-white shadow-lg relative rounded min-w-80 overflow-hidden">
+			<div class="pl-7 pr-5 py-2 text-white bg-primary-900 flex items-center justify-between">
+				<h1 class="modal-title">
+					<span></span> <!-- invoice 번호 -->
+				</h1>
+				<button type="button" onclick="fileListClose()" class="modal-close text-2xl px-1.5 py-1 rounded-lg hover:bg-rose-500/70 border-2 border-transparent hover:border-white duration-300 flex items-center justify-center"><i class="far fa-xmark"></i></button>
 			</div>
+			<div class="pl-7 pr-5 py-2 flex items-center justify-end">
+				<button type="button" onclick="fn_docuPrint()" class="px-3 py-2 rounded-lg text-white hover:opacity-50 border-2 border-transparent duration-150 bg-primary-700 ">
+			        <i class="fa-regular fa-download"></i>
+			        &nbsp;${download}
+			    </button>&nbsp;
+			    <button type="button" onclick="fn_expPopupDelete()" class="px-3 py-2 rounded-lg text-white hover:opacity-50 border-2 border-transparent duration-150 bg-primary-700 ">
+			        <i class="fa-regular fa-xmark"></i>
+			        	${delete}
+			    </button>
+			</div>
+			 <div class="modal-body">
+				 <div id="inListPopupTable" class="grow bg-white shadow-sm h-full max-h-[100rem] rounded-lg border border-slate-200 z-0"></div>
+		    <form id="fileInUpload" method="post" enctype=”multipart/form-data”>
+			    <div>
+			      <ul class="file-list-expUpload px-4 py-6"></ul>
+			    </div>
+		    </form>
+			<div id="uploadInDiv" class="flex items-center justify-center w-full px-4 pb-6">
+			  <div class="relative w-full h-42 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+			    <input id="dropzone-file-expUpload" type="file" multiple class="absolute top-0 left-0 opacity-0 w-full h-full">
+			    <div class="flex flex-col items-center justify-center pt-5 pb-6" style="width: 100%; height: 100%;"> 
+			     <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+			       <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+			     </svg>
+			     <div class="flex flex-col items-center justify-center gap-1 items-center"> <!-- 각 요소 사이의 여백을 조정하기 위해 gap 클래스 추가 -->
+			       <p class="mb-0 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+			       <p class="mt-0 mb-0 text-xs text-gray-500 dark:text-gray-400">JPG, PNG, HWP or PDF (MAX. 5mb)</p> <!-- 위 아래 여백을 조정하기 위해 mt-0 클래스 추가 -->
+			      </div>
+			    </div>
+			  </div>
+			</div>
+		    <div class="mx-5 py-4 border-t-2 flex justify-end gap-2 border-t" style="z-index: 1;">
+		      <input type="hidden" name="invoiceNo" id="invoiceNo" />
+		      <input type="hidden" name="rptNo" id="rptNo" />
+		      <button type="button" id="uploadInSaveBtn" onclick="fn_fileExpInSave()" class="so-upload-button px-3 py-2 rounded-lg text-white hover:opacity-50 duration-150 bg-primary-700">
+		        <i class="fa-regular fa-floppy-disk"></i>
+		        	${save}
+		      </button>
+		    </div>
+			  <form name="zipInDownForm" method="post" action="/base/downloadFile.do">
+				<input type="hidden" name="docuPath" id="docuPath" />
+				<input type="hidden" name="docuFile" id="docuFile" />
+				<input type="hidden" name="docuOrgFile" id="docuOrgFile" />
+				<input type="hidden" name="zipInName" id="zipInName" />
+			  </form>
+			</div> 
 		</div>
 	</div>
+</div>
 <script>
 	var all = "${all}";
 	var totalCnt = "${totalCnt}";

@@ -3,16 +3,24 @@ package egovframework.pf.docu.web;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Resource;
@@ -20,9 +28,13 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.sql.DataSource;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.xml.XmlBeanFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -43,9 +55,33 @@ import egovframework.pf.cmmn.service.SearchVO;
 import egovframework.pf.cmmn.service.UserSessionVO;
 import egovframework.pf.docu.service.SaveDocuFileVO;
 import egovframework.pf.docu.service.pfDocumentService;
+import egovframework.pf.exp.service.SaveExpFileVO;
 import egovframework.pf.exp.web.ZipDocuFileDownload;
 import egovframework.pf.exp.web.ZipFileDownload;
+import egovframework.pf.exp.web.ExportController.CIRequest;
+import egovframework.pf.util.FileUtil;
 import egovframework.rte.psl.dataaccess.util.EgovMap;
+import net.sf.jasperreports.engine.DefaultJasperReportsContext;
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.JREmptyDataSource;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRParameter;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.JasperReportsContext;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.export.JRPdfExporter;
+import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.engine.xml.JRXmlLoader;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import net.sf.jasperreports.export.SimplePdfExporterConfiguration;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JRPrintPage;
+import net.sf.jasperreports.engine.JRPropertiesUtil;
 
 @Controller
 public class DocumentController {
@@ -55,6 +91,11 @@ public class DocumentController {
 	
 	@Resource(name = "pfDocumentService")
 	private pfDocumentService pfdocumentService;
+	
+	@Resource(name = "fileProperties")
+	private Properties fileProperties;
+	
+	private Connection conn;
 	
 	@RequestMapping(value = "/docu/documentView.do")
 	public String documentView(HttpServletRequest request, Model model) throws Exception {
@@ -76,6 +117,7 @@ public class DocumentController {
 	public ModelAndView selectDocumentImpViewList(@RequestBody SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 	    HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		vo.setLang(userVO.getLang());
 		if(!userVO.getCorpNo().equals("00000000000")) {
 			vo.setList(userVO.getCorpNos());
 		}
@@ -89,6 +131,7 @@ public class DocumentController {
 	public ModelAndView selectDocumentExpViewList(@RequestBody SearchVO vo, HttpServletRequest request, ModelMap model) throws Exception {
 		HttpSession httpSession = request.getSession(true);
 		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		vo.setLang(userVO.getLang());
 		if(!userVO.getCorpNo().equals("00000000000")) {
 			vo.setList(userVO.getCorpNos());
 		}
@@ -120,6 +163,330 @@ public class DocumentController {
 		ModelAndView mav = new ModelAndView("jsonView");
 	    mav.addObject("resultList", resultList);
 	    return mav;
+	}
+	
+
+	@RequestMapping(value = "/document/createMthTaxBillPdf.do", method = RequestMethod.POST)
+	public ResponseEntity<String> createMthTaxBillPdf(@RequestBody mthTaxBillVO bvo,
+	                                                  HttpServletRequest request,
+	                                                  HttpServletResponse response,
+	                                                  HttpSession session) throws Exception {
+
+		HttpSession httpSession = request.getSession(true);
+		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+
+		Map<String, Object> parameters = new HashMap<>();
+		String nabSdNo = userVO.getCorpNo();
+		String reportName = "";
+		List<JasperPrint> allPrint = new ArrayList<>();
+		String rptNo = bvo.getRptNo();
+
+		JasperReport jasperReport;
+		JasperPrint jasperPrint = null;
+
+		String ul = request.getServletContext().getRealPath("");
+		String savePath = null;
+
+		if (System.getProperty("os.name").toLowerCase().contains("win")) {
+		    savePath = "C:\\home\\files\\" + rptNo + ".pdf";  // Windows 환경
+		}  else {
+		    savePath = "/home/files/" + rptNo + ".pdf";  // 리눅스 경로 지정 필요!
+		}
+
+		// 파일 저장 경로가 없으면 디렉터리 생성
+		File dir = new File(savePath).getParentFile();
+		if (!dir.exists()) {
+		    dir.mkdirs();
+		}
+
+		int totCnt = pfdocumentService.selectMthTaxBillCnt(rptNo);
+		int pageSize = 25;
+		int totalPages = (int) Math.ceil((double) totCnt / pageSize);  // 전체 페이지 수
+
+		try {
+		    List<String> annexList = new ArrayList<>();
+		    annexList.add("mthTaxBill");
+
+		    for (int i = 1; i <= totalPages; i++) {
+		        int offset = (i - 1) * pageSize;
+		        parameters.put("i_prm1", rptNo);
+		        parameters.put("i_prm2", nabSdNo);
+		        parameters.put("i_prm3", ul);
+		        parameters.put("i_prm4", offset);
+
+		        for (String annex : annexList) {
+		        	System.out.println(parameters);
+		            reportName = annex;
+		            String reportPath = ul + "/templet/" + reportName + ".jrxml";
+		            JasperDesign jasperd = JRXmlLoader.load(reportPath);
+		            jasperReport = JasperCompileManager.compileReport(jasperd);
+
+		            BeanFactory factory = new XmlBeanFactory(new ClassPathResource("egovframework/spring/context-datasource.xml"));
+		            DataSource ds = (DataSource) factory.getBean("dataSource");
+		            Connection conn = ds.getConnection();
+
+		            jasperPrint = JasperFillManager.fillReport(jasperReport, new HashMap<>(parameters), conn);
+		            allPrint.add(jasperPrint);
+		        }
+		    }
+		} catch (Exception e) {
+		    e.printStackTrace();
+		    return new ResponseEntity<>("fail", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		// PDF Export
+		try {
+		    JRPdfExporter exporter = new JRPdfExporter();
+		    exporter.setExporterInput(SimpleExporterInput.getInstance(allPrint));
+		    exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(savePath));
+		    exporter.exportReport();
+		} catch (Exception e) {
+		    e.printStackTrace();
+		    return new ResponseEntity<>("fail", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		return new ResponseEntity<>("success", HttpStatus.OK);
+	}
+	
+	// -------------------- 납부서 Jasper PDF: 폰트 때문에 로컬에서 테스트 시 2로 할 것 --------------------
+	@RequestMapping(value = "/document/createPaymentBillPdf.do", method = RequestMethod.POST)
+	public ResponseEntity<String> createPaymentBillPdf(@RequestBody mthTaxBillVO bvo,
+	                                                  HttpServletRequest request,
+	                                                  HttpServletResponse response,
+	                                                  HttpSession session) throws Exception {
+
+		HttpSession httpSession = request.getSession(true);
+		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		Map<String, Object> parameters = new HashMap<>();
+		String nabSdNo = userVO.getCorpNo();
+		String reportName = "";
+		String rptNo = bvo.getRptNo();
+		String blNo = bvo.getBlNo();
+
+		List<JasperPrint> allPrint = new ArrayList<>();
+		JasperReport jasperReport;
+		JasperPrint jasperPrint = null;
+
+		String ul = request.getServletContext().getRealPath("");
+		String savePath = null;
+		if (System.getProperty("os.name").toLowerCase().contains("win")) {
+		    savePath = "C:\\home\\files\\" + rptNo + ".pdf";
+		} else {
+		    savePath = "/home/files/" + rptNo + ".pdf";  // 리눅스 경로 지정 필요!
+		}
+		File dir = new File(savePath).getParentFile();
+		if (!dir.exists()) {
+		    dir.mkdirs();
+		}
+
+		try {
+		    List<String> annexList = new ArrayList<>();
+		    annexList.add("paymentBill");
+		    //annexList.add("paymentBill2");
+
+	        parameters.put("i_prm1", blNo);
+	        parameters.put("i_prm2", rptNo);
+	        parameters.put("i_prm4", ul);
+	        parameters.put("i_prm3", nabSdNo);
+
+	        for (String annex : annexList) {
+	        	// System.out.println(parameters);
+	            reportName = annex;
+	            String reportPath = ul + "/templet/" + reportName + ".jrxml";
+	            JasperDesign jasperd = JRXmlLoader.load(reportPath);
+	            jasperReport = JasperCompileManager.compileReport(jasperd);
+
+	            BeanFactory factory = new XmlBeanFactory(new ClassPathResource("egovframework/spring/context-datasource.xml"));
+	            DataSource ds = (DataSource) factory.getBean("dataSource");
+	            Connection conn = ds.getConnection();
+
+	            jasperPrint = JasperFillManager.fillReport(jasperReport, new HashMap<>(parameters), conn);
+	            allPrint.add(jasperPrint);
+	        }
+		} catch (Exception e) {
+		    e.printStackTrace();
+		    return new ResponseEntity<>("fail", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		// PDF Export
+		try {
+		    JRPdfExporter exporter = new JRPdfExporter();
+		    exporter.setExporterInput(SimpleExporterInput.getInstance(allPrint));
+		    exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(savePath));
+		    exporter.exportReport();
+		} catch (Exception e) {
+		    e.printStackTrace();
+		    return new ResponseEntity<>("fail", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		return new ResponseEntity<>("success", HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/document/createIndivTaxBillPdf.do", method = RequestMethod.POST)
+	public ResponseEntity<String> createIndivTaxBillPdf(@RequestBody mthTaxBillVO bvo,
+			HttpServletRequest request,
+			HttpServletResponse response,
+			HttpSession session) throws Exception {
+		
+		HttpSession httpSession = request.getSession(true);
+		UserSessionVO userVO = (UserSessionVO) httpSession.getAttribute("USER");
+		Map<String, Object> parameters = new HashMap<>();
+		String nabSdNo = userVO.getCorpNo();
+		String reportName = "";
+		String rptNo = bvo.getRptNo();
+		String blNo = bvo.getBlNo();
+		
+		List<JasperPrint> allPrint = new ArrayList<>();
+		JasperReport jasperReport;
+		JasperPrint jasperPrint = null;
+		
+		String ul = request.getServletContext().getRealPath("");
+		String savePath = null;
+		if (System.getProperty("os.name").toLowerCase().contains("win")) {
+			savePath = "C:\\home\\files\\" + rptNo + ".pdf";
+		} else {
+		    savePath = "/home/files/" + rptNo + ".pdf";  // 리눅스 경로 지정 필요!
+		}
+		File dir = new File(savePath).getParentFile();
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		
+		int totCnt = pfdocumentService.selectIndivTaxBillCnt(rptNo);
+		if (totCnt == 0) {
+		    return new ResponseEntity<>("fail", HttpStatus.OK);
+		}
+
+		List<?> vatList = pfdocumentService.selectVatType(rptNo);
+		// 개별세금계산서: 부가가치세 면세인 것과 면세가 아닌 것 합치기
+		if (vatList != null && vatList.size() >= 2) {
+		    Set<String> annexSet = new LinkedHashSet<>(); // 중복 제거
+		    for (Object vatObj : vatList) {
+		        if (vatObj instanceof Map) {
+		            Map<?, ?> vatMap = (Map<?, ?>) vatObj;
+		            Object vatDiviObj = vatMap.get("vatDivi");
+
+		            if (vatDiviObj != null) {
+		                String vatDivi = vatDiviObj.toString();
+		                if ("B".equalsIgnoreCase(vatDivi)) {
+		                	annexSet.add("indivTaxBillVat");
+		                	//annexSet.add("indivTaxBillVat2");
+		                } else if ("A".equalsIgnoreCase(vatDivi)) {
+		                	annexSet.add("indivTaxBill");
+		                	//annexSet.add("indivTaxBill2");
+		                }
+		            }
+		        }
+		    }
+		    parameters.put("i_prm1", blNo);
+		    parameters.put("i_prm2", rptNo);
+		    parameters.put("i_prm3", nabSdNo);
+
+		    try {
+		        for (String annex : annexSet) {
+		            reportName = annex;
+		            String reportPath = ul + "/templet/" + reportName + ".jrxml";
+		            JasperDesign jasperd = JRXmlLoader.load(reportPath);
+		            jasperReport = JasperCompileManager.compileReport(jasperd);
+
+		            BeanFactory factory = new XmlBeanFactory(new ClassPathResource("egovframework/spring/context-datasource.xml"));
+		            DataSource ds = (DataSource) factory.getBean("dataSource");
+		            Connection conn = ds.getConnection();
+
+		            jasperPrint = JasperFillManager.fillReport(jasperReport, new HashMap<>(parameters), conn);
+		            allPrint.add(jasperPrint);
+		        }
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        return new ResponseEntity<>("fail", HttpStatus.INTERNAL_SERVER_ERROR);
+		    }
+		} else {
+		    for (int i = 1; i <= totCnt; i++) {
+		        try {
+		            List<String> annexList = new ArrayList<>();
+
+		            if (vatList != null) {
+		                for (Object vatObj : vatList) {
+		                    if (vatObj instanceof Map) {
+		                        Map<?, ?> vatMap = (Map<?, ?>) vatObj;
+		                        Object vatDiviObj = vatMap.get("vatDivi");
+
+		                        if (vatDiviObj != null) {
+		                            String vatDivi = vatDiviObj.toString();
+		                            if ("B".equalsIgnoreCase(vatDivi)) {
+		                            	annexList.add("indivTaxBillVat");
+		                                //annexList.add("indivTaxBillVat2");
+		                            } else if ("A".equalsIgnoreCase(vatDivi)) {
+		                            	annexList.add("indivTaxBill");
+		                                //annexList.add("indivTaxBill2");
+		                            }
+		                        }
+		                    }
+		                }
+		            }
+		            parameters.put("i_prm1", blNo);
+		            parameters.put("i_prm2", rptNo);
+		            parameters.put("i_prm3", nabSdNo);
+
+		            for (String annex : annexList) {
+		                reportName = annex;
+		                String reportPath = ul + "/templet/" + reportName + ".jrxml";
+		                JasperDesign jasperd = JRXmlLoader.load(reportPath);
+		                jasperReport = JasperCompileManager.compileReport(jasperd);
+
+		                BeanFactory factory = new XmlBeanFactory(new ClassPathResource("egovframework/spring/context-datasource.xml"));
+		                DataSource ds = (DataSource) factory.getBean("dataSource");
+		                Connection conn = ds.getConnection();
+
+		                jasperPrint = JasperFillManager.fillReport(jasperReport, new HashMap<>(parameters), conn);
+		                allPrint.add(jasperPrint);
+		            }
+
+		        } catch (Exception e) {
+		            e.printStackTrace();
+		            return new ResponseEntity<>("fail", HttpStatus.INTERNAL_SERVER_ERROR);
+		        }
+		    }
+		}
+
+		// PDF Export
+		try {
+			JRPdfExporter exporter = new JRPdfExporter();
+			exporter.setExporterInput(SimpleExporterInput.getInstance(allPrint));
+			exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(savePath));
+			exporter.exportReport();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>("fail", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		return new ResponseEntity<>("success", HttpStatus.OK);
+	}
+
+	public static class mthTaxBillVO {
+	    private String rptNo;
+	    private String blNo;
+	    private String nabFirm;
+	    
+		public String getRptNo() {
+			return rptNo;
+		}
+		public void setRptNo(String rptNo) {
+			this.rptNo = rptNo;
+		}
+		public String getBlNo() {
+			return blNo;
+		}
+		public void setBlNo(String blNo) {
+			this.blNo = blNo;
+		}
+		public String getNabFirm() {
+			return nabFirm;
+		}
+		public void setNabFirm(String nabFirm) {
+			this.nabFirm = nabFirm;
+		}
 	}
 	
 	@RequestMapping(value = "/document/insertDocuFilesInfo.do")
@@ -795,7 +1162,6 @@ public class DocumentController {
 	return mav ;
 	} 
 	
-	// ResponseEntity<String> String 반환값 처리를 위함   * ex. "success" or "fail"
 	// 다중 체크 다운로드
 	@PostMapping(value = "/document/downLoadZipFileDocuList.do")
 	public ResponseEntity<String> downLoadZipFileDocuList(@RequestBody List<ZipDocuFileDownload> downloadFile,
@@ -805,24 +1171,24 @@ public class DocumentController {
 	    
 	    List<?> resultList = null;
 	    for (ZipDocuFileDownload zipFile : downloadFile) {
-	    	List<ZipDocuFileDownload> zipFiles = new ArrayList<>(); //선택한 파일을 확인하기 위한 새로운 배열 선언
+	    	List<ZipDocuFileDownload> zipFiles = new ArrayList<>();
 	    	Map<String, Object> paramMap = new HashMap<>();
 	    	System.out.println(zipFile.getRptNo());
 	    	System.out.println(zipFile.getMgCode());
 	    	System.out.println(zipFile.getBlno());
-	    	zipFiles.add(zipFile); //다운로드 시도할 신고번호를 paramMap 오브젝트에 넣기 위해 배열에 추가
+	    	zipFiles.add(zipFile);
 	    
-	    paramMap.put("zipFiles", zipFiles);
-	    System.out.println(paramMap);
-	    resultList = pfdocumentService.selectDownloadFileList(paramMap); 
-	    System.out.println("resultList : " + resultList);
-	    
-	    if(resultList.size() == 0) {
-	    	return ResponseEntity.status(HttpStatus.OK).body("fail");
-	    }
-	    List<String> docuFiles = new ArrayList<>();
-	    List<String> docuOrgFiles = new ArrayList<>();
-	    List<String> saveDir = new ArrayList<>();
+		    paramMap.put("zipFiles", zipFiles);
+		    System.out.println(paramMap);
+		    resultList = pfdocumentService.selectDownloadFileList(paramMap); 
+		    System.out.println("resultList : " + resultList);
+		    
+		    if(resultList.size() == 0) {
+		    	return ResponseEntity.status(HttpStatus.OK).body("fail");
+		    }
+		    List<String> docuFiles = new ArrayList<>();
+		    List<String> docuOrgFiles = new ArrayList<>();
+		    List<String> saveDir = new ArrayList<>();
 	        for (Object result : resultList) { // 조회된 결과 값이 있을 경우 zip 파일을 만들기 위한 파일명, 파일경로를 배열로 처리
 	        	@SuppressWarnings("unchecked")
 	        	Map<String, Object> resultMap = (Map<String, Object>) result;
@@ -844,38 +1210,45 @@ public class DocumentController {
 	        }
 	        
 	        System.out.println("파일명: " + zipFileName);
-	        createZipFile(docuOrgFiles, zipFileName, saveDir, docuFiles); // 선언된 배열 zip 파일로 만들기
-	    }
-	        return ResponseEntity.status(HttpStatus.OK).body("success");
-	    }
+	        createZipFile((List<Map<String, Object>>) resultList, zipFileName);
+		}
+	    return ResponseEntity.status(HttpStatus.OK).body("success");
+	}
 	    
 
-	private void createZipFile(List<String> docuOrgFiles, String zipFileName, List<String> saveDir, List<String> docuFiles) throws IOException {
-	    String zipFilePath = "/home/files" + File.separator + zipFileName;
+	private void createZipFile(List<Map<String, Object>> resultList, String zipFileName) throws IOException {
+	    String zipFilePath = "/home/files/" + zipFileName;
 	    try (FileOutputStream fos = new FileOutputStream(zipFilePath);
-    		ZipArchiveOutputStream zos = new ZipArchiveOutputStream(fos)) {
-	        
-	        for (int i = 0; i < docuOrgFiles.size(); i++) {
-	        	String docuFile = docuFiles.get(i);
-	        	String docuOrgFile = docuOrgFiles.get(i);
-	        	String saveDir2 = saveDir.get(i);
-	        	File file = new File(saveDir2, docuFile);
-	        	ZipArchiveEntry zipEntry = new ZipArchiveEntry(file, docuOrgFile);
-	            if (file.exists()) {
+	         ZipArchiveOutputStream zos = new ZipArchiveOutputStream(fos)) {
+	        for (Map<String, Object> resultMap : resultList) {
+	            String docuPath = (String) resultMap.get("docuPath");
+	            String docuFile = (String) resultMap.get("docuFile");
+	            String docuOrgFile = (String) resultMap.get("docuOrgFile");
+	            String rptNo = (String) resultMap.get("rptNo");
+	            File file = new File(docuPath, docuFile);
+
+	            if (!file.exists() && docuPath.contains(rptNo)) {
+	                int end = docuPath.indexOf(rptNo) + rptNo.length();
+	                String correctedPath = docuPath.substring(0, end); // 예) C:\mnt\nas\2. 보관\CI\(주)디엠씨\수입\2025\05\21\신고번호
+	                file = new File(correctedPath, docuFile);
+	            }
+	            // System.out.println("파일 경로: " + file.getAbsolutePath() + "파일 여부: " + file.exists());
+
+	            ZipArchiveEntry zipEntry = new ZipArchiveEntry(file, docuOrgFile);
+	            zos.putArchiveEntry(zipEntry);
+
+	            try (FileInputStream fis = new FileInputStream(file)) {
 	                byte[] buffer = new byte[1024];
-	                FileInputStream fis = new FileInputStream(file);
-	                zos.putArchiveEntry(zipEntry);
 	                int length;
 	                while ((length = fis.read(buffer)) > 0) {
 	                    zos.write(buffer, 0, length);
 	                }
-	                zos.closeArchiveEntry();
-	                fis.close();
 	            }
-			}
+	            zos.closeArchiveEntry();
+	        }
 	    }
 	}
-	
+
 	@RequestMapping(value = "/docu/downloadDocuFile.do")
   	public void downloadDocuFile(
   			HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -905,16 +1278,15 @@ public class DocumentController {
 	@ResponseBody
 	public void deleteDocuFile(@RequestBody List<ZipFileDownload> downloadFile, HttpServletRequest request, ModelMap model) throws Exception {
 		SearchVO vo = new SearchVO();
-		  for (ZipFileDownload file : downloadFile) {
-			  vo.setSrch1(file.getDocuFile());
-			  vo.setSrch2(file.getDocuOrgFile());
-			  vo.setSrch3(file.getDocuPath());
-			  vo.setSrch4(file.getUploadDt());
-			  
-			  pfdocumentService.deleteDocuFile(vo);
-		  }
+		for (ZipFileDownload file : downloadFile) {
+			vo.setSrch1(file.getDocuFile());
+			vo.setSrch2(file.getDocuOrgFile());
+			vo.setSrch3(file.getDocuPath());
+			vo.setSrch4(file.getUploadDt());
+		  
+			pfdocumentService.deleteDocuFile(vo);
+		}
 	}
-	
 	
 	@PostMapping(value = "/document/downloadFileZip.do")
 	public void downloadFileZip(@RequestBody List<ZipFileDownload> downloadFile,
@@ -939,12 +1311,10 @@ public class DocumentController {
             	saveDir2 = file.getDocuPath();
                 addFileToZip(saveDir2, file.getDocuFile(), zipOut, file.getDocuOrgFile());
             }
-	            zipOut.close();
+	        zipOut.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			
-		}
+		} 
 	}
 	
 	private void addFileToZip(String directoryPath, String fileName, ZipArchiveOutputStream zipOut, String fileOrgName) throws IOException {

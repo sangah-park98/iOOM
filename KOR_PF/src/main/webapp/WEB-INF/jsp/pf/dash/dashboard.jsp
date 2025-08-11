@@ -20,7 +20,24 @@
 	<script src="/pf/js/dash/dashboard.js?v=<%=fmt.format(today)%>"  charset="UTF-8"></script>
 	<script src="/pf/js/function.js"></script>
 	
-	
+<style>
+  .loadingReport {
+    	margin: auto;
+	    height: 20px;
+	    display: table-cell;
+	    align-items: center;
+	    vertical-align: middle;
+    }
+    
+    .completeReport {
+    	margin: auto;
+	    height: 20px;
+	    display: table-cell;
+	    align-items: center;
+	    vertical-align: middle;
+    }
+
+</style>
 	
 	
 	
@@ -319,12 +336,44 @@
 		<input type="hidden" name="mainNewsFileDown" id="mainNewsFileDown"/>
     </form>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<!-- 모달  -->
+<div class="modal-popup-report fixed top-0 left-0 h-full w-full z-[200] bg-black/50 items-center justify-center duration-300 hidden">
+  <div class="modal-close absolute top-0 left-0 w-full h-full"></div>
+  <!-- Uploader Modal content -->
+  <div class="modal-report hidden modal-content bg-white shadow-xl relative rounded min-w-96 overflow-hidden">
+    <div class="pl-3 pr-3 py-2 text-white bg-primary-900 flex items-center justify-between">
+      <h2 class="font-bold text-lg">
+      	${msgDataCollectInProgress}<br/>
+      	${msgDataCollectInProgress2}
+ <!--      	데이터를 수집 및 분석 중입니다.<br/>
+      	수집량에 따라 시간이 다소 소요될 수 있습니다. -->
+      </h2>
+      <button type="button" class="modal-close-report text-2xl px-1.5 py-1 rounded-lg hover:bg-rose-500/70 border-2 border-transparent hover:border-white duration-300 flex items-center justify-center"><i class="far fa-xmark"></i></button>
+    </div>
+	<div class="flex items-center justify-center w-full">
+	 <table class="anaylsis-table w-full">
+       	<thead id="dashHead2" style=" position: sticky; top: 0;">
+			<tr>
+				<th>${reportTitle}</th> <!-- 리포트 제목 -->
+				<th>${status}</th> <!-- 상태 -->
+			</tr>
+	   </thead>
+       <tbody id="reportInfo"></tbody>
+     </table>
+	</div>
+  </div>
+</div>
+
+</body>
+
+
 <script>
 	var lang = "<%= request.getAttribute("lang") %>";
 	var impVal = "${impVal}";
 	var taxPaid = "${taxPaid}";
 	var cnt = "${cnt}";
 	var expVal = "${expVal}";
+	var cmpnyName = "${cmpnyName}"
 	
 </script>
 </body>

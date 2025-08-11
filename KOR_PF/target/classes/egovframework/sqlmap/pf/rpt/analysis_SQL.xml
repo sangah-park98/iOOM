@@ -25,18 +25,19 @@
 		   	FORMAT(IFNULL(B.sum5, 0), 0) AS sum5, <!-- 한계 당해 -->
 		   	FORMAT(IFNULL(B.cnt6, 0), 0) AS cnt6, <!-- 건수 전체 -->
 		   	FORMAT(IFNULL(B.sum6, 0), 0) AS sum6 <!-- 합계 전체 -->
-		FROM 
-			(SELECT '일반수입(11)' AS markCont, '11' AS mark
-			 	UNION
-			 SELECT '기타 수입승인 면제물품(94)' AS markCont, '94' AS mark
-			 	UNION
-			 SELECT '무상 견품 및 광고용품(87)' AS markCont, '87' AS mark
-			 	UNION
-			 SELECT '검사·수리 후 재수입(83)' AS markCont, '83' AS mark
-			 	UNION
-			 SELECT '대체물품 수입(93)' AS markCont, '93' AS mark
-			 	UNION
-			 SELECT '기타 (보세공장, 기타 재수입 등)' AS markCont, '9999' AS mark) A
+		FROM(
+			SELECT CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END AS markCont, '11' AS mark FROM msg_info b WHERE b.msg_id = '일반수입(11)'
+ 			UNION
+			SELECT CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END AS markCont, '94' AS mark FROM msg_info b WHERE b.msg_id = '기타 수입승인 면제물품(94)'
+			UNION
+			SELECT CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END AS markCont, '87' AS mark FROM msg_info b WHERE b.msg_id = '무상 견품 및 광고용품(87)'
+			UNION
+			SELECT CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END AS markCont, '83' AS mark FROM msg_info b WHERE b.msg_id = '검사·수리 후 재수입(83)'
+			UNION
+			SELECT CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END AS markCont, '93' AS mark FROM msg_info b WHERE b.msg_id = '대체물품 수입(93)'
+			UNION
+			SELECT CASE WHEN 'kr' = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END AS markCont, '9999' AS mark FROM msg_info b WHERE b.msg_id = '기타 (보세공장, 기타 재수입 등)'
+		) A
 		LEFT OUTER JOIN (SELECT C.excDiviMark AS excDiviMark,
 						        SUM((CASE WHEN C.Lis_day = SUBSTRING(REPLACE(#{srch3}, '-',''), 1, 4) - 4 THEN 1  ELSE 0 END)) AS cnt1,      
 						        SUM((CASE WHEN C.Lis_day = SUBSTRING(REPLACE(#{srch3}, '-',''), 1, 4) - 4 THEN Tot_Tax_Krw  ELSE 0 END)) AS sum1,
@@ -159,15 +160,17 @@
 			FORMAT(IFNULL(B.cnt6, 0), 0) AS cnt6, <!-- 건수 전체 -->   
 			FORMAT(IFNULL(B.sum6, 0), 0) AS sum6 <!-- 합계 전체 -->
 		FROM 
-			(SELECT '일반수출(11)' AS markCont, '11' AS mark
-			 	UNION
-			 SELECT '위탁가공을 위한 수출(29)' AS markCont, '29' AS mark
-			 	UNION
-			 SELECT '수리 후 재수입 수출(83)' AS markCont, '83' AS mark
-			 	UNION
-			 SELECT '기타 수출승인 면제물품(94)' AS markCont, '94' AS mark
-			 	UNION
-			 SELECT '기타 (보세공장, 기타 재수출 등)' AS markCont, '9999' AS mark) A
+			(
+			  SELECT CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END AS markCont, '11' AS mark FROM msg_info b WHERE b.msg_id = '일반수출(11)'
+			  UNION
+			  SELECT CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END AS markCont, '29' AS mark FROM msg_info b WHERE b.msg_id = '위탁가공을 위한 수출(29)'
+			  UNION
+			  SELECT CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END AS markCont, '83' AS mark FROM msg_info b WHERE b.msg_id = '수리 후 재수입 수출(83)'
+			  UNION
+			  SELECT CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END AS markCont, '94' AS mark FROM msg_info b WHERE b.msg_id = '기타 수출승인 면제물품(94)'
+			  UNION
+			  SELECT CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END AS markCont, '9999' AS mark FROM msg_info b WHERE b.msg_id = '기타 (보세공장, 기타 재수출 등)'
+			) A
 		LEFT OUTER JOIN (SELECT C.excDivi AS excDivi,
 						        SUM((CASE WHEN C.Exp_Lis_Day = SUBSTRING(REPLACE(#{srch3}, '-',''), 1, 4) - 4 THEN 1  ELSE 0 END)) AS cnt1,      
 						        SUM((CASE WHEN C.Exp_Lis_Day = SUBSTRING(REPLACE(#{srch3}, '-',''), 1, 4) - 4 THEN C.Tot_Rpt_Krw  ELSE 0 END)) AS sum1,
