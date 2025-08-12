@@ -182,7 +182,6 @@ public class MemberController {
    @ResponseBody
    @PostMapping(value="/member/cmpnyInfo.do")
    public ModelAndView cmpnyInfo(HttpServletRequest request, ModelMap model) throws Exception{
-	  System.out.println("111111");
 	   HttpSession session = request.getSession();
        UserSessionVO userVO = (UserSessionVO) session.getAttribute("USER");
        String usrId = userVO.getId();

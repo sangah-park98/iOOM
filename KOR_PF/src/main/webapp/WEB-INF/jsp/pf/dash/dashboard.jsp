@@ -374,6 +374,7 @@
 	var cnt = "${cnt}";
 	var expVal = "${expVal}";
 	var cmpnyName = "${cmpnyName}"
+	var customsReport = "${customsReport}"
 	
 </script>
 </body>

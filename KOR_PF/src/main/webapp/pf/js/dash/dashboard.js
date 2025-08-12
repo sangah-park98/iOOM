@@ -951,7 +951,7 @@ $('.table-container').css('display', 'block');
     // 데이터 구성
     var sData = {};
     sData["srch8"] = $("#dashbordDate").val();
-    console.log("날짜"+$("#dashbordDate").val());
+    // console.log("날짜"+$("#dashbordDate").val());
    
     $.ajax({
 		 url: url,
@@ -1118,7 +1118,7 @@ function exportRptPdf(data){
             doc.text(105, 110, String(data.rptDate1) + '년 ' + String(data.rptDate2) + '월', { align: "center" });
             doc.setFontSize(22);
             //doc.text(105, 120, '통관리포트', { align: "center" }); 파란
-            doc.text(105, 120, '통관리포트', { align: "center" }); 
+            doc.text(105, 120, customsReport, { align: "center" }); // 통관 리포트
             doc.setFontSize(30);
             //doc.text(105, 135, String(data.cmpnyInfo), { align: "center" }); 파란
             doc.text(105, 160, String(data.cmpnyInfo), { align: "center" }); 
@@ -4344,7 +4344,7 @@ function exportRptPdf(data){
                 		lastYPage9 = 130;
                 	}
                 	
-                    doc.setFontSize(16);
+                	doc.setFontSize(16);
                     doc.addFont('/pf/fonts/NanumSquareB.ttf', 'NanumSquareB', 'normal');
                     doc.setFont('NanumSquareB', 'normal');
                     //doc.setTextColor(62, 113, 175); //파란색
@@ -4354,7 +4354,7 @@ function exportRptPdf(data){
     	            doc.addFont('/pf/fonts/NanumSquareEB.ttf', 'NanumSquareEB', 'bold');
                     doc.setFont('NanumSquareEB', 'bold');
                     doc.setTextColor(108, 179, 63);
-                    doc.text(190, lastYPage9 + 20, "III. 공통");
+                    doc.text(190, lastYPage9 + 20, "III.공통");
                     
                     // 제목 + 설명을 넣을 영역을 네모박스로 그리기
                     var boxMargin12 =  5;  // 테두리와의 여백
@@ -4366,15 +4366,16 @@ function exportRptPdf(data){
                     doc.rect(5, lastYPage9 + 13, boxWidth12, boxHeight12, 'D'); 
                     
                     var reportData13 = data.reportData13;
+                    var reportData14 = data.reportData14;
                     console.log("reportData13",reportData13);
-                    if(reportData13.length == 0){
-                    	 noDataMsg = "* 조회 기간 동안 세관별 수입 신고건수 및 금액이 존재하지 않습니다.";
+                    if(reportData13.length == 0 && reportData14.length == 1){
+                    	 noDataMsg = "* 조회 기간 동안 세관별 신고건수 및 금액이 존재하지 않습니다.";
                          
                          doc.setFont('NanumSquareR', 'normal');
                          doc.setFontSize(10);
                          doc.setTextColor(64,64,64); // 회색 느낌
                          doc.text(noDataMsg, 10, 165);  // 위치 조정해서 출력
-                    }else{
+                    }else if(reportData13.length !== 0){
                     
 	                    var datas12 = [];
 	                    let currentGroupStartRow = 0;
@@ -4719,7 +4720,4 @@ function exportRptPdf(data){
         };
 
 	}
-
-
-
 

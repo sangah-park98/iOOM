@@ -36,10 +36,18 @@
 	</select>
 	
 	<select id="selectAllCmpnyList" parameterType="searchVO" resultType="egovMap">
-		  SELECT DISTINCT tax_no, cmpny_nm FROM user_cmpny_info
-		  WHERE 1=1
-		  AND (tax_no LIKE CONCAT('%',UPPER(#{srch1}),'%') OR cmpny_nm LIKE CONCAT('%',UPPER(#{srch1}),'%'))
-		  ORDER BY CMPNY_NM, TAX_NO
+		SELECT DISTINCT
+			u.tax_no,
+		  	IFNULL(CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END, u.cmpny_nm) AS cmpny_nm
+		FROM user_cmpny_info u
+		LEFT JOIN msg_info b ON b.msg_id = u.cmpny_nm
+		WHERE 1=1
+		AND (
+		    u.tax_no LIKE CONCAT('%', #{srch1}, '%') 
+		    OR
+		    IFNULL(CASE WHEN #{lang} = 'en' THEN b.msg_nm_en ELSE b.msg_nm_kr END, u.cmpny_nm) LIKE CONCAT('%', #{srch1}, '%')
+		)
+		ORDER BY cmpny_nm, tax_no;
 	</select>
 
 	<!-- 대메뉴 조회 -->
