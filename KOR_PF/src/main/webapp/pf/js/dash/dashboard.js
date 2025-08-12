@@ -1118,7 +1118,7 @@ function exportRptPdf(data){
             doc.text(105, 110, String(data.rptDate1) + '년 ' + String(data.rptDate2) + '월', { align: "center" });
             doc.setFontSize(22);
             //doc.text(105, 120, '통관리포트', { align: "center" }); 파란
-            doc.text(105, 120, customsReport, { align: "center" }); // 통관 리포트
+            doc.text(105, 120, '통관 리포트', { align: "center" }); // 통관 리포트 customsReport
             doc.setFontSize(30);
             //doc.text(105, 135, String(data.cmpnyInfo), { align: "center" }); 파란
             doc.text(105, 160, String(data.cmpnyInfo), { align: "center" }); 
